@@ -59,3 +59,10 @@ inactive saves launched none. Live hosts/profile hashes remained unchanged.
 Tests use synthetic profiles and isolated defaults. Installation is a separate
 owner-authorized step with a backup of the existing app, both profile stores and
 the effective preference domain. Preserve live profile bytes and preferences.
+
+All 146 XCTest tests and all 28 storage assertions passed for ww7.4. The native
+table is explicitly subscribed to store updates; the layout test also verifies
+row count after removal/addition and visible first-row text after a same-count
+reorder. A native drag put Production ahead of Development and the preview
+followed that order. The interactive preview runner exited before finishing its
+test; the subsequent complete automated suite passed all layout/refresh checks.

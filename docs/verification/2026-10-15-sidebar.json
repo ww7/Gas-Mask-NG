@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-15",
+  "tested_commit": "5fa499663c55c6a9b6e24e9d5885cf4f8e45d897",
+  "runtime_source_tree_sha256": "6a894098d5ac8a3433bb4fb9214810f3a94ffaed94c52696436f132b1ae7cc17",
+  "release_tag": "v0.8.7-ww7.4",
+  "xcode_version": "27.0",
+  "xcode_build": "27A266a",
+  "macos_version": "27.0.1",
+  "sdk_version": "27.0",
+  "test_architecture": "arm64",
+  "release_architectures": [
+    "arm64",
+    "x86_64"
+  ],
+  "xctest": {
+    "result": "Passed",
+    "totalTestCount": 146,
+    "passedTests": 146,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "expectedFailures": 0,
+    "runtimeWarnings": [],
+    "testFailures": [],
+    "startTime": 1792090125.75,
+    "finishTime": 1792090166.796
+  },
+  "storage_migration_assertions_passed": 28,
+  "live_hosts_and_profiles_unchanged": true,
+  "signature": "ad-hoc",
+  "notarized": false,
+  "result_bundle": "build/TestResults-20261015T184839Z.xcresult",
+  "regression_checks": {
+    "insertion_boundaries_both_directions_and_end": true,
+    "invalid_and_noop_drops_do_not_dirty": true,
+    "generated_contents_and_saved_order_roundtrip": true,
+    "native_table_refreshes_after_add_remove_and_same_count_move": true,
+    "toolbar_mode_persistence": true,
+    "system_writes_use_temporary_fixture": true
+  },
+  "ui_qa": {
+    "synthetic_profiles_only": true,
+    "appearances": [
+      "light",
+      "dark"
+    ],
+    "window_sizes": [
+      [
+        1100,
+        700
+      ],
+      [
+        620,
+        480
+      ]
+    ],
+    "right_sidebar_max_width_points": 240,
+    "native_row_height_points": 22,
+    "numbering_and_included_count_removed": true,
+    "row_controls_before_name": [
+      "drag grip",
+      "remove"
+    ],
+    "save_symbol": "internaldrive",
+    "native_reorder_observed": [
+      "Production",
+      "Development",
+      "QA",
+      "Sandbox",
+      "Staging"
+    ],
+    "preview_begins_with_first_reordered_file": true,
+    "native_drag_validation_observed_local": true,
+    "native_interactive_preview_result": "interaction confirmed; preview runner exited before test completion",
+    "native_interactive_result_bundle": "build/Sidebar-Native-QA3.xcresult",
+    "automated_layout_and_refresh_result": "Passed in full suite",
+    "opaque_footer_reserved_points": 25,
+    "long_text_scrolls_to_end": true
+  }
+}
