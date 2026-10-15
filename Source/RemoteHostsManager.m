@@ -138,7 +138,6 @@
 	RemoteHosts *hosts = (RemoteHosts*)[downloader hosts];
 	[hosts setEnabled:YES];
 	[hosts setContents:[downloader response]];
-	[hosts setUpdated:[NSDate date]];
 
 	if ([downloader lastModified]) {
 	 [hosts setLastModified:[downloader lastModified]];
@@ -154,6 +153,7 @@
 	}
 	else {
 		[hosts setError:nil];
+        [hosts setUpdated:[NSDate date]];
 	}
 
 	[hostsController saveHosts:hosts];
@@ -165,6 +165,17 @@
 	[self removeDownloader:downloader];
 
 	[self saveRemoteHostsProperties];
+}
+
+- (void)hostsUpToDate:(HostsDownloader*)downloader
+{
+    // A successful check is useful even when no content changed. Keep the
+    // existing persisted key so older profiles retain their update history.
+    RemoteHosts *hosts = (RemoteHosts*)[downloader hosts];
+    [hosts setUpdated:[NSDate date]];
+    if ([downloader lastModified]) { [hosts setLastModified:[downloader lastModified]]; }
+    [self saveRemoteHostsProperties];
+    [super hostsUpToDate:downloader];
 }
 
 - (void)removeDownloader:(HostsDownloader*)downloader

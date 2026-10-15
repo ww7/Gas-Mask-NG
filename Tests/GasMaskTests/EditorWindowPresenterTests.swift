@@ -237,10 +237,16 @@ final class EditorWindowPresenterTests: XCTestCase {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
 
-        let files = try ["Development", "Production", "QA", "Sandbox", "Staging", "Work"].map { name in
+        let files = try ["Development", "Production", "QA", "Sandbox", "Staging", "Work"].map { name -> Hosts in
             let path = directory.appendingPathComponent("\(name).hst")
             let content = (0..<100).map { "127.0.0.1 \(name.lowercased())-\($0).example.test" }.joined(separator: "\n")
-            try content.write(to: path, atomically: true, encoding: .utf8)
+            let conflictLine = name == "Development" ? "\n127.0.0.1 conflict.example.test" : name == "Production" ? "\n127.0.0.2 conflict.example.test" : ""
+            try (content + conflictLine).write(to: path, atomically: true, encoding: .utf8)
+            if name == "Production" {
+                let remote = try XCTUnwrap(RemoteHosts(path: path.path))
+                remote.updated = Date(timeIntervalSince1970: 1792104300)
+                return remote
+            }
             return try XCTUnwrap(Hosts(path: path.path))
         }
         let combinedPath = directory.appendingPathComponent("Combined.hst")
@@ -365,6 +371,14 @@ final class EditorWindowPresenterTests: XCTestCase {
         let firstCell = try XCTUnwrap(table.view(atColumn: 0, row: 0, makeIfNecessary: true))
         XCTAssertTrue(descendants(firstCell).compactMap { $0 as? NSTextField }.contains { $0.stringValue == "Work" },
                       "Native table must refresh after a same-count reorder")
+        store.selectedHosts = files[1]
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.3))
+        let remoteHold = output.appendingPathComponent("hold-remote-update")
+        let remoteDeadline = Date(timeIntervalSinceNow: 120)
+        while FileManager.default.fileExists(atPath: remoteHold.path), Date() < remoteDeadline {
+            while let event = NSApp.nextEvent(matching: .any, until: Date(), inMode: .default, dequeue: true) { NSApp.sendEvent(event) }
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.01))
+        }
     }
 
     func testFindCommentAndSearchNavigation_useNativeEditorPipeline() throws {

@@ -11,18 +11,33 @@ enum HostsStatistics {
             let uncommented = line.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false)[0]
             let fields = uncommented.split(whereSeparator: \.isWhitespace)
             guard fields.count > 1 else { continue }
-            var address = in6_addr()
-            let valid = String(fields[0]).withCString {
-                inet_pton(AF_INET, $0, &address) == 1 || inet_pton(AF_INET6, $0, &address) == 1
-            }
-            guard valid else { continue }
+            guard canonicalAddress(String(fields[0])) != nil else { continue }
             for field in fields.dropFirst() {
-                let name = field.lowercased()
-                names.insert(name.hasSuffix(".") ? String(name.dropLast()) : name)
+                let name = normalizedHostname(String(field))
+                if !name.isEmpty { names.insert(name) }
             }
         }
         return names.count
     }
+
+    static func normalizedHostname(_ name: String) -> String {
+        let lower = name.lowercased()
+        return lower.hasSuffix(".") ? String(lower.dropLast()) : lower
+    }
+
+    static func canonicalAddress(_ value: String) -> (family: Int32, value: String)? {
+        var address = in6_addr()
+        let family: Int32 = value.withCString { pointer in
+            if inet_pton(AF_INET, pointer, &address) == 1 { return AF_INET }
+            if inet_pton(AF_INET6, pointer, &address) == 1 { return AF_INET6 }
+            return 0
+        }
+        guard family != 0 else { return nil }
+        var buffer = [CChar](repeating: 0, count: Int(INET6_ADDRSTRLEN))
+        guard inet_ntop(family, &address, &buffer, socklen_t(buffer.count)) != nil else { return nil }
+        return (family, String(cString: buffer))
+    }
+
 }
 
 struct StatusBarView: View {

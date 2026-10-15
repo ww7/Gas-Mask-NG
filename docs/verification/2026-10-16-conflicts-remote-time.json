@@ -1,0 +1,25 @@
+{
+  "candidate": "0.8.7-ww7.19",
+  "result": "passed",
+  "focused_tests": 3,
+  "full_suite_run": false,
+  "fixtures": "temporary synthetic files; isolated test bundle preferences; intercepted reserved .test URL",
+  "xcresult": "build/ww7.19-final.xcresult",
+  "checks": [
+    "conflict domains compare canonical address sets per source and IP family",
+    "aliases, case/trailing-dot normalization, comments, invalid addresses, matching multi-address sets and repeated source references",
+    "accurate CRLF/blank source line numbers and deterministic source order; analysis does not modify input",
+    "Remote timestamp advances for changed and unchanged success and cached HTTP 304",
+    "network failure, HTTP 404/500 and invalid UTF-8 retain prior success time and content",
+    "persisted existing updated metadata reloads correctly; only the targeted Remote profile changes",
+    "native Combined summary opens a detail sheet with domain, IP, source type/name and line",
+    "native Remote header and Included Files remote-icon tooltip show last successful time",
+    "existing light/dark/compact/icon-only layouts and composition editing remain functional"
+  ],
+  "native_visual_inspection": [
+    "1 conflicting domain indicator in right sidebar",
+    "detail sheet: conflict.example.test, Development line 101 -> 127.0.0.1, Production line 101 -> 127.0.0.2",
+    "Remote header and icon tooltip show 16 Oct 2026 1:45 EEST from fixed synthetic timestamp"
+  ],
+  "runtime_warnings": []
+}

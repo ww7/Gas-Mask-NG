@@ -28,6 +28,8 @@ final class HostsDataStoreTests: XCTestCase {
         main.content = [group]
         network.online = true
         RefreshFixtureProtocol.fail = false
+        RefreshFixtureProtocol.statusCode = 200
+        RefreshFixtureProtocol.invalidUTF8 = false
         RefreshFixtureProtocol.paths = []
         URLProtocol.registerClass(RefreshFixtureProtocol.self)
         defer {
@@ -61,18 +63,50 @@ final class HostsDataStoreTests: XCTestCase {
         XCTAssertEqual(files[1].contents(), RefreshFixtureProtocol.body)
         XCTAssertEqual(try String(contentsOfFile: files[1].path, encoding: .utf8), RefreshFixtureProtocol.body)
         XCTAssertTrue(files[1].saved())
+        XCTAssertNotNil(files[1].updated)
+        XCTAssertNil(files[0].updated, "Only the requested file's timestamp changes")
+        let earlier = Date(timeIntervalSince1970: 100)
+        files[1].updated = earlier
 
         // Unchanged content and an error both end the busy state; a failed
         // refresh must not leave the group permanently synchronizing.
         store.update(files[1]); waitForCompletion()
+        let lastSuccess = try XCTUnwrap(files[1].updated)
+        XCTAssertGreaterThan(lastSuccess, earlier, "An unchanged successful check advances the timestamp")
         RefreshFixtureProtocol.fail = true
         store.update(files[1]); waitForCompletion()
         XCTAssertNotNil(files[1].error())
+        XCTAssertEqual(files[1].updated, lastSuccess)
         XCTAssertEqual(files[1].contents(), RefreshFixtureProtocol.body)
         RefreshFixtureProtocol.fail = false
         store.update(files[1]); waitForCompletion()
         XCTAssertNil(files[1].error(), "Successful unchanged response clears the previous download error")
         XCTAssertEqual(RefreshFixtureProtocol.paths, Array(repeating: "/Second", count: 4))
+        for status in [404, 500] {
+            RefreshFixtureProtocol.statusCode = status
+            let previous = files[1].updated
+            store.update(files[1]); waitForCompletion()
+            XCTAssertEqual(files[1].updated, previous, "HTTP errors must not appear successful")
+            XCTAssertNotNil(files[1].error())
+        }
+        RefreshFixtureProtocol.statusCode = 200
+        RefreshFixtureProtocol.invalidUTF8 = true
+        let beforeInvalid = files[1].updated
+        store.update(files[1]); waitForCompletion()
+        XCTAssertEqual(files[1].updated, beforeInvalid)
+        XCTAssertNotNil(files[1].error())
+        RefreshFixtureProtocol.invalidUTF8 = false
+        RefreshFixtureProtocol.statusCode = 304
+        files[1].updated = earlier
+        store.update(files[1]); waitForCompletion()
+        XCTAssertGreaterThan(try XCTUnwrap(files[1].updated), earlier)
+        XCTAssertNil(files[1].error())
+        let retained = files[1].updated
+        files[1].updated = nil
+        let manager = try XCTUnwrap(controller.value(forKey: "manager") as? NSObject)
+        manager.perform(NSSelectorFromString("loadRemoteHostsProperties"))
+        XCTAssertEqual(files[1].updated, retained, "Timestamp survives persisted metadata reload")
+        XCTAssertEqual(RemoteUpdateStatus.summary(nil), "No successful update recorded")
         network.online = false
         XCTAssertFalse(controller.update(files[1]))
         network.online = true
@@ -109,6 +143,31 @@ final class HostsDataStoreTests: XCTestCase {
         let big = ProfileSearchDocument(path: "fixture", name: "Big", remote: false,
             contents: Array(repeating: "127.0.0.1 found.test", count: 1000).joined(separator: "\n"))
         XCTAssertEqual(ProfileSearchIndex.matches("found", documents: [big]).count, ProfileSearchIndex.resultLimit)
+    }
+
+    func testCombinedConflicts_compareAddressSetsPerFamilyWithoutChangingSources() {
+        let first = ProfileSearchDocument(path: "first", name: "First", remote: false, contents:
+            "# 127.0.0.9 ignored.test\r\n\r\n127.0.0.1 MIXED.test alias.test\r\n::1 dual.test\n127.0.0.1 same.test\n2001:db8::1 ipv6.test\n127.0.0.1 multi.test\n127.0.0.2 multi.test\n127.0.0.1 local-only.test\n127.0.0.2 local-only.test\n")
+        let second = ProfileSearchDocument(path: "second", name: "Second", remote: true, contents:
+            "127.0.0.2 mixed.TEST. alias.test # ignored.test\n127.0.0.1 dual.test same.test\n2001:0db8:0:0:0:0:0:1 ipv6.test\n127.0.0.2 multi.test\n127.0.0.1 multi.test\ninvalid ignored.test\n")
+        let documents = [first, second]
+        let conflicts = CombinedConflictIndex.conflicts(in: documents)
+        XCTAssertEqual(conflicts.map(\.domain), ["alias.test", "mixed.test"])
+        XCTAssertEqual(conflicts[0].sources.map(\.name), ["First", "Second"])
+        XCTAssertEqual(conflicts[0].sources.map(\.line), [3, 1], "CRLF and blank lines retain accurate source line numbers")
+        XCTAssertEqual(conflicts[0].sources.map(\.address), ["127.0.0.1", "127.0.0.2"])
+        XCTAssertTrue(conflicts[0].sources[1].remote)
+        XCTAssertTrue(CombinedConflictIndex.conflicts(in: [first]).isEmpty)
+        let repeated = CombinedConflictIndex.conflicts(in: [first, first, second])
+        XCTAssertEqual(repeated.map { $0.sources.count }, conflicts.map { $0.sources.count })
+        let ipv6 = ProfileSearchDocument(path: "ipv6", name: "IPv6", remote: false,
+            contents: "2001:db8::2 ipv6.test\n")
+        XCTAssertEqual(CombinedConflictIndex.conflicts(in: [first, ipv6]).map(\.domain), ["ipv6.test"])
+        XCTAssertEqual(CombinedConflictIndex.conflicts(in: [second, first]).map(\.domain), conflicts.map(\.domain))
+        XCTAssertEqual(documents, [first, second], "Analysis must not rewrite or reorder sources")
+        let changed = ProfileSearchDocument(path: "second", name: "Second", remote: true,
+            contents: "127.0.0.1 mixed.test alias.test\n")
+        XCTAssertTrue(CombinedConflictIndex.conflicts(in: [first, changed]).isEmpty)
     }
 
     // MARK: - Notification Name Constants
@@ -318,6 +377,8 @@ final class HostsDataStoreTests: XCTestCase {
 private final class RefreshFixtureProtocol: URLProtocol {
     static var paths: [String] = []
     static var fail = false
+    static var statusCode = 200
+    static var invalidUTF8 = false
     static let body = "127.0.0.1 updated.example.test"
     override class func canInit(with request: URLRequest) -> Bool {
         request.url?.host == "gasmask-refresh.example.test"
@@ -329,10 +390,10 @@ private final class RefreshFixtureProtocol: URLProtocol {
             if Self.fail {
                 self.client?.urlProtocol(self, didFailWithError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCannotConnectToHost))
             } else {
-                let response = HTTPURLResponse(url: self.request.url!, statusCode: 200, httpVersion: nil,
+                let response = HTTPURLResponse(url: self.request.url!, statusCode: Self.statusCode, httpVersion: nil,
                     headerFields: ["Content-Type": "text/plain"])!
                 self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-                self.client?.urlProtocol(self, didLoad: Data(Self.body.utf8))
+                self.client?.urlProtocol(self, didLoad: Self.statusCode == 304 ? Data() : Self.invalidUTF8 ? Data([0xff]) : Data(Self.body.utf8))
                 self.client?.urlProtocolDidFinishLoading(self)
             }
         }

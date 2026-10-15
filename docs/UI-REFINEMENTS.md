@@ -315,3 +315,33 @@ navigation, search/count semantics, and light/dark/compact layouts. Native help 
 search sheets were inspected on synthetic fixtures. The full suite and privileged
 system-hosts activation were not repeated. Evidence:
 `verification/2026-10-16-search-comment-help.json`.
+
+
+## ww7.19: Combined conflicts and successful Remote-update time
+
+Combined's right sidebar shows a conflict count (or No domain conflicts). Click
+it to review each normalized domain, canonical IP addresses, source file/type and
+line number. Analysis uses current source contents, including unsaved edits,
+runs on a cancellable worker and never modifies addresses or composition order.
+Compare address sets across distinct sources separately for IPv4 and IPv6. Normal
+dual-stack pairs, identical sets (including reordered multi-address sets), comments,
+invalid-address lines and repeated references to the same file do not produce
+false conflicts. Normalize case, trailing hostname dots and IPv6 spellings.
+
+Remote profiles show Last successful update above the editor, with a complete
+localized timestamp in the tooltip. Remote icons in Included Files have the same
+information. Unknown history says No successful update recorded. Reuse the
+existing persisted `updated` metadata key; no profile migration is needed.
+Changed content, unchanged content and HTTP 304 with an existing cache all count
+as successful checks. Failures retain the previous timestamp. Updating metadata
+notifies the views, and Included Files cells refresh their tooltips as it changes.
+HTTP error responses and invalid UTF-8 are rejected rather than being mistaken
+for successful updates. This timestamp reports a remote download/check, not an
+audit of privileged application to the system hosts file.
+
+Three focused tests passed with temporary fixtures: conflict semantics and source
+locations, the Remote download/status/persistence lifecycle, and native layout in
+light/dark/compact/icon-only windows. Used native UI to open/close the conflict
+details and inspect the Remote header and icon tooltip. No live downloads, owner
+profiles or system hosts were used by tests; full suites were not repeated.
+Evidence: `verification/2026-10-16-conflicts-remote-time.json`.

@@ -5,16 +5,23 @@ struct ContentView: View {
 
     var body: some View {
         HSplitView {
-            HostsTextViewRepresentable(
-                selectedHosts: store.selectedHosts,
-                contentToken: store.rowRefreshToken,
-                focusRequest: store.editorFocusRequest,
-                onTextChange: { [weak store] newText in
-                    store?.selectedHosts?.setContents(newText)
-                },
-                selectionRange: store.editorSelection
-            )
-            .clipped()
+            VStack(spacing: 0) {
+                if let remote = store.selectedHosts as? RemoteHosts {
+                    RemoteUpdateView(remote: remote, refreshToken: store.rowRefreshToken)
+                    Divider()
+                }
+                HostsTextViewRepresentable(
+                    selectedHosts: store.selectedHosts,
+                    contentToken: store.rowRefreshToken,
+                    focusRequest: store.editorFocusRequest,
+                    onTextChange: { [weak store] newText in
+                        store?.selectedHosts?.setContents(newText)
+                    },
+                    selectionRange: store.editorSelection
+                )
+                .clipped()
+                .frame(minWidth: 80, maxWidth: .infinity, maxHeight: .infinity)
+            }
             .frame(minWidth: 80, maxWidth: .infinity, maxHeight: .infinity)
             if store.selectedHosts is CombinedHosts {
                 CombinedHostsPickerView(store: store)
@@ -143,5 +150,39 @@ struct ProfileSearchView: View {
             results = matches
             searching = false
         }
+    }
+}
+
+
+enum RemoteUpdateStatus {
+    static func summary(_ date: Date?) -> String {
+        guard let date else { return "No successful update recorded" }
+        return "Last successful update: " + date.formatted(date: .abbreviated, time: .shortened)
+    }
+}
+
+struct RemoteUpdateView: View {
+    let remote: RemoteHosts
+    let refreshToken: UInt64
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "clock.arrow.circlepath")
+            Text(RemoteUpdateStatus.summary(remote.updated))
+                .lineLimit(1).truncationMode(.middle)
+            Spacer(minLength: 0)
+            if remote.error() != nil {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .help("The last attempt failed; the previous successful update time is retained")
+            }
+        }
+        .font(.system(size: NSFont.smallSystemFontSize))
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 8).frame(height: 26)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .help(remote.updated.map { "Last successful download or check with no changes: " + $0.formatted(date: .complete, time: .complete) }
+            ?? "This file has no successful update time recorded yet")
+        .accessibilityIdentifier("remote-update-status")
     }
 }

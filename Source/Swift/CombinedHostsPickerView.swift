@@ -40,6 +40,7 @@ struct CombinedHostsPickerView: View {
                 } else {
                     CombinedFilesList(store: store, combined: combined)
                 }
+                CombinedConflictsView(store: store, combined: combined)
             }
             .controlSize(.small)
             .font(.system(size: NSFont.smallSystemFontSize))
@@ -97,6 +98,7 @@ struct CombinedFilesList: NSViewRepresentable {
         private var combined: CombinedHosts
         private var files: [Hosts] = []
         private var names: [String] = []
+        private var updatedDates: [Date?] = []
         private var draggedHosts: Hosts?
         private var draggedCombined: CombinedHosts?
         private var dragToken: String?
@@ -109,12 +111,14 @@ struct CombinedFilesList: NSViewRepresentable {
         func refresh(_ table: NSTableView, store: HostsDataStore, combined: CombinedHosts) {
             let next = (combined.hostsFiles() as? [Hosts]) ?? []
             let nextNames = next.map { $0.name() ?? "" }
+            let nextDates = next.map { ($0 as? RemoteHosts)?.updated }
             let changed = self.combined !== combined || files.count != next.count
-                || !zip(files, next).allSatisfy { $0 === $1 } || names != nextNames
+                || !zip(files, next).allSatisfy { $0 === $1 } || names != nextNames || updatedDates != nextDates
             self.store = store
             self.combined = combined
             files = next
             names = nextNames
+            updatedDates = nextDates
             if changed { table.reloadData() }
         }
 
@@ -122,7 +126,7 @@ struct CombinedFilesList: NSViewRepresentable {
 
         func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
             let hosts = files[row]
-            let cell = CombinedFileCell(name: names[row], isRemote: hosts is RemoteHosts)
+            let cell = CombinedFileCell(name: names[row], isRemote: hosts is RemoteHosts, updated: updatedDates[row])
             cell.removeFile = { [weak self, weak hosts] in
                 guard let self, let hosts else { return }
                 self.store.remove(hosts, from: self.combined)
@@ -188,7 +192,7 @@ final class CombinedFilesTableView: NSTableView {
 private final class CombinedFileCell: NSTableCellView {
     var removeFile: (() -> Void)?
 
-    init(name: String, isRemote: Bool) {
+    init(name: String, isRemote: Bool, updated: Date?) {
         super.init(frame: .zero)
         let grip = NSImageView()
         grip.image = NSImage(systemSymbolName: "line.3.horizontal", accessibilityDescription: "Drag \(name) to reorder")
@@ -205,7 +209,7 @@ private final class CombinedFileCell: NSTableCellView {
         fileIcon.image = NSImage(systemSymbolName: isRemote ? "globe" : "doc",
                                  accessibilityDescription: typeDescription)
         fileIcon.contentTintColor = .secondaryLabelColor
-        fileIcon.toolTip = typeDescription
+        fileIcon.toolTip = isRemote ? typeDescription + "\n" + RemoteUpdateStatus.summary(updated) : typeDescription
         let label = NSTextField(labelWithString: name)
         label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         label.lineBreakMode = .byTruncatingTail
@@ -231,4 +235,155 @@ private final class CombinedFileCell: NSTableCellView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     @objc private func removeFromCombined() { removeFile?() }
+}
+
+struct CombinedDomainConflict: Identifiable {
+    let domain: String
+    let sources: [CombinedConflictSource]
+    var id: String { domain }
+}
+
+struct CombinedConflictSource: Identifiable {
+    let path: String
+    let name: String
+    let remote: Bool
+    let line: Int
+    let address: String
+    var id: String { "\(path):\(line):\(address)" }
+}
+
+enum CombinedConflictIndex {
+    private struct Key: Hashable { let domain: String; let family: Int32 }
+
+    static func conflicts(in documents: [ProfileSearchDocument]) -> [CombinedDomainConflict] {
+        var records: [Key: [String: [CombinedConflictSource]]] = [:]
+        var visited = Set<String>()
+        for document in documents {
+            guard visited.insert(document.path).inserted else { continue }
+            var lineNumber = 0
+            (document.contents as NSString).enumerateSubstrings(
+                in: NSRange(location: 0, length: (document.contents as NSString).length),
+                options: .byLines
+            ) { line, _, _, stop in
+                if Task<Never, Never>.isCancelled { stop.pointee = true; return }
+                // enumerateSubstrings visits empty lines too with byLines.
+                lineNumber += 1
+                guard let line else { return }
+                let uncommented = line.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false)[0]
+                let fields = uncommented.split(whereSeparator: \.isWhitespace)
+                guard fields.count > 1,
+                      let address = HostsStatistics.canonicalAddress(String(fields[0])) else { return }
+                let domains = Set(fields.dropFirst().map { HostsStatistics.normalizedHostname(String($0)) })
+                for domain in domains where !domain.isEmpty {
+                    let key = Key(domain: domain, family: address.family)
+                    let source = CombinedConflictSource(path: document.path, name: document.name,
+                        remote: document.remote, line: lineNumber, address: address.value)
+                    records[key, default: [:]][document.path, default: []].append(source)
+                }
+            }
+        }
+        var conflicting: [String: [CombinedConflictSource]] = [:]
+        for (key, sources) in records {
+            if Task<Never, Never>.isCancelled { return [] }
+            guard sources.count > 1 else { continue }
+            let addressSets = Set(sources.values.map { Set($0.map(\.address)) })
+            guard addressSets.count > 1 else { continue }
+            conflicting[key.domain, default: []].append(contentsOf: sources.values.flatMap { $0 })
+        }
+        let order = Dictionary(documents.enumerated().map { ($1.path, $0) }, uniquingKeysWith: { first, _ in first })
+        return conflicting.map { domain, sources in
+            CombinedDomainConflict(domain: domain, sources: sources.sorted {
+                let first = order[$0.path] ?? 0, second = order[$1.path] ?? 0
+                if first != second { return first < second }
+                if $0.line != $1.line { return $0.line < $1.line }
+                return $0.address < $1.address
+            })
+        }.sorted { $0.domain.localizedStandardCompare($1.domain) == .orderedAscending }
+    }
+}
+
+struct CombinedConflictsView: View {
+    @ObservedObject var store: HostsDataStore
+    let combined: CombinedHosts
+    @State private var conflicts: [CombinedDomainConflict]?
+    @State private var showingDetails = false
+
+    private var documents: [ProfileSearchDocument] {
+        ((combined.hostsFiles() as? [Hosts]) ?? []).compactMap { hosts in
+            guard let path = hosts.path else { return nil }
+            return ProfileSearchDocument(path: path, name: hosts.name() ?? "", remote: hosts is RemoteHosts,
+                                         contents: hosts.contents() ?? "")
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Divider()
+            HStack(spacing: 5) {
+                if let conflicts {
+                    if conflicts.isEmpty {
+                        Label("No domain conflicts", systemImage: "checkmark.circle")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Button { showingDetails = true } label: {
+                            Label("\(conflicts.count) conflicting \(conflicts.count == 1 ? "domain" : "domains")",
+                                  systemImage: "exclamationmark.triangle")
+                                .foregroundStyle(.orange)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Show addresses and source files for conflicting domains")
+                        .accessibilityIdentifier("show-combined-conflicts")
+                    }
+                } else {
+                    ProgressView().controlSize(.small)
+                    Text("Checking domains…").foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+            }
+            .font(.caption)
+            .padding(8)
+        }
+        .help("Compares current source contents, including unsaved edits. IPv4 and IPv6 are checked separately.")
+        .task(id: documents) {
+            let snapshots = documents
+            conflicts = nil
+            let worker = Task.detached(priority: .utility) { CombinedConflictIndex.conflicts(in: snapshots) }
+            let result = await withTaskCancellationHandler(operation: { await worker.value }, onCancel: { worker.cancel() })
+            guard !Task.isCancelled else { return }
+            conflicts = result
+        }
+        .sheet(isPresented: $showingDetails) {
+            CombinedConflictsDetailView(conflicts: conflicts ?? [])
+        }
+    }
+}
+
+struct CombinedConflictsDetailView: View {
+    let conflicts: [CombinedDomainConflict]
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Domain Conflicts").font(.headline)
+            Text("These source files assign different addresses to the same domain. IPv4 and IPv6 are checked separately.")
+                .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            List(conflicts) { conflict in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(conflict.domain).fontWeight(.semibold).textSelection(.enabled)
+                    ForEach(conflict.sources) { source in
+                        HStack(alignment: .top, spacing: 12) {
+                            Label("\(source.name) · line \(source.line)", systemImage: source.remote ? "globe" : "doc")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(source.address).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+                        }
+                        .help(source.path)
+                    }
+                }.padding(.vertical, 5)
+            }
+            Text("Edit the source profiles to resolve conflicts. No addresses are changed automatically.")
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            HStack { Spacer(); Button("Close") { dismiss() }.keyboardShortcut(.cancelAction) }
+        }
+        .padding(20).frame(width: 600, height: 420)
+    }
 }

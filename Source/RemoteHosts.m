@@ -27,6 +27,13 @@
 @synthesize updated;
 @synthesize lastModified;
 
+- (void)setUpdated:(NSDate*)value
+{
+    if (updated == value || [updated isEqualToDate:value]) { return; }
+    updated = value;
+    [[NSNotificationCenter defaultCenter] postNotificationName:HostsNodeNeedsUpdateNotification object:self];
+}
+
 - (id)initWithPath:(NSString *)p
 {
 	self = [super initWithPath:p];

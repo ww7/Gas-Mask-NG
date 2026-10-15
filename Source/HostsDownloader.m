@@ -73,7 +73,11 @@
     NSURLSessionDataTask *task = [
           NSURLSession.sharedSession dataTaskWithURL:url
           completionHandler:^(NSData *data, NSURLResponse *urlResponse, NSError *taskError) {
-              if (taskError || !data || data.length == 0) {
+              NSHTTPURLResponse *httpResponse = [urlResponse isKindOfClass:[NSHTTPURLResponse class]] ? (NSHTTPURLResponse*)urlResponse : nil;
+              BOOL notModified = httpResponse.statusCode == 304 && [hosts isKindOfClass:[RemoteHosts class]]
+                  && [[NSFileManager defaultManager] fileExistsAtPath:[hosts path]];
+              if (taskError || !httpResponse || (!notModified &&
+                  (httpResponse.statusCode < 200 || httpResponse.statusCode >= 300 || data.length == 0))) {
                   error = [[Error alloc] initWithType:FailedToDownload];
                   NSString *description = @"Failed to download the hosts file";
                   [error setDescription:description];
@@ -83,11 +87,8 @@
                   return;
               }
               
-              NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)urlResponse;
               lastModified = [[httpResponse allHeaderFields] objectForKey:kHeaderLastModified];
-              
-              // Check If Hosts File Is Up To Date
-              if ([hosts isKindOfClass:[RemoteHosts class]] && [lastModified isEqual:[(RemoteHosts*)hosts lastModified]]) {
+              if (notModified) {
                   upToDate = YES;
                   [self notifyDelegateHostsUpToDate];
                   return;
@@ -113,6 +114,13 @@
               
               NSString * output = [[NSString alloc] initWithData:data
                                                         encoding:NSUTF8StringEncoding];
+              if (!output) {
+                  error = [[Error alloc] initWithType:BadContentType];
+                  [error setDescription:@"Can't download the hosts file. Its text is not valid UTF-8."];
+                  [error setUrl:url];
+                  [self notifyDelegateDownloadFailed];
+                  return;
+              }
               response = [NSMutableString string];
               [response appendString:output];
               
