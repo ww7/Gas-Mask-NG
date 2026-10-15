@@ -23,7 +23,7 @@
 #import "FileUtil.h"
 #import "Preferences.h"
 
-#define kDefaultCombinedHostsFileName @"Combined Hosts File"
+#define kDefaultCombinedHostsFileName @"Combined"
 
 @interface CombinedHostsController (Private)
 

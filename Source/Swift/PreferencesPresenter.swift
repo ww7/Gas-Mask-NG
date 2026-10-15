@@ -37,7 +37,7 @@ import SwiftUI
         let w = NSWindow(contentViewController: tabVC)
         w.styleMask = [.titled, .closable]
         w.toolbarStyle = .preference
-        w.title = tabVC.tabViewItems.first?.label ?? "Preferences"
+        w.title = tabVC.tabViewItems.first?.label ?? "Settings"
         w.setFrameAutosaveName("PreferencesWindow")
         tabVC.resizeToSelectedTab()
 

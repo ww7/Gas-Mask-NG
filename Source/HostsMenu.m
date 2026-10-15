@@ -146,22 +146,16 @@
         [self addItem:[NSMenuItem separatorItem]];
     }
 	
-	item = [[NSMenuItem alloc] initWithTitle:@"Preferences..." action:NULL keyEquivalent:@""];
-	[item setAction:@selector(openPreferencesWindow:)];
-	[item setTarget:controller];
-	[self addItem:item];
-	
-	if ([[HostsMainController defaultInstance] hostsFilesExistForControllerClass:[RemoteHostsController class]]) {
-		[self addItem:[NSMenuItem separatorItem]];
-	
-		item = [[NSMenuItem alloc] initWithTitle:@"Update Remote Files" action:NULL keyEquivalent:@""];
-		[item setAction:@selector(updateAndSynchronize:)];
-		[item setTarget:controller];
-		[self addItem:item];
-	}
-	
-	[self addItem:[NSMenuItem separatorItem]];
-	
+    if ([[HostsMainController defaultInstance] hostsFilesExistForControllerClass:[RemoteHostsController class]]) {
+        item = [[NSMenuItem alloc] initWithTitle:@"Update Remote Files" action:@selector(updateAndSynchronize:) keyEquivalent:@""];
+        [item setTarget:controller];
+        [self addItem:item];
+    }
+
+    item = [[NSMenuItem alloc] initWithTitle:@"Settings…" action:@selector(openPreferencesWindow:) keyEquivalent:@""];
+    [item setTarget:controller];
+    [self addItem:item];
+
 	item = [[NSMenuItem alloc] initWithTitle:@"Quit Gas Mask" action:NULL keyEquivalent:@""];
 	[item setAction:@selector(quit:)];
 	[item setTarget:controller];

@@ -1,18 +1,20 @@
 # Build status
 
-15 October 2026. Local candidate `0.8.7-ww7.9`, internal build `20261015.9`.
+15 October 2026. Local candidate `0.8.7-ww7.10`, internal build `20261015.10`.
 
 The owner requested a short iteration and will verify behavior manually. Validation
 for this candidate is the universal Release build, package architecture and strict
-local signature checks. No XCTest or storage test suite was run for ww7.9.
+local signature checks. No XCTest or storage test suite was run for ww7.10.
 The prior [ww7.4 test evidence](verification/2026-10-15-sidebar.json) remains
 historical evidence for that version, rather than a result for this candidate.
 
-Changes: center a 400-point preferences content block within the 500-point window,
-with 50-point horizontal and 26-point vertical margins. Keep leading alignment
-inside each tab and existing label/control alignment in Hotkeys. The editor-window
-hotkey now toggles the existing Show/Close actions and is labeled Show / Hide
-Editor Window; its stored shortcut is preserved. Retains the ww7.8 rename fixes.
+Changes: the bottom menu actions are Update Remote Files, Settings… and Quit,
+without separators between those actions. Preserve the separators around the
+profile section. Rename the app-menu Preferences item to Settings as well.
+Show standard globe/doc type icons in the Combined sidebar and Add File menu.
+New Combined profiles start with the shorter name Combined (existing names stay
+unchanged). Nested Combined profiles remain excluded from composition. Retains
+the ww7.8 rename and ww7.9 settings-spacing/hotkey-toggle changes.
 
 Build with `scripts/build-release.sh`: Xcode 27.0 (27A266a), macOS SDK 27.0,
 arm64 + x86_64, minimum macOS 13.0. The packaged app records its exact source

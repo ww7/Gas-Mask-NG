@@ -16,7 +16,9 @@ struct CombinedHostsPickerView: View {
                     Spacer(minLength: 4)
                     Menu {
                         ForEach(available, id: \.self) { hosts in
-                            Button(hosts.name() ?? "") { store.add(hosts, to: combined) }
+                            Button { store.add(hosts, to: combined) } label: {
+                                Label(hosts.name() ?? "", systemImage: hosts is RemoteHosts ? "globe" : "doc")
+                            }
                         }
                     } label: {
                         Label("Add File", systemImage: "plus")
@@ -120,7 +122,7 @@ struct CombinedFilesList: NSViewRepresentable {
 
         func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
             let hosts = files[row]
-            let cell = CombinedFileCell(name: names[row])
+            let cell = CombinedFileCell(name: names[row], isRemote: hosts is RemoteHosts)
             cell.removeFile = { [weak self, weak hosts] in
                 guard let self, let hosts else { return }
                 self.store.remove(hosts, from: self.combined)
@@ -186,7 +188,7 @@ final class CombinedFilesTableView: NSTableView {
 private final class CombinedFileCell: NSTableCellView {
     var removeFile: (() -> Void)?
 
-    init(name: String) {
+    init(name: String, isRemote: Bool) {
         super.init(frame: .zero)
         let grip = NSImageView()
         grip.image = NSImage(systemSymbolName: "line.3.horizontal", accessibilityDescription: "Drag \(name) to reorder")
@@ -198,11 +200,17 @@ private final class CombinedFileCell: NSTableCellView {
         remove.contentTintColor = .secondaryLabelColor
         remove.toolTip = "Remove from this Combined profile"
         remove.setAccessibilityLabel("Remove \(name) from Combined")
+        let fileIcon = NSImageView()
+        let typeDescription = isRemote ? "Remote file" : "Local file"
+        fileIcon.image = NSImage(systemSymbolName: isRemote ? "globe" : "doc",
+                                 accessibilityDescription: typeDescription)
+        fileIcon.contentTintColor = .secondaryLabelColor
+        fileIcon.toolTip = typeDescription
         let label = NSTextField(labelWithString: name)
         label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         label.lineBreakMode = .byTruncatingTail
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        let stack = NSStackView(views: [grip, remove, label])
+        let stack = NSStackView(views: [grip, remove, fileIcon, label])
         stack.orientation = .horizontal
         stack.alignment = .centerY
         stack.spacing = 5
@@ -215,7 +223,9 @@ private final class CombinedFileCell: NSTableCellView {
             grip.widthAnchor.constraint(equalToConstant: 16),
             grip.heightAnchor.constraint(equalToConstant: 16),
             remove.widthAnchor.constraint(equalToConstant: 16),
-            remove.heightAnchor.constraint(equalToConstant: 18)
+            remove.heightAnchor.constraint(equalToConstant: 18),
+            fileIcon.widthAnchor.constraint(equalToConstant: 16),
+            fileIcon.heightAnchor.constraint(equalToConstant: 16)
         ])
     }
 

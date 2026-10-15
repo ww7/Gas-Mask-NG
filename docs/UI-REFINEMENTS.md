@@ -132,3 +132,18 @@ This local candidate is not installed or published automatically.
 
 Build-only verification per the owner's preference. No automatic publication or
 installation; functional acceptance remains manual.
+
+## ww7.10: menu cleanup and Combined type icons
+
+- Keep the profile section separated, but remove separators between the bottom
+  actions. Order them Update Remote Files (when available), Settings…, Quit.
+  Use Settings… in the application menu too, preserving action selectors.
+- Add the same SF Symbols globe/doc distinction used in the main sidebar to
+  Combined rows (after grip/remove, before the filename) and the Add File menu.
+  Keep row height and drag-handle hit area unchanged.
+- Default new Combined names to Combined, retaining duplicate-name suffixes and
+  all existing names. Nested Combined composition remains excluded: the current
+  concatenation has no cycle detection or deduplication across nested branches.
+
+Build-only verification per owner preference; manual acceptance remains pending.
+Publication and installation remain separate owner-authorized steps.
