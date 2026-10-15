@@ -82,6 +82,12 @@ final class HostsDataStore: ObservableObject {
         canRemoveFiles = controller.canRemoveFiles()
     }
 
+    var canUpdateRemoteFiles: Bool {
+        !isBusy && hostsGroups.contains { group in
+            !group.synchronizing() && ((group.children as? [Hosts]) ?? []).contains { $0 is RemoteHosts }
+        }
+    }
+
     // MARK: Combined Composition
 
     var combinableHosts: [Hosts] {

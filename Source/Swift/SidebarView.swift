@@ -13,7 +13,9 @@ struct SidebarView: View {
     var body: some View {
         List(selection: $store.selectedHosts) {
             ForEach(sidebarGroups, id: \.self) { group in
-                let children = (group.children as? [Hosts]) ?? []
+                let children = ((group.children as? [Hosts]) ?? []).sorted {
+                    ($0.name() ?? "").localizedStandardCompare($1.name() ?? "") == .orderedAscending
+                }
                 Section(header: HostsRowView(hosts: group, isGroup: true, refreshToken: store.rowRefreshToken)) {
                     ForEach(children, id: \.self) { hosts in
                         rowContent(for: hosts)
@@ -86,7 +88,9 @@ struct SidebarView: View {
     @ViewBuilder
     private func rowContent(for hosts: Hosts) -> some View {
         if isEditing, store.renamingHosts === hosts {
-            renameField(for: hosts)
+            HostsFileRow(hosts: hosts, refreshToken: store.rowRefreshToken, isEditing: true) {
+                renameField(for: hosts)
+            }
         } else {
             HostsRowView(hosts: hosts, isGroup: false, refreshToken: store.rowRefreshToken)
                 .contentShape(Rectangle())
@@ -188,6 +192,15 @@ struct SidebarView: View {
             }
         }
         .disabled(!hosts.exists)
+
+        if hosts is RemoteHosts || hosts is CombinedHosts {
+            Button {
+                ApplicationController.defaultInstance()?.updateAndSynchronize(nil)
+            } label: {
+                Label("Update Remote Files", systemImage: "icloud.and.arrow.down")
+            }
+            .disabled(!store.canUpdateRemoteFiles)
+        }
 
         if let remote = hosts as? RemoteHosts {
             Button("Open in Browser") {

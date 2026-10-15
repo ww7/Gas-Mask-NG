@@ -62,6 +62,7 @@ final class EditorWindowPresenterTests: XCTestCase {
         localGroup.children = [local]
         let combinedGroup = try XCTUnwrap(HostsGroup(name: "COMBINED"))
         combinedGroup.children = [combined]
+        combined.setActive(true)
         let store = HostsDataStore()
         store.hostsGroups = [localGroup, combinedGroup]
         store.selectedHosts = combined
@@ -97,12 +98,19 @@ final class EditorWindowPresenterTests: XCTestCase {
     }
 
     func testRename_endsOnBlurAndSubmitFocusesDocument() throws {
+        let previousPolicy = NSApp.activationPolicy()
+        NSApp.setActivationPolicy(.regular)
+        defer { NSApp.setActivationPolicy(previousPolicy) }
+        if #available(macOS 14.0, *) { NSApp.activate() }
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-rename-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let path = directory.appendingPathComponent("New Profile.hst")
         try "127.0.0.1 fixture.example.test".write(to: path, atomically: true, encoding: .utf8)
         let hosts = try XCTUnwrap(Hosts(path: path.path))
+        let middlePath = directory.appendingPathComponent("Middle Profile.hst")
+        try "127.0.0.1 middle.example.test".write(to: middlePath, atomically: true, encoding: .utf8)
+        let middle = try XCTUnwrap(Hosts(path: middlePath.path))
         let main = try XCTUnwrap(HostsMainController.defaultInstance())
         let previousControllers = main.value(forKey: "controllers")
         let previousContent = main.content
@@ -112,9 +120,10 @@ final class EditorWindowPresenterTests: XCTestCase {
         }
         let controller = LocalHostsController()
         controller.hostsFiles.add(hosts)
+        controller.hostsFiles.add(middle)
         let group = try XCTUnwrap(controller.hostsGroup())
-        group.children = [hosts]
-        main.setValue([controller], forKey: "controllers")
+        group.children = [hosts, middle]
+        main.setValue([controller, RemoteHostsController(), CombinedHostsController()], forKey: "controllers")
         main.content = [group]
         let store = HostsDataStore()
         store.selectedHosts = hosts
@@ -131,6 +140,8 @@ final class EditorWindowPresenterTests: XCTestCase {
         settle()
         let content = try XCTUnwrap(preview.contentView)
         let editor = try XCTUnwrap(descendants(content).compactMap { $0 as? HostsTextView }.first)
+        let table = try XCTUnwrap(descendants(content).compactMap { $0 as? NSTableView }.first)
+        XCTAssertEqual(table.selectedRow, 2, "New Profile sorts after Middle Profile")
         func beginRename(_ name: String) throws -> NSTextView {
             NotificationCenter.default.post(name: .hostsFileShouldBeRenamed, object: hosts)
             settle()
@@ -146,6 +157,7 @@ final class EditorWindowPresenterTests: XCTestCase {
         settle()
         XCTAssertNil(store.renamingHosts)
         XCTAssertEqual(hosts.name(), "Blur Renamed")
+        XCTAssertEqual(table.selectedRow, 1, "Renamed file must immediately move before Middle Profile")
         XCTAssertTrue(preview.firstResponder === editor)
         XCTAssertEqual(store.editorFocusRequest, 0, "Blur must not redirect the clicked focus target")
         XCTAssertTrue(FileManager.default.fileExists(atPath: try XCTUnwrap(hosts.path)))
@@ -155,6 +167,7 @@ final class EditorWindowPresenterTests: XCTestCase {
         settle()
         XCTAssertNil(store.renamingHosts)
         XCTAssertEqual(hosts.name(), "Submit Renamed")
+        XCTAssertEqual(table.selectedRow, 2, "Renamed file must immediately move after Middle Profile")
         XCTAssertTrue(preview.firstResponder === editor)
         XCTAssertEqual(store.editorFocusRequest, 1, "Return must finish only once")
 
@@ -165,7 +178,6 @@ final class EditorWindowPresenterTests: XCTestCase {
         XCTAssertEqual(hosts.name(), "Submit Renamed")
         XCTAssertEqual(store.editorFocusRequest, 1)
 
-        let table = try XCTUnwrap(descendants(content).compactMap { $0 as? NSTableView }.first)
         XCTAssertTrue(preview.makeFirstResponder(table))
         let enter = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
             modifierFlags: [], timestamp: 0, windowNumber: preview.windowNumber,
@@ -173,6 +185,47 @@ final class EditorWindowPresenterTests: XCTestCase {
         table.keyDown(with: enter)
         settle()
         XCTAssertNil(store.renamingHosts, "Return in the list must not start renaming")
+
+        // Native View menu key equivalents zoom only the document presentation.
+        let defaults = UserDefaults.standard
+        let previousFontSize = defaults.object(forKey: "editorFontSize")
+        defer {
+            if let previousFontSize { defaults.set(previousFontSize, forKey: "editorFontSize") }
+            else { defaults.removeObject(forKey: "editorFontSize") }
+        }
+        defaults.set(12.0, forKey: "editorFontSize")
+        settle()
+        XCTAssertTrue(preview.makeFirstResponder(editor))
+        let viewMenu = try XCTUnwrap(NSApp.mainMenu?.item(withTitle: "View")?.submenu)
+        let beforeText = editor.string
+        let beforeSaved = hosts.saved()
+        let beforeBytes = try Data(contentsOf: URL(fileURLWithPath: try XCTUnwrap(hosts.path)))
+        func command(_ character: String, size: CGFloat) throws {
+            viewMenu.update()
+            let event = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
+                modifierFlags: .command, timestamp: 0, windowNumber: preview.windowNumber,
+                context: nil, characters: character, charactersIgnoringModifiers: character,
+                isARepeat: false, keyCode: 0))
+            XCTAssertTrue(viewMenu.item(withTitle: "Increase Text Size")?.target as AnyObject? === ApplicationController.defaultInstance())
+            XCTAssertTrue(viewMenu.performKeyEquivalent(with: event))
+            XCTAssertEqual(defaults.double(forKey: "editorFontSize"), Double(size), "Saved size")
+            settle()
+            XCTAssertEqual(editor.font?.pointSize, size, "Size after SwiftUI update")
+        }
+        try command("+", size: 13)
+        try command("-", size: 12)
+        XCTAssertTrue(preview.makeFirstResponder(table))
+        try command("=", size: 13)
+        try command("0", size: 12)
+        XCTAssertEqual(editor.string, beforeText)
+        XCTAssertEqual(hosts.saved(), beforeSaved, "Zoom must not dirty the profile")
+        XCTAssertEqual(try Data(contentsOf: URL(fileURLWithPath: try XCTUnwrap(hosts.path))), beforeBytes)
+        XCTAssertEqual((editor.typingAttributes[.font] as? NSFont)?.pointSize, 12)
+        let update = try XCTUnwrap(NSApp.mainMenu?.item(withTitle: "File")?.submenu?.item(withTitle: "Update Remote Files"))
+        XCTAssertEqual(update.action, #selector(ApplicationController.updateAndSynchronize(_:)))
+        XCTAssertNotNil(update.image)
+        XCTAssertFalse(store.canUpdateRemoteFiles)
+
     }
 
     func testEditorLayout_keepsTextAboveFooter_inLightDarkAndCompactWindows() throws {

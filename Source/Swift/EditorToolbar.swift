@@ -71,5 +71,15 @@ struct EditorToolbar: ToolbarContent {
                 || store.selectedHosts?.exists != true
             )
         }
+
+        ToolbarItem(id: "update-remote", placement: .navigation) {
+            Button {
+                ApplicationController.defaultInstance()?.updateAndSynchronize(nil)
+            } label: {
+                Label("Update Remote Files", systemImage: "icloud.and.arrow.down")
+            }
+            .help("Update Remote Files")
+            .disabled(!store.canUpdateRemoteFiles)
+        }
     }
 }

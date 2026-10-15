@@ -22,16 +22,20 @@
 #import "StructureConverter.h"
 #import "Preferences.h"
 #import "HostsMenu.h"
+#import "HostsTextView.h"
 #import "Gas_Mask-Swift.h"
 #import "LocalHostsController.h"
 #import "RemoteHostsController.h"
 #import "NotificationHelper.h"
 #import <Sparkle/Sparkle.h>
+#import <math.h>
 
 @interface ApplicationController ()
 {
 	__weak NSWindow *_editorWindow;
 }
+- (void)installEditorMenuItems;
+- (void)adjustEditorTextSize:(CGFloat)delta;
 @end
 
 @interface ApplicationController(Private)
@@ -137,6 +141,64 @@ static ApplicationController *sharedInstance = nil;
 	[self hideApplicationFromDock];
 }
 
+- (void)installEditorMenuItems
+{
+    NSMenu *viewMenu = [[NSApp.mainMenu itemWithTitle:@"View"] submenu];
+    if (viewMenu && ![viewMenu itemWithTitle:@"Increase Text Size"]) {
+        [viewMenu addItem:[NSMenuItem separatorItem]];
+        NSArray *titles = @[@"Increase Text Size", @"Decrease Text Size", @"Actual Text Size"];
+        NSArray *keys = @[@"+", @"-", @"0"];
+        SEL actions[] = {@selector(increaseEditorTextSize:), @selector(decreaseEditorTextSize:), @selector(resetEditorTextSize:)};
+        for (NSUInteger i = 0; i < titles.count; i++) {
+            NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:titles[i] action:actions[i] keyEquivalent:keys[i]];
+            item.keyEquivalentModifierMask = NSEventModifierFlagCommand;
+            item.target = self;
+            [viewMenu addItem:item];
+        }
+        // Support the unshifted = key as well as + through native menu matching.
+        NSMenuItem *alias = [[NSMenuItem alloc] initWithTitle:@"Increase Text Size" action:@selector(increaseEditorTextSize:) keyEquivalent:@"="];
+        alias.target = self;
+        alias.keyEquivalentModifierMask = NSEventModifierFlagCommand;
+        alias.hidden = YES;
+        alias.allowsKeyEquivalentWhenHidden = YES;
+        [viewMenu addItem:alias];
+    }
+    NSMenu *fileMenu = [[NSApp.mainMenu itemWithTitle:@"File"] submenu];
+    if (fileMenu && ![fileMenu itemWithTitle:@"Update Remote Files"]) {
+        [fileMenu addItem:[NSMenuItem separatorItem]];
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"Update Remote Files" action:@selector(updateAndSynchronize:) keyEquivalent:@""];
+        item.target = self;
+        item.image = [NSImage imageWithSystemSymbolName:@"icloud.and.arrow.down" accessibilityDescription:@"Update Remote Files"];
+        [fileMenu addItem:item];
+    }
+}
+
+- (IBAction)increaseEditorTextSize:(id)sender { [self adjustEditorTextSize:1]; }
+- (IBAction)decreaseEditorTextSize:(id)sender { [self adjustEditorTextSize:-1]; }
+- (IBAction)resetEditorTextSize:(id)sender {
+    [[NSUserDefaults standardUserDefaults] setDouble:12 forKey:EditorFontSizePrefKey];
+}
+
+- (void)adjustEditorTextSize:(CGFloat)delta
+{
+    NSNumber *saved = [[NSUserDefaults standardUserDefaults] objectForKey:EditorFontSizePrefKey];
+    CGFloat size = saved ? saved.doubleValue : 12;
+    size = isfinite(size) ? MIN(40, MAX(8, size)) : 12;
+    [[NSUserDefaults standardUserDefaults] setDouble:MIN(40, MAX(8, size + delta)) forKey:EditorFontSizePrefKey];
+}
+
+- (BOOL)validateMenuItem:(NSMenuItem *)item
+{
+    if (item.action == @selector(increaseEditorTextSize:) || item.action == @selector(decreaseEditorTextSize:) ||
+        item.action == @selector(resetEditorTextSize:)) {
+        return [EditorWindowPresenter editorWindowVisible];
+    }
+    if (item.action == @selector(updateAndSynchronize:)) {
+        return [hostsController hostsFilesExistForControllerClass:[RemoteHostsController class]];
+    }
+    return YES;
+}
+
 - (IBAction)addFromURL:(id)sender
 {
 	[URLSheetPresenter presentInWindow:nil];
@@ -170,6 +232,7 @@ static ApplicationController *sharedInstance = nil;
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
 {
+    [self installEditorMenuItems];
 	// The test host must not load/migrate real profiles, start downloads, or request permissions.
 	if (NSClassFromString(@"XCTestCase") != nil) {
 		return;

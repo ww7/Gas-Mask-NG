@@ -1,0 +1,19 @@
+{
+  "candidate": "0.8.7-ww7.14",
+  "result": "passed",
+  "focused_tests": 2,
+  "full_suite_run": false,
+  "fixtures": "isolated defaults and temporary synthetic files",
+  "checks": [
+    "rename lifecycle and editor focus",
+    "sidebar rename sorting in both directions retains selection",
+    "compact neutral rows with file icon during rename and active dot after name",
+    "native Cmd+, Cmd-, Cmd0 and Cmd= dispatch with document/sidebar focus",
+    "zoom preserves saved state, text and disk bytes",
+    "reset typing font to 12 pt",
+    "File menu refresh selector and icon"
+  ],
+  "live_remote_download_tested": false,
+  "xcresult": "build/tests/Logs/Test/Test-Gas Mask-2026.10.16_00-08-12-+0300.xcresult",
+  "snapshot": "build/ui-qa/sidebar-rename.png"
+}

@@ -21,9 +21,16 @@
 #import "HostsTextView.h"
 #import "ExtendedNSString.h"
 #import "IP.h"
+#import "Preferences.h"
+#import <math.h>
 
 #define kAsyncHighlightThreshold 50000
 #define kHighlightChunkSize 100000
+
+@interface HostsTextView ()
+- (void)observeEditorFontSize;
+- (void)editorFontSizeDidChange:(nullable NSNotification *)notification;
+@end
 
 @interface HostsTextView (HighLight)
 -(void)colorTextInRange:(NSRange)range;
@@ -80,15 +87,52 @@
     [textView setVerticallyResizable:YES];
     [textView setHorizontallyResizable:YES];
     [textView setAutoresizingMask:NSViewWidthSizable];
-    [textView setFont:[NSFont monospacedSystemFontOfSize:12 weight:NSFontWeightMedium]];
+    [textView observeEditorFontSize];
     [textView setBackgroundColor:[NSColor colorNamed:@"BackgroundColor"]];
     [textView setTextColor:[NSColor colorNamed:@"TextColor"]];
 
     return textView;
 }
 
+// Display-only zoom: keep the monospaced face, syntax colors and typing font.
+- (void)setEditorFontSize:(CGFloat)pointSize
+{
+    CGFloat size = isfinite(pointSize) ? MIN(40, MAX(8, pointSize)) : 12;
+    NSFont *font = [NSFont monospacedSystemFontOfSize:size weight:NSFontWeightMedium];
+    [self setFont:font];
+    NSMutableDictionary *attributes = [[self typingAttributes] mutableCopy];
+    attributes[NSFontAttributeName] = font;
+    [self setTypingAttributes:attributes];
+}
+
+- (void)observeEditorFontSize
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(editorFontSizeDidChange:)
+        name:NSUserDefaultsDidChangeNotification object:[NSUserDefaults standardUserDefaults]];
+    [self editorFontSizeDidChange:nil];
+}
+
+- (void)editorFontSizeDidChange:(NSNotification *)notification
+{
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(), ^{ [self editorFontSizeDidChange:nil]; });
+        return;
+    }
+    NSNumber *savedSize = [[NSUserDefaults standardUserDefaults] objectForKey:EditorFontSizePrefKey];
+    CGFloat size = savedSize ? savedSize.doubleValue : 12;
+    size = isfinite(size) ? MIN(40, MAX(8, size)) : 12;
+    if (self.font.pointSize != size) { [self setEditorFontSize:size]; }
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSUserDefaultsDidChangeNotification
+        object:[NSUserDefaults standardUserDefaults]];
+}
+
 - (void)awakeFromNib
 {
+    [self observeEditorFontSize];
 	[[super textStorage] setDelegate:self];
 	
     // Enable horizontal scroll

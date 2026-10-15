@@ -22,6 +22,10 @@ import SwiftUI
         }
     }
 
+    @objc static func editorWindowVisible() -> Bool {
+        instance?.window.isVisible == true
+    }
+
     @objc static func createEditorWindow() -> NSWindow {
         makeEditorWindow(store: HostsDataStore(), frameAutosaveName: "editor_window")
     }

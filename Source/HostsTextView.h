@@ -33,6 +33,8 @@ NS_ASSUME_NONNULL_BEGIN
 	BOOL _replacingContent;
 }
 
+- (void)setEditorFontSize:(CGFloat)pointSize;
+
 - (void)setSyntaxHighlighting:(BOOL)value;
 - (BOOL)syntaxHighlighting;
 - (void)cancelPendingHighlighting;

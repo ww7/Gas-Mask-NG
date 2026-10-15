@@ -47,6 +47,9 @@
 - (IBAction)addFromURL:(id)sender;
 - (IBAction)openHostsFile:(id)sender;
 - (IBAction)updateAndSynchronize:(id)sender;
+- (IBAction)increaseEditorTextSize:(id)sender;
+- (IBAction)decreaseEditorTextSize:(id)sender;
+- (IBAction)resetEditorTextSize:(id)sender;
 - (BOOL)editorWindowOpened;
 
 @end

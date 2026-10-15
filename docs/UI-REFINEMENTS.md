@@ -190,3 +190,29 @@ compact Combined-first neutral sidebar presentation. The lifecycle test checks
 actual temporary-file moves, document first responder, Escape cancellation and
 Return in the native list. Full test suites were not run. Publication includes
 all accumulated changes since ww7.4; the owner authorized push and release upload.
+
+## ww7.14: stable sidebar rows, rename sorting, text size and Remote refresh
+
+- Reuse one file-row layout for the normal label and inline name field. Keep the
+  file-type icon and status columns stable; put the active dot after the name
+  column. Preserve error/unsaved badges and accessible inline text-field editing.
+- Sort each sidebar section by localized natural filename order on refresh and
+  after rename. Preserve selected object identity, model next/previous activation
+  order, section priority and persisted Combined membership order.
+- Add View > Increase Text Size / Decrease Text Size / Actual Text Size with Cmd+,
+  Cmd- and Cmd0, also accepting unshifted Cmd=. Native menu commands apply with
+  sidebar or document focus. Store 8–40 pt in editorFontSize, default/reset 12 pt.
+  Native text views observe the preference; font and typing attributes remain
+  monospaced. Font changes do not modify profile contents or mark them unsaved.
+- Add the standard icloud.and.arrow.down icon and Update Remote Files action to
+  File, the existing status menu item, Remote/Combined profile context menus and
+  the leading toolbar. Use the existing global update action rather than a new
+  downloader. Disable toolbar/context refresh when no remote profiles are present
+  or an update is already busy.
+
+Two focused native tests passed on temporary fixtures. Checks include immediate
+rename reordering in both directions, selected-row identity, retained rename focus,
+compact neutral rows, native menu key dispatch (including sidebar focus), unchanged
+profile bytes/saved state after zoom, typing-font reset and File-menu refresh wiring.
+Inspected the native rename snapshot with the retained Combined icon and trailing
+active dot. No full test suite or live remote download was run for this iteration.
