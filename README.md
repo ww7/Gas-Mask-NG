@@ -6,8 +6,9 @@ and [build status](docs/BUILD-STATUS.md). Obsolete PR implementations are resolv
 against the current SwiftUI/MASShortcut code; their original heads remain in history.
 
 Build a universal Release with `scripts/build-release.sh` and run tests with
-`scripts/test.sh` after installing full Xcode. Fork downloads will be published in
-[Forgejo releases](https://git.ww7.work/ww7-forks/gasmask/releases).
+`scripts/test.sh` after installing full Xcode. Download the universal **arm64 + Intel**
+build from [release 0.8.7-ww7.1](https://git.ww7.work/ww7-forks/gasmask/releases/tag/v0.8.7-ww7.1).
+The app is locally signed, without Apple notarization.
 
 The upstream documentation follows. Its download link is the original release,
 not this integrated fork.

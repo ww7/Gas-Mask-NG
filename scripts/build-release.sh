@@ -24,7 +24,13 @@ ditto "$gasmask_derived/Build/Products/Release/Gas Mask.app" "$gasmask_artifact_
     "$gasmask_artifact_dir/Gas Mask.app/Contents/Info.plist"
 codesign --force --deep --sign - "$gasmask_artifact_dir/Gas Mask.app"
 codesign --verify --deep --strict "$gasmask_artifact_dir/Gas Mask.app"
-lipo -verify_arch arm64 x86_64 "$gasmask_artifact_dir/Gas Mask.app/Contents/MacOS/Gas Mask"
+gasmask_archs=$(xcrun lipo -archs "$gasmask_artifact_dir/Gas Mask.app/Contents/MacOS/Gas Mask")
+for gasmask_required_arch in arm64 x86_64; do
+    if [[ " $gasmask_archs " != *" $gasmask_required_arch "* ]]; then
+        echo "Missing architecture: $gasmask_required_arch (found: $gasmask_archs)" >&2
+        exit 1
+    fi
+done
 
 gasmask_archive="gas_mask_${gasmask_label}_${gasmask_revision:0:12}_universal.zip"
 ditto -c -k --sequesterRsrc --keepParent "$gasmask_artifact_dir/Gas Mask.app" "$gasmask_artifact_dir/$gasmask_archive"

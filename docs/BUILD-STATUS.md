@@ -1,40 +1,40 @@
 # Build status
 
-15 October 2026. Integration source is prepared; the full application build is
-waiting for installation of Xcode on this Mac.
+15 October 2026. Release `0.8.7-ww7.1` builds successfully with Xcode 27.0
+(`27A266a`), macOS SDK 27.0, on macOS 27.0.1 Apple Silicon.
 
 Repository: [ww7-forks/gasmask](https://git.ww7.work/ww7-forks/gasmask), private,
 default branch `main`. The organization was created for this fork. Branch `upstream`
 preserves the exact upstream base. Forgejo Actions is disabled because the existing
 server runner is Linux; builds and tests use the local Mac.
 
-## Fresh evidence
+Release: [v0.8.7-ww7.1](https://git.ww7.work/ww7-forks/gasmask/releases/tag/v0.8.7-ww7.1).
+The release tag identifies the source commit; the app's `WW7SourceRevision` and
+archive filename record that same commit. ZIP, SHA256SUMS and build metadata
+are attached to the release.
 
-- Upstream base and all seven open PR heads fetched directly from GitHub.
-- `scripts/test-storage.sh`: **28 assertions passed**, using temporary fixtures.
-- Clang syntax checks passed for FileUtil, Util and NotificationHelper with the
-  installed macOS SDK.
-- Xcode project and property-list syntax validated with `plutil`.
-- Project object references checked: 65 app sources, 19 XCTest sources, no missing
-  object references or duplicate source entries. Both the restored popover and
-  newer performance tests retain their own Xcode IDs.
-- All seven PR heads are ancestors of `main`; the snapshot still matched GitHub
-  on a second API check after integration.
-- Swift syntax parsing and shell syntax checks passed. The compiled DNS script
-  matches its source.
-- Initial code commit `f0fbdc4c0f889f534245959f3d851a619be79960` was pushed and
-  verified through remote refs. Subsequent commits may update this status file.
-- `scripts/build-release.sh` correctly reports the missing full Xcode; no `.app`
-  or release archive has been produced yet.
-- Full Release build, XCTest suite, archive signature/architecture checks and
-  real application UI/privileged-operation acceptance are still pending.
+## Verification
 
-Next commands after Xcode is installed and initialized:
+- `scripts/test.sh`: **141 XCTest tests passed, 0 failed, 0 skipped**. Includes the
+  performance tests. Execution used separate build-for-testing/test-without-building
+  steps on arm64. Result bundle: `build/TestResults-20261015T163626Z.xcresult`.
+- `scripts/test-storage.sh`: **28 assertions passed** using temporary fixtures.
+- Release configuration compiled successfully for **arm64 and x86_64**.
+- Architecture enumeration and `codesign --verify --deep --strict` passed.
+- Packaging explicitly checks both architectures using `lipo -archs`; Xcode 27's
+  `-verify_arch` invocation rejected multiple architectures despite the binary
+  containing both slices.
+- Source and package dependencies retain their pinned revisions. All seven
+  upstream PR heads remain in the integrated history.
+- Tests left `/etc/hosts` and both live Gas Mask profile directories identical
+  to their recorded pre-test content hashes.
+- Machine-readable test evidence: [verification/2026-10-15.json](verification/2026-10-15.json).
 
-```sh
-scripts/test.sh
-scripts/build-release.sh
-```
+The compiler still reports inherited deprecation and integer-narrowing warnings.
+There were no build errors or XCTest runtime warnings. The app is ad-hoc signed
+locally, without Developer ID signing or Apple notarization. The x86_64 slice was
+compiled and inspected; XCTest execution was on Apple Silicon.
 
-The installed Gas Mask application, live profiles and `/etc/hosts` have not been
-modified by this integration work.
+Real privileged hosts switching, DNS restart, notification delivery and manual
+light/dark UI acceptance remain separate from the automated build/test evidence.
+The installed Gas Mask app was not replaced.

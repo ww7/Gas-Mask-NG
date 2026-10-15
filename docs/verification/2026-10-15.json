@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-15",
+  "tested_commit": "5ddb7bd8684db531863b3d1b85688c37f16886ef",
+  "runtime_source_tree_sha256": "23fe94597818a73b17bcd27a0d8b37a599f0718931d3e427d893e3fcd9695915",
+  "release_tag": "v0.8.7-ww7.1",
+  "xcode_version": "27.0",
+  "xcode_build": "27A266a",
+  "macos_version": "27.0.1",
+  "sdk_version": "27.0",
+  "test_architecture": "arm64",
+  "release_architectures": [
+    "arm64",
+    "x86_64"
+  ],
+  "xctest": {
+    "result": "Passed",
+    "totalTestCount": 141,
+    "passedTests": 141,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "expectedFailures": 0,
+    "runtimeWarnings": [],
+    "testFailures": [],
+    "startTime": 1792082244.767,
+    "finishTime": 1792082289.335
+  },
+  "storage_migration_assertions_passed": 28,
+  "live_hosts_and_profiles_unchanged": true,
+  "signature": "ad-hoc",
+  "notarized": false,
+  "result_bundle": "build/TestResults-20261015T163626Z.xcresult"
+}
