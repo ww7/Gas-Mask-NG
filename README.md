@@ -7,7 +7,7 @@ against the current SwiftUI/MASShortcut code; their original heads remain in his
 
 Build a universal Release with `scripts/build-release.sh` and run tests with
 `scripts/test.sh` after installing full Xcode. Download the universal **arm64 + Intel**
-build from [release 0.8.7-ww7.1](https://git.ww7.work/ww7-forks/gasmask/releases/tag/v0.8.7-ww7.1).
+build from [release 0.8.7-ww7.2](https://git.ww7.work/ww7-forks/gasmask/releases/tag/v0.8.7-ww7.2).
 The app is locally signed, without Apple notarization.
 
 The upstream documentation follows. Its download link is the original release,

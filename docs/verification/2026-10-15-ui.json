@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-15",
+  "tested_commit": "c86c89f54a4b48d1c84ab8893d7f2794a68edca6",
+  "runtime_source_tree_sha256": "219bfd449009e418b87f4edda0642d6e289bd95f3cd089a2ce19ea5b3356b3a9",
+  "release_tag": "v0.8.7-ww7.2",
+  "xcode_version": "27.0",
+  "xcode_build": "27A266a",
+  "macos_version": "27.0.1",
+  "sdk_version": "27.0",
+  "test_architecture": "arm64",
+  "release_architectures": [
+    "arm64",
+    "x86_64"
+  ],
+  "xctest": {
+    "result": "Passed",
+    "totalTestCount": 142,
+    "passedTests": 142,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "expectedFailures": 0,
+    "runtimeWarnings": [],
+    "testFailures": [],
+    "startTime": 1792084006.583,
+    "finishTime": 1792084049.703
+  },
+  "storage_migration_assertions_passed": 28,
+  "live_hosts_and_profiles_unchanged": true,
+  "signature": "ad-hoc",
+  "notarized": false,
+  "result_bundle": "build/TestResults-20261015T170629Z.xcresult",
+  "ui_qa": {
+    "synthetic_profiles_only": true,
+    "light_window_size": [
+      1100,
+      700
+    ],
+    "dark_window_size": [
+      1100,
+      700
+    ],
+    "compact_window_size": [
+      620,
+      480
+    ],
+    "opaque_footer_reserved_points": 25,
+    "long_text_scrolls_to_end": true,
+    "toolbar_leading_with_labels": true,
+    "native_checkbox_included_count_before": 5,
+    "native_checkbox_included_count_after": 6,
+    "preference_label": "Show Host File Name in Menu Bar",
+    "test_bundle_identifier": "work.ww7.gasmask.tests",
+    "local_screenshots": "build/ui-qa/"
+  }
+}
