@@ -11,7 +11,6 @@ mkdir -p "$gasmask_artifact_dir"
 
 xcodebuild -resolvePackageDependencies -project 'Gas Mask.xcodeproj' -scheme 'Gas Mask' \
     -derivedDataPath "$gasmask_derived" -onlyUsePackageVersionsFromResolvedFile
-osacompile -o Resources/RestartDNSResponder.scpt Resources/RestartDNSResponder.applescript
 xcodebuild build -project 'Gas Mask.xcodeproj' -scheme 'Gas Mask' -configuration Release \
     -derivedDataPath "$gasmask_derived" -onlyUsePackageVersionsFromResolvedFile \
     ARCHS='arm64 x86_64' ONLY_ACTIVE_ARCH=NO \

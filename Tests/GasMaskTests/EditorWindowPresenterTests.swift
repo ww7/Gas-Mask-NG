@@ -141,6 +141,39 @@ final class EditorWindowPresenterTests: XCTestCase {
         }
     }
 
+    func testToolbarDisplayMode_survivesFocusRefreshAndWindowRecreation() throws {
+        let suite = "GasMaskToolbarTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = HostsDataStore()
+        let preview = EditorWindowPresenter.makeEditorWindow(store: store, defaults: defaults)
+        preview.makeKeyAndOrderFront(nil)
+        defer { preview.orderOut(nil) }
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))
+        let toolbar = try XCTUnwrap(preview.toolbar)
+        XCTAssertEqual(toolbar.displayMode, .iconAndLabel)
+        toolbar.displayMode = .iconOnly
+        XCTAssertEqual(defaults.integer(forKey: EditorWindowPresenter.toolbarDisplayModeKey), Int(NSToolbar.DisplayMode.iconOnly.rawValue))
+        for _ in 0..<3 {
+            preview.delegate?.windowDidBecomeMain?(Notification(name: NSWindow.didBecomeMainNotification, object: preview))
+            store.isBusy.toggle()
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+            XCTAssertEqual(preview.toolbar?.displayMode, .iconOnly)
+        }
+        preview.orderOut(nil)
+        // A new defaults instance and window exercise the next-launch path.
+        let reopenedDefaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        let reopened = EditorWindowPresenter.makeEditorWindow(store: HostsDataStore(), defaults: reopenedDefaults)
+        reopened.makeKeyAndOrderFront(nil)
+        defer { reopened.orderOut(nil) }
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))
+        XCTAssertEqual(reopened.toolbar?.displayMode, .iconOnly)
+        reopened.toolbar?.displayMode = .iconAndLabel
+        reopened.delegate?.windowDidBecomeMain?(Notification(name: NSWindow.didBecomeMainNotification, object: reopened))
+        XCTAssertEqual(reopened.toolbar?.displayMode, .iconAndLabel)
+        XCTAssertEqual(defaults.integer(forKey: EditorWindowPresenter.toolbarDisplayModeKey), Int(NSToolbar.DisplayMode.iconAndLabel.rawValue))
+    }
+
     func testWindowShouldClose_returnsTrue() {
         let result = window.delegate?.windowShouldClose?(window) ?? false
         XCTAssertTrue(result)

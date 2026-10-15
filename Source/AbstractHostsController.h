@@ -40,6 +40,7 @@
 - (void)notifyDelegateNewHostsFileAdded:(Hosts*)hosts;
 - (void)notifyDelegateHostsFileRemoved:(Hosts*)hosts;
 
+- (NSString*)systemHostsFilePath;
 - (BOOL)saveHostsFileToOriginalLocation:(Hosts*)hosts;
 
 // Should be overridden

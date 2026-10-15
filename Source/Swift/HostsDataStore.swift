@@ -78,6 +78,44 @@ final class HostsDataStore: ObservableObject {
         canRemoveFiles = controller.canRemoveFiles()
     }
 
+    // MARK: Combined Composition
+
+    var combinableHosts: [Hosts] {
+        hostsGroups.flatMap { ($0.children as? [Hosts]) ?? [] }
+            .filter { !($0 is CombinedHosts) }
+    }
+
+    func add(_ hosts: Hosts, to combined: CombinedHosts) {
+        var files = (combined.hostsFiles() as? [Hosts]) ?? []
+        guard combinableHosts.contains(where: { $0 === hosts }),
+              !files.contains(where: { $0 === hosts }) else { return }
+        files.append(hosts)
+        update(combined, files: files)
+    }
+
+    func remove(_ hosts: Hosts, from combined: CombinedHosts) {
+        var files = (combined.hostsFiles() as? [Hosts]) ?? []
+        guard let index = files.firstIndex(where: { $0 === hosts }) else { return }
+        files.remove(at: index)
+        update(combined, files: files)
+    }
+
+    func move(_ hosts: Hosts, in combined: CombinedHosts, by offset: Int) {
+        var files = (combined.hostsFiles() as? [Hosts]) ?? []
+        guard let index = files.firstIndex(where: { $0 === hosts }),
+              offset != 0, files.indices.contains(index + offset) else { return }
+        files.remove(at: index)
+        files.insert(hosts, at: index + offset)
+        update(combined, files: files)
+    }
+
+    private func update(_ combined: CombinedHosts, files: [Hosts]) {
+        objectWillChange.send()
+        // The model regenerates preview text, posts a row update and marks the
+        // composition unsaved. Saving serializes this exact order.
+        combined.setHostsFiles(files)
+    }
+
     // MARK: Selection Sync
 
     /// Called when the ObjC layer selects a hosts file (via notification).

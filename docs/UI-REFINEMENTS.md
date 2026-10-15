@@ -20,3 +20,19 @@ and marked the Combined profile as unsaved. The existing release remains availab
 The test runner uses a dedicated bundle identifier so the test application's
 preferences are separate from the installed app. Native interactive checks use
 the `build/native-qa` app with a distinct identifier and temporary synthetic files.
+
+## Save, toolbar mode and Combined editing follow-up
+
+| Request | Implementation boundary | Verification contract |
+| --- | --- | --- |
+| Recognizable Save icon | Template vector floppy-disk icon; retain Save action and Command-S | Inspect native toolbar at normal size, including icons-only mode |
+| Stop repeated system-modification prompts | Remove the unconditional privileged AppleScript DNS restart from save/restore. Keep the existing noninteractive `dscacheutil -flushcache` and initial write-permission authorization | Repeated active-profile saves and restore against a temporary system-file fixture; intercept process launches; verify live hosts/profile hashes remain unchanged |
+| Remember icons / labels choice | Observe and persist the native toolbar display mode; restore when the toolbar attaches, never reset on focus | Change to icons only, simulate focus/refresh, recreate the window with the same isolated defaults; switch back to icons and labels too |
+| Edit Combined membership and order | Display the persisted ordered composition, Add File menu, remove and move-up/down buttons; generated text remains read-only | Add/remove/reorder, verify dirty state and generated content, save/reload including an empty list; native interaction against synthetic profiles |
+
+The repeated prompt came from the PR #220 AppleScript port, which requested
+administrator privileges after each successful system-file write. The owner's
+existing hosts ACL already allowed writes. Removing that unconditional restart
+restores the upstream noninteractive cache-flush behavior without changing file
+permissions or weakening authorization when initial write access is needed.
+Combined profile storage remains the same ordered `type/name` format.

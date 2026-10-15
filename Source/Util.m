@@ -42,23 +42,4 @@
     return ( NSAppKitVersionNumber < NSAppKitVersionNumber10_10 );
 }
 
-+ (void)restartDNSResponder
-{
-	NSURL *url = [NSBundle.mainBundle URLForResource:@"RestartDNSResponder" withExtension:@"scpt"];
-	if (!url) {
-		logError(@"RestartDNSResponder script is missing from the application bundle.");
-		return;
-	}
-	NSError *error = nil;
-	NSUserAppleScriptTask *task = [[NSUserAppleScriptTask alloc] initWithURL:url error:&error];
-	if (!task) {
-		logError(@"Cannot load RestartDNSResponder script: %@", error);
-		return;
-	}
-	[task executeWithAppleEvent:nil completionHandler:^(NSAppleEventDescriptor *result, NSError *taskError) {
-		if (taskError) {
-			logError(@"Cannot restart mDNSResponder: %@", taskError);
-		}
-	}];
-}
 @end

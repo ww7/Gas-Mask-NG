@@ -2,14 +2,22 @@
 #import "AbstractHostsController.h"
 #import "Hosts.h"
 #import "HostsGroup.h"
+#import <objc/runtime.h>
 
 // Concrete subclass for testing (groupName would be nil on the abstract base)
 @interface TestHostsController : AbstractHostsController
+@property (nonatomic, copy) NSString *fixtureSystemPath;
 @end
 
 @implementation TestHostsController
 - (NSString *)groupName { return @"TestGroup"; }
+- (NSString *)systemHostsFilePath { return self.fixtureSystemPath; }
 @end
+
+static NSMutableArray<NSArray<NSString *> *> *launchedCommands;
+static void recordTaskLaunch(NSTask *task, SEL selector) {
+    [launchedCommands addObject:[@[task.launchPath ?: @""] arrayByAddingObjectsFromArray:task.arguments ?: @[]]];
+}
 
 @interface AbstractHostsControllerTests : XCTestCase
 @property (nonatomic, strong) TestHostsController *controller;
@@ -27,6 +35,8 @@
                               withIntermediateDirectories:YES
                                                attributes:nil
                                                     error:NULL];
+    self.controller.fixtureSystemPath = [self.tempDir stringByAppendingPathComponent:@"system-hosts-fixture"];
+    [@"initial" writeToFile:self.controller.fixtureSystemPath atomically:YES encoding:NSUTF8StringEncoding error:NULL];
 }
 
 - (void)tearDown
@@ -135,6 +145,40 @@
     Hosts *b = [self addHostsWithName:@"B"];
     [b setActive:YES];
     XCTAssertEqualObjects([self.controller activeHostsFile], b);
+}
+
+- (void)testRepeatedActiveSavesAndRestoreUseOnlyNoninteractiveCacheFlush
+{
+    Hosts *hosts = [self addHostsWithName:@"Profile"];
+    [hosts setActive:YES];
+    Method launch = class_getInstanceMethod([[NSTask new] class], @selector(launch));
+    launchedCommands = [NSMutableArray new];
+    IMP original = method_setImplementation(launch, (IMP)recordTaskLaunch);
+    @try {
+        for (int i = 0; i < 3; i++) {
+            NSString *content = [NSString stringWithFormat:@"127.0.0.1 fixture-%d.example.test", i];
+            [hosts setContents:content];
+            [self.controller saveHosts:hosts];
+            XCTAssertTrue([hosts saved]);
+            XCTAssertEqualObjects([NSString stringWithContentsOfFile:self.controller.fixtureSystemPath encoding:NSUTF8StringEncoding error:NULL], [content stringByAppendingString:@"\n\n"]);
+        }
+        // Restore reads the saved profile on disk, not its unsaved editor buffer.
+        NSString *onDisk = [hosts contentsOnDisk];
+        [hosts setContents:@"unsaved buffer"];
+        XCTAssertTrue([self.controller restoreHostsToOriginalLocation:hosts]);
+        XCTAssertEqualObjects([NSString stringWithContentsOfFile:self.controller.fixtureSystemPath encoding:NSUTF8StringEncoding error:NULL], [onDisk stringByAppendingString:@"\n\n"]);
+        XCTAssertEqual(launchedCommands.count, 4u);
+        for (NSArray *command in launchedCommands) {
+            XCTAssertEqualObjects(command, (@[@"/usr/bin/dscacheutil", @"-flushcache"]));
+        }
+        [hosts setActive:NO];
+        [hosts setContents:@"local save"];
+        [self.controller saveHosts:hosts];
+        XCTAssertEqual(launchedCommands.count, 4u, @"Saving an inactive profile must not touch the system cache");
+    } @finally {
+        method_setImplementation(launch, original);
+        launchedCommands = nil;
+    }
 }
 
 @end

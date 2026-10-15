@@ -6,18 +6,27 @@ import SwiftUI
     private static var instance: EditorWindowPresenter?
 
     private let window: NSWindow
+    private let defaults: UserDefaults
+    private var toolbarObservation: NSKeyValueObservation?
+    private var displayModeObservation: NSKeyValueObservation?
+    private weak var observedToolbar: NSToolbar?
+    static let toolbarDisplayModeKey = "editorToolbarDisplayMode"
 
-    private init(window: NSWindow) {
+    private init(window: NSWindow, defaults: UserDefaults) {
         self.window = window
+        self.defaults = defaults
         super.init()
         window.delegate = self
+        toolbarObservation = window.observe(\.toolbar, options: [.initial, .new]) { [weak self] _, _ in
+            self?.configureToolbar()
+        }
     }
 
     @objc static func createEditorWindow() -> NSWindow {
         makeEditorWindow(store: HostsDataStore(), frameAutosaveName: "editor_window")
     }
 
-    static func makeEditorWindow(store: HostsDataStore, frameAutosaveName: String = "") -> NSWindow {
+    static func makeEditorWindow(store: HostsDataStore, frameAutosaveName: String = "", defaults: UserDefaults = .standard) -> NSWindow {
         let editorView = EditorView(store: store)
         let hostingController = NSHostingController(rootView: editorView)
 
@@ -25,7 +34,6 @@ import SwiftUI
         window.title = "Gas Mask"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.toolbarStyle = .expanded
-        window.toolbar?.displayMode = .iconAndLabel
         window.setContentSize(NSSize(width: 619, height: 479))
         window.minSize = NSSize(width: 400, height: 400)
         window.isReleasedWhenClosed = false
@@ -33,16 +41,28 @@ import SwiftUI
             window.setFrameAutosaveName(frameAutosaveName)
         }
 
-        let presenter = EditorWindowPresenter(window: window)
+        let presenter = EditorWindowPresenter(window: window, defaults: defaults)
         instance = presenter
 
         return window
     }
 
+    private func configureToolbar() {
+        guard let toolbar = window.toolbar, toolbar !== observedToolbar else { return }
+        displayModeObservation = nil
+        observedToolbar = toolbar
+        let savedMode = NSToolbar.DisplayMode(rawValue: UInt(defaults.integer(forKey: Self.toolbarDisplayModeKey)))
+        toolbar.displayMode = savedMode.flatMap { $0 == .default ? nil : $0 } ?? .iconAndLabel
+        displayModeObservation = toolbar.observe(\.displayMode, options: [.new]) { [weak self] toolbar, _ in
+            guard toolbar.displayMode != .default else { return }
+            self?.defaults.set(Int(toolbar.displayMode.rawValue), forKey: Self.toolbarDisplayModeKey)
+        }
+    }
+
     // MARK: - NSWindowDelegate
 
     func windowDidBecomeMain(_ notification: Notification) {
-        window.toolbar?.displayMode = .iconAndLabel
+        configureToolbar()
         Preferences.setShowEditorWindow(true)
     }
 

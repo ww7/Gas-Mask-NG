@@ -9,88 +9,82 @@ struct CombinedHostsPickerView: View {
         }
     }
 
-    // MARK: - Picker Content
-
-    @ViewBuilder
     private func pickerContent(for combined: CombinedHosts) -> some View {
-        let allFiles = allNonCombinedHosts()
-        let includedFiles = (combined.hostsFiles() as? [Hosts]) ?? []
+        let included = (combined.hostsFiles() as? [Hosts]) ?? []
+        let available = store.combinableHosts.filter { hosts in
+            !included.contains { $0 === hosts }
+        }
 
-        VStack(spacing: 0) {
-            HStack {
+        return VStack(spacing: 0) {
+            HStack(spacing: 12) {
                 Text("Included Files")
-                    .font(.system(size: NSFont.smallSystemFontSize, weight: .semibold))
-                Spacer()
-                Text("\(includedFiles.count) of \(allFiles.count)")
-                    .font(.caption)
+                    .fontWeight(.semibold)
+                Text("\(included.count) of \(store.combinableHosts.count)")
                     .foregroundStyle(.secondary)
+                Spacer(minLength: 0)
+                Menu {
+                    ForEach(available, id: \.self) { hosts in
+                        Button(hosts.name() ?? "") { store.add(hosts, to: combined) }
+                    }
+                } label: {
+                    Label("Add File", systemImage: "plus")
+                }
+                .fixedSize()
+                .disabled(available.isEmpty)
+                .help("Add a hosts file to this Combined profile")
             }
             .padding(.horizontal, 12)
-            .frame(height: 28)
+            .frame(height: 32)
             .background(Color(nsColor: .windowBackgroundColor))
 
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    if allFiles.isEmpty {
-                        Text("No hosts files available to combine.")
+                    if included.isEmpty {
+                        Text("Use Add File to combine hosts files in the order you choose.")
                             .foregroundStyle(.secondary)
-                            .font(.system(size: NSFont.smallSystemFontSize))
                             .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
                     } else {
-                        ForEach(allFiles, id: \.self) { hosts in
-                            Toggle(isOn: toggleBinding(for: hosts, in: combined)) {
+                        ForEach(Array(included.enumerated()), id: \.offset) { index, hosts in
+                            HStack(spacing: 8) {
+                                Text("\(index + 1)")
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 18, alignment: .trailing)
                                 Label(hosts.name() ?? "", systemImage: hosts is RemoteHosts ? "globe" : "doc")
+                                    .lineLimit(1)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                Button {
+                                    store.move(hosts, in: combined, by: -1)
+                                } label: { Image(systemName: "chevron.up") }
+                                .disabled(index == 0)
+                                .accessibilityLabel("Move \(hosts.name() ?? "file") up")
+                                .help("Move up")
+                                Button {
+                                    store.move(hosts, in: combined, by: 1)
+                                } label: { Image(systemName: "chevron.down") }
+                                .disabled(index == included.count - 1)
+                                .accessibilityLabel("Move \(hosts.name() ?? "file") down")
+                                .help("Move down")
+                                Button {
+                                    store.remove(hosts, from: combined)
+                                } label: { Image(systemName: "minus.circle") }
+                                .accessibilityLabel("Remove \(hosts.name() ?? "file") from Combined")
+                                .help("Remove from this Combined profile")
                             }
-                            .toggleStyle(.checkbox)
-                            .controlSize(.small)
-                            .font(.system(size: NSFont.smallSystemFontSize))
+                            .buttonStyle(.borderless)
                             .padding(.horizontal, 12)
-                            .frame(height: 24)
+                            .frame(height: 28)
                         }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 4)
             }
-            .frame(height: max(32, min(CGFloat(allFiles.count) * 24 + 8, 152)))
+            .frame(height: max(44, min(CGFloat(included.count) * 28 + 8, 152)))
         }
+        .controlSize(.small)
+        .font(.system(size: NSFont.smallSystemFontSize))
         .background(Color(nsColor: .controlBackgroundColor))
-    }
-
-    // MARK: - Toggle Binding
-
-    private func toggleBinding(for hosts: Hosts, in combined: CombinedHosts) -> Binding<Bool> {
-        Binding(
-            get: {
-                let current = (combined.hostsFiles() as? [Hosts]) ?? []
-                return current.contains { $0 === hosts }
-            },
-            set: { isOn in
-                var files = (combined.hostsFiles() as? [Hosts]) ?? []
-                if isOn {
-                    if !files.contains(where: { $0 === hosts }) {
-                        files.append(hosts)
-                    }
-                } else {
-                    files.removeAll { $0 === hosts }
-                }
-                combined.setHostsFiles(files)
-                store.hostsGroups = store.hostsGroups
-            }
-        )
-    }
-
-    // MARK: - Helpers
-
-    private func allNonCombinedHosts() -> [Hosts] {
-        var result: [Hosts] = []
-        for group in store.hostsGroups {
-            let children = (group.children as? [Hosts]) ?? []
-            for hosts in children where !(hosts is CombinedHosts) {
-                result.append(hosts)
-            }
-        }
-        return result
     }
 }
