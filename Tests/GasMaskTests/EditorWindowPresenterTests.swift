@@ -48,6 +48,54 @@ final class EditorWindowPresenterTests: XCTestCase {
         XCTAssertNotNil(window.delegate)
     }
 
+    func testSidebar_compactNeutralSelectionAndCombinedFirst() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-sidebar-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let localURL = directory.appendingPathComponent("Local Fixture.hst")
+        try "127.0.0.1 example.test".write(to: localURL, atomically: true, encoding: .utf8)
+        let local = try XCTUnwrap(Hosts(path: localURL.path))
+        let combinedURL = directory.appendingPathComponent("Combined Fixture.hst")
+        try "".write(to: combinedURL, atomically: true, encoding: .utf8)
+        let combined = try XCTUnwrap(CombinedHosts(path: combinedURL.path, allHostsFiles: [local]))
+        let localGroup = try XCTUnwrap(HostsGroup(name: "LOCAL"))
+        localGroup.children = [local]
+        let combinedGroup = try XCTUnwrap(HostsGroup(name: "COMBINED"))
+        combinedGroup.children = [combined]
+        let store = HostsDataStore()
+        store.hostsGroups = [localGroup, combinedGroup]
+        store.selectedHosts = combined
+        let preview = NSWindow(contentViewController: NSHostingController(rootView: SidebarView(store: store)))
+        preview.setContentSize(NSSize(width: 220, height: 250))
+        preview.makeKeyAndOrderFront(nil)
+        defer { preview.orderOut(nil) }
+        func settle() {
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))
+            preview.contentView?.layoutSubtreeIfNeeded()
+        }
+        func descendants(_ view: NSView) -> [NSView] {
+            [view] + view.subviews.flatMap(descendants)
+        }
+        settle()
+        let content = try XCTUnwrap(preview.contentView)
+        let table = try XCTUnwrap(descendants(content).compactMap { $0 as? NSTableView }.first)
+        XCTAssertEqual(table.selectionHighlightStyle, .none)
+        XCTAssertEqual(table.selectedRow, 1, "Combined must be first, after its section header")
+        XCTAssertLessThanOrEqual(table.rect(ofRow: table.selectedRow).height, 22)
+        XCTAssertEqual(table.intercellSpacing.height, 0)
+        store.renamingHosts = combined
+        settle()
+        XCTAssertEqual(table.selectionHighlightStyle, .none, "Renaming must not restore the native blue row highlight")
+        XCTAssertTrue(preview.firstResponder is NSTextView, "Inline name must receive text focus")
+        let output = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("build/ui-qa/sidebar-rename.png")
+        try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let bitmap = try XCTUnwrap(content.bitmapImageRepForCachingDisplay(in: content.bounds))
+        content.cacheDisplay(in: content.bounds, to: bitmap)
+        try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
+    }
+
     func testEditorLayout_keepsTextAboveFooter_inLightDarkAndCompactWindows() throws {
         let previousPolicy = NSApp.activationPolicy()
         NSApp.setActivationPolicy(.regular)

@@ -12,25 +12,39 @@ struct SidebarView: View {
 
     var body: some View {
         List(selection: $store.selectedHosts) {
-            ForEach(store.hostsGroups, id: \.self) { group in
+            ForEach(sidebarGroups, id: \.self) { group in
                 let children = (group.children as? [Hosts]) ?? []
                 Section(header: HostsRowView(hosts: group, isGroup: true, refreshToken: store.rowRefreshToken)) {
                     ForEach(children, id: \.self) { hosts in
                         rowContent(for: hosts)
+                            .foregroundColor(Color(nsColor: .labelColor))
+                            .frame(maxWidth: .infinity, minHeight: 20, maxHeight: 20)
+                            .padding(.horizontal, 4)
+                            .background {
+                                if store.selectedHosts === hosts {
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .fill(Color(nsColor: .unemphasizedSelectedContentBackgroundColor))
+                                }
+                            }
                             .tag(hosts)
-                            .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
                     }
                 }
+                .listSectionSeparator(.hidden)
                 .onDrop(of: [.fileURL, .url], delegate: SidebarDropDelegate(group: group))
             }
         }
-        .background(SidebarRenameKeyHandler(enabled: !isEditing) {
+        .background(SidebarNativeBehavior(enabled: !isEditing) {
             if let hosts = store.selectedHosts {
                 requestRename(hosts)
             }
         })
-        .listStyle(.sidebar)
-        .environment(\.defaultMinListRowHeight, 24)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .environment(\.defaultMinListRowHeight, 20)
+        .controlSize(.small)
         .onChange(of: store.renamingHosts) { newValue in
             if let hosts = newValue {
                 beginRename(hosts)
@@ -63,6 +77,12 @@ struct SidebarView: View {
         } message: {
             Text("Are you sure you want to remove \"\(hostsToRemove?.name() ?? "")\"? The file will be moved to Trash.")
         }
+    }
+
+    // Presentation order only: retain the model's next/previous activation order.
+    private var sidebarGroups: [HostsGroup] {
+        let combined = store.hostsGroups.filter { $0.name() == "COMBINED" }
+        return combined + store.hostsGroups.filter { $0.name() != "COMBINED" }
     }
 
     // MARK: - Row Content
@@ -242,7 +262,7 @@ extension SidebarView {
 // Handle Return before the native list handles the key itself.
 // Scope the native handler to the focused table inside this sidebar. Text fields,
 // the document editor and the Combined composition table keep their normal keys.
-private struct SidebarRenameKeyHandler: NSViewRepresentable {
+private struct SidebarNativeBehavior: NSViewRepresentable {
     let enabled: Bool
     let rename: () -> Void
 
@@ -253,6 +273,7 @@ private struct SidebarRenameKeyHandler: NSViewRepresentable {
     func updateNSView(_ view: KeyView, context: Context) {
         view.enabled = enabled
         view.rename = rename
+        view.needsLayout = true
     }
 
     static func dismantleNSView(_ view: KeyView, coordinator: ()) {
@@ -263,6 +284,32 @@ private struct SidebarRenameKeyHandler: NSViewRepresentable {
         var enabled = false
         var rename: (() -> Void)?
         private var monitor: Any?
+
+        // The List owns its table/delegate. Change only presentation, retaining
+        // native selection, keyboard navigation and accessibility behavior.
+        override func layout() {
+            super.layout()
+            guard let content = window?.contentView else { return }
+            styleSidebarTables(in: content)
+        }
+
+        private func contains(_ table: NSTableView) -> Bool {
+            guard let scroll = table.enclosingScrollView else { return false }
+            let sidebarFrame = convert(bounds, to: nil)
+            let scrollFrame = scroll.convert(scroll.bounds, to: nil)
+            return sidebarFrame.contains(NSPoint(x: scrollFrame.midX, y: scrollFrame.midY))
+        }
+
+        private func styleSidebarTables(in view: NSView) {
+            if let table = view as? NSTableView, contains(table) {
+                table.selectionHighlightStyle = .none
+                if table.intercellSpacing.height != 0 {
+                    table.intercellSpacing = NSSize(width: table.intercellSpacing.width, height: 0)
+                }
+                return
+            }
+            for child in view.subviews { styleSidebarTables(in: child) }
+        }
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
@@ -275,10 +322,7 @@ private struct SidebarRenameKeyHandler: NSViewRepresentable {
                       event.keyCode == 36 || event.keyCode == 76,
                       event.modifierFlags.intersection([.command, .control, .option, .shift]).isEmpty,
                       let table = window.firstResponder as? NSTableView else { return event }
-                let sidebarFrame = self.convert(self.bounds, to: nil)
-                let tableFrame = table.convert(table.bounds, to: nil)
-                guard sidebarFrame.contains(NSPoint(x: tableFrame.midX, y: tableFrame.midY)),
-                      let rename = self.rename else { return event }
+                guard self.contains(table), let rename = self.rename else { return event }
                 rename()
                 return nil
             }

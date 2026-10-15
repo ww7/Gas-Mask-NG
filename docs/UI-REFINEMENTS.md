@@ -147,3 +147,21 @@ installation; functional acceptance remains manual.
 
 Build-only verification per owner preference; manual acceptance remains pending.
 Publication and installation remain separate owner-authorized steps.
+
+## ww7.11: compact, neutral left sidebar with Combined first
+
+- Move the Combined section to the top for sidebar presentation only; keep model
+  order and next/previous activation behavior unchanged, including empty groups.
+- Reduce actual profile-row height to 20 points, remove vertical row insets and
+  native inter-row spacing. The macOS sidebar list style imposed 32-point rows
+  despite the previous requested minimum; use plain-list layout and hide separators.
+- Draw the same rounded neutral selection background before and during inline
+  rename; suppress the native emphasized row highlight while retaining native
+  selection, keyboard navigation and accessibility. Keep text-selection color
+  inside the name field controlled by macOS.
+
+One focused synthetic-profile XCTest passed: Combined first, compact actual row
+geometry, neutral row highlighting across rename and immediate field-editor focus.
+Inspected the captured native rename image. Full test suites were not run. Universal
+Release build and extracted-package signature verification are separate checks;
+installation and publication remain owner-authorized steps.

@@ -1,0 +1,16 @@
+{
+  "candidate": "0.8.7-ww7.11",
+  "test": "EditorWindowPresenterTests.testSidebar_compactNeutralSelectionAndCombinedFirst",
+  "result": "passed",
+  "full_suite_run": false,
+  "fixtures": "temporary synthetic profiles",
+  "checks": [
+    "Combined first",
+    "actual row height <= 22 points",
+    "zero inter-row spacing",
+    "native row highlight disabled before and during rename",
+    "inline field receives text focus"
+  ],
+  "snapshot": "build/ui-qa/sidebar-rename.png",
+  "xcresult": "build/tests/Logs/Test/Test-Gas Mask-2026.10.15_23-04-43-+0300.xcresult"
+}

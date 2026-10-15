@@ -1,20 +1,21 @@
 # Build status
 
-15 October 2026. Local candidate `0.8.7-ww7.10`, internal build `20261015.10`.
+15 October 2026. Local candidate `0.8.7-ww7.11`, internal build `20261015.11`.
 
-The owner requested a short iteration and will verify behavior manually. Validation
-for this candidate is the universal Release build, package architecture and strict
-local signature checks. No XCTest or storage test suite was run for ww7.10.
-The prior [ww7.4 test evidence](verification/2026-10-15-sidebar.json) remains
-historical evidence for that version, rather than a result for this candidate.
+The owner prefers short iterations and will verify behavior manually. One focused
+native sidebar test passed on temporary synthetic profiles, checking Combined-first
+ordering, a row height no greater than 22 points, zero inter-row spacing, neutral
+row highlighting before/during rename, and immediate name-field keyboard focus.
+The complete XCTest and storage suites were not run for ww7.11. The prior
+[ww7.4 test evidence](verification/2026-10-15-sidebar.json) remains historical.
 
-Changes: the bottom menu actions are Update Remote Files, Settings… and Quit,
-without separators between those actions. Preserve the separators around the
-profile section. Rename the app-menu Preferences item to Settings as well.
-Show standard globe/doc type icons in the Combined sidebar and Add File menu.
-New Combined profiles start with the shorter name Combined (existing names stay
-unchanged). Nested Combined profiles remain excluded from composition. Retains
-the ww7.8 rename and ww7.9 settings-spacing/hotkey-toggle changes.
+Changes: show the Combined section before Local and Remote in the left sidebar
+without reordering the model or next/previous activation. Use 20-point rows with
+zero vertical insets/spacing. Native sidebar style imposed 32-point rows on the
+current macOS; use plain-list layout with hidden separators and a custom rounded
+neutral selection background. Disable the native table's emphasized highlight so
+row selection stays gray while the name field gains keyboard focus. Text selection
+inside the name field keeps standard system behavior. Retains all ww7.10 changes.
 
 Build with `scripts/build-release.sh`: Xcode 27.0 (27A266a), macOS SDK 27.0,
 arm64 + x86_64, minimum macOS 13.0. The packaged app records its exact source
