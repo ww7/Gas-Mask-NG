@@ -50,7 +50,7 @@ struct CombinedHostsPickerView: View {
 // AppKit provides insertion markers, autoscroll and cancellation for local row
 // drags. Only the leading grip can start a drag; the delete button stays clickable.
 struct CombinedFilesList: NSViewRepresentable {
-    let store: HostsDataStore
+    @ObservedObject var store: HostsDataStore
     let combined: CombinedHosts
 
     func makeCoordinator() -> Coordinator { Coordinator(store: store, combined: combined) }

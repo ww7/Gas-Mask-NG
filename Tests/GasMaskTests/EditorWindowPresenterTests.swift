@@ -152,6 +152,19 @@ final class EditorWindowPresenterTests: XCTestCase {
                 }
             }
         }
+        let content = try XCTUnwrap(preview.contentView)
+        let table = try XCTUnwrap(descendants(content).compactMap { $0 as? CombinedFilesTableView }.first)
+        store.remove(files[0], from: combined)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+        XCTAssertEqual(table.numberOfRows, (combined.hostsFiles() as? [Hosts])?.count)
+        store.add(files[5], to: combined)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+        XCTAssertEqual(table.numberOfRows, (combined.hostsFiles() as? [Hosts])?.count)
+        store.move(files[5], in: combined, toInsertionIndex: 0)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+        let firstCell = try XCTUnwrap(table.view(atColumn: 0, row: 0, makeIfNecessary: true))
+        XCTAssertTrue(descendants(firstCell).compactMap { $0 as? NSTextField }.contains { $0.stringValue == "Work" },
+                      "Native table must refresh after a same-count reorder")
     }
 
     func testToolbarDisplayMode_survivesFocusRefreshAndWindowRecreation() throws {
