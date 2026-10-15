@@ -6,6 +6,7 @@ import SwiftUI
     private static var instance: EditorWindowPresenter?
 
     private let window: NSWindow
+    private let store: HostsDataStore
     private let defaults: UserDefaults
     private var toolbarObservation: NSKeyValueObservation?
     private var displayModeObservation: NSKeyValueObservation?
@@ -13,8 +14,9 @@ import SwiftUI
     private weak var observedToolbar: NSToolbar?
     static let toolbarDisplayModeKey = "editorToolbarDisplayMode"
 
-    private init(window: NSWindow, defaults: UserDefaults) {
+    private init(window: NSWindow, store: HostsDataStore, defaults: UserDefaults) {
         self.window = window
+        self.store = store
         self.defaults = defaults
         super.init()
         window.delegate = self
@@ -26,6 +28,23 @@ import SwiftUI
     @objc static func editorWindowVisible() -> Bool {
         instance?.window.isVisible == true
     }
+
+    private var documentEditor: HostsTextView? {
+        func find(_ view: NSView) -> HostsTextView? {
+            if let editor = view as? HostsTextView { return editor }
+            return view.subviews.lazy.compactMap(find).first
+        }
+        return window.contentView.flatMap(find)
+    }
+
+    @objc static func findInEditor(_ sender: Any?) {
+        guard let instance, let editor = instance.documentEditor else { return }
+        instance.window.makeFirstResponder(editor)
+        editor.performTextFinderAction(sender)
+    }
+
+    @objc static func showGlobalSearch() { instance?.store.showingGlobalSearch = true }
+    @objc static func showHelp() { instance?.store.showingHelp = true }
 
     @objc static func createEditorWindow() -> NSWindow {
         makeEditorWindow(store: HostsDataStore(), frameAutosaveName: "editor_window")
@@ -46,7 +65,7 @@ import SwiftUI
             window.setFrameAutosaveName(frameAutosaveName)
         }
 
-        let presenter = EditorWindowPresenter(window: window, defaults: defaults)
+        let presenter = EditorWindowPresenter(window: window, store: store, defaults: defaults)
         instance = presenter
 
         return window

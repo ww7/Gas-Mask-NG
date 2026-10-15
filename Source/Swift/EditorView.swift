@@ -27,5 +27,7 @@ struct EditorView: View {
         }
         .frame(minWidth: 400, minHeight: 300)
         .toolbar { EditorToolbar(store: store) }
+        .sheet(isPresented: $store.showingGlobalSearch) { ProfileSearchView(store: store) }
+        .sheet(isPresented: $store.showingHelp) { EditorHelpView() }
     }
 }

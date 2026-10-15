@@ -367,6 +367,121 @@ final class EditorWindowPresenterTests: XCTestCase {
                       "Native table must refresh after a same-count reorder")
     }
 
+    func testFindCommentAndSearchNavigation_useNativeEditorPipeline() throws {
+        let previousPolicy = NSApp.activationPolicy()
+        NSApp.setActivationPolicy(.regular)
+        defer { NSApp.setActivationPolicy(previousPolicy) }
+        if #available(macOS 14.0, *) { NSApp.activate() }
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-editing-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let original = "  127.0.0.1 first.test\r\n\t::1 second.test\r\n\r\n# already commented\r\n"
+        let path = directory.appendingPathComponent("Editable.hst")
+        try original.write(to: path, atomically: true, encoding: .utf8)
+        let hosts = try XCTUnwrap(Hosts(path: path.path))
+        let remotePath = directory.appendingPathComponent("Remote.hst")
+        try "127.0.0.2 needle.test".write(to: remotePath, atomically: true, encoding: .utf8)
+        let remote = try XCTUnwrap(RemoteHosts(path: remotePath.path))
+        let group = try XCTUnwrap(HostsGroup(name: "LOCAL")); group.children = [hosts, remote]
+        let store = HostsDataStore(); store.hostsGroups = [group]; store.selectedHosts = hosts
+        let preview = EditorWindowPresenter.makeEditorWindow(store: store)
+        preview.makeKeyAndOrderFront(nil)
+        defer { preview.orderOut(nil) }
+        func settle() { RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.25)) }
+        func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
+        settle()
+        let content = try XCTUnwrap(preview.contentView)
+        let editor = try XCTUnwrap(descendants(content).compactMap { $0 as? HostsTextView }.first)
+        XCTAssertTrue(editor.usesFindBar)
+        let find = NSMenuItem(); find.tag = 1
+        EditorWindowPresenter.findInEditor(find)
+        settle()
+        XCTAssertTrue(editor.enclosingScrollView?.isFindBarVisible == true)
+        let pasteboard = NSPasteboard(name: .find)
+        let savedFindItems = (pasteboard.pasteboardItems ?? []).map { item -> NSPasteboardItem in
+            let copy = NSPasteboardItem()
+            for type in item.types { if let data = item.data(forType: type) { copy.setData(data, forType: type) } }
+            return copy
+        }
+        defer { pasteboard.clearContents(); pasteboard.writeObjects(savedFindItems) }
+        let firstMatch = (editor.string as NSString).range(of: "first.test")
+        editor.setSelectedRange(firstMatch)
+        let useSelection = NSMenuItem(); useSelection.tag = 7
+        EditorWindowPresenter.findInEditor(useSelection)
+        editor.setSelectedRange(NSRange(location: 0, length: 0))
+        let next = NSMenuItem(); next.tag = 2
+        EditorWindowPresenter.findInEditor(next); settle()
+        XCTAssertEqual(editor.selectedRange(), firstMatch, "Native Find Next must select the matching text")
+        let hide = NSMenuItem(); hide.tag = 11
+        editor.performTextFinderAction(hide)
+        preview.makeFirstResponder(editor)
+        editor.setSelectedRange(NSRange(location: 5, length: 0))
+        let commentItem = try XCTUnwrap(NSApp.mainMenu?.item(withTitle: "Edit")?.submenu?.item(withTitle: "Toggle Comment"))
+        XCTAssertEqual(commentItem.action, NSSelectorFromString("toggleComment:"))
+        XCTAssertEqual(commentItem.keyEquivalent, "/")
+        XCTAssertEqual(commentItem.keyEquivalentModifierMask, .command)
+        XCTAssertNil(commentItem.target, "Commenting must follow the native responder chain")
+        XCTAssertTrue(editor.validateUserInterfaceItem(commentItem))
+        XCTAssertTrue(editor.tryToPerform(commentItem.action!, with: commentItem))
+        settle()
+        XCTAssertTrue(editor.string.hasPrefix("  # 127.0.0.1"))
+        XCTAssertEqual(hosts.contents(), editor.string)
+        XCTAssertFalse(hosts.saved())
+        XCTAssertEqual(try String(contentsOf: path, encoding: .utf8), original, "Commenting must not save or activate")
+        editor.undoManager?.undo(); settle()
+        XCTAssertEqual(editor.string, original)
+        editor.undoManager?.redo(); settle()
+        XCTAssertTrue(editor.string.hasPrefix("  # 127.0.0.1"))
+        editor.undoManager?.undo(); settle()
+        let firstTwo = (original as NSString).range(of: "\r\n\r\n").location + 2
+        editor.setSelectedRange(NSRange(location: 0, length: firstTwo))
+        editor.toggleComment(nil); settle()
+        XCTAssertTrue(editor.string.hasPrefix("  # 127.0.0.1 first.test\r\n\t# ::1 second.test\r\n\r\n"))
+        editor.toggleComment(nil); settle()
+        XCTAssertEqual(editor.string, original)
+        let result = try XCTUnwrap(ProfileSearchIndex.matches("needle", documents: store.searchDocuments).first)
+        store.openSearchResult(result); settle()
+        XCTAssertTrue(store.selectedHosts === remote)
+        XCTAssertEqual(editor.selectedRange(), result.range)
+        XCTAssertFalse(editor.validateUserInterfaceItem(commentItem))
+        XCTAssertFalse(editor.undoManager?.canUndo == true, "Undo must not leak edits from the previous profile")
+        let remoteContents = editor.string
+        editor.toggleComment(nil)
+        XCTAssertEqual(editor.string, remoteContents)
+        XCTAssertEqual(try String(contentsOf: remotePath, encoding: .utf8), remoteContents)
+        let findMenu = NSApp.mainMenu?.item(withTitle: "Edit")?.submenu?.item(withTitle: "Find")?.submenu
+        XCTAssertEqual(findMenu?.item(withTitle: "Find…")?.action, NSSelectorFromString("findInEditor:"))
+        XCTAssertEqual(findMenu?.item(withTitle: "Find in All Profiles…")?.keyEquivalentModifierMask, [.command, .shift])
+        func snapshot(_ sheet: NSWindow, name: String) throws {
+            let view = try XCTUnwrap(sheet.contentView)
+            view.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(view.bitmapImageRepForCachingDisplay(in: view.bounds))
+            view.cacheDisplay(in: view.bounds, to: bitmap)
+            let output = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+                .deletingLastPathComponent().appendingPathComponent("build/ui-qa/\(name).png")
+            let hold = output.deletingLastPathComponent().appendingPathComponent("hold-\(name)")
+            let deadline = Date(timeIntervalSinceNow: 120)
+            while FileManager.default.fileExists(atPath: hold.path), Date() < deadline {
+                while let event = NSApp.nextEvent(matching: .any, until: Date(), inMode: .default, dequeue: true) { NSApp.sendEvent(event) }
+                RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.01))
+            }
+            try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
+        }
+        store.showingHelp = true; settle()
+        try snapshot(try XCTUnwrap(preview.attachedSheet), name: "editor-help")
+        store.showingHelp = false; settle()
+        store.showingGlobalSearch = true; settle()
+        let searchSheet = try XCTUnwrap(preview.attachedSheet)
+        let field = try XCTUnwrap(searchSheet.firstResponder as? NSTextView)
+        field.insertText("needle", replacementRange: field.selectedRange())
+        settle()
+        try snapshot(searchSheet, name: "global-search")
+        field.insertNewline(nil); settle()
+        XCTAssertFalse(store.showingGlobalSearch, "Return should open the first global match")
+        XCTAssertEqual(editor.selectedRange(), result.range)
+    }
+
     func testToolbarDisplayMode_survivesFocusRefreshAndWindowRecreation() throws {
         let suite = "GasMaskToolbarTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))

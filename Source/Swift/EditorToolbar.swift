@@ -20,6 +20,7 @@ struct EditorToolbar: ToolbarContent {
             } label: {
                 Label("Create", systemImage: "plus")
             }
+            .help("Create a local, remote or combined hosts file")
         }
 
         if #available(macOS 26.0, *) {
@@ -32,6 +33,7 @@ struct EditorToolbar: ToolbarContent {
             } label: {
                 Label("Remove", systemImage: "minus")
             }
+            .help("Remove the selected hosts file")
             .disabled(!store.canRemoveFiles || store.selectedHosts == nil)
             .alert("Remove Hosts File", isPresented: Binding(
                 get: { hostsToRemove != nil },
@@ -57,7 +59,7 @@ struct EditorToolbar: ToolbarContent {
             Button {
                 ApplicationController.defaultInstance()?.updateAndSynchronize(nil)
             } label: {
-                Label("Update Remote Files", systemImage: "icloud.and.arrow.down")
+                Label("Update", systemImage: "icloud.and.arrow.down")
             }
             .help("Update Remote Files")
             .disabled(!store.canUpdateRemoteFiles)
@@ -76,6 +78,7 @@ struct EditorToolbar: ToolbarContent {
                 Label("Save", systemImage: "arrow.down")
             }
             .keyboardShortcut("s", modifiers: .command)
+            .help("Save the selected hosts file (⌘S)")
             .disabled(store.selectedHosts == nil || store.selectedHosts?.saved() != false)
         }
 
@@ -87,6 +90,7 @@ struct EditorToolbar: ToolbarContent {
             } label: {
                 Label("Activate", systemImage: "checkmark")
             }
+            .help("Activate the selected hosts file")
             .disabled(
                 store.selectedHosts == nil
                 || store.selectedHosts?.active() == true

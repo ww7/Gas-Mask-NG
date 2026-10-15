@@ -34,6 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (void)setEditorFontSize:(CGFloat)pointSize;
+- (IBAction)toggleComment:(nullable id)sender;
 
 - (void)setSyntaxHighlighting:(BOOL)value;
 - (BOOL)syntaxHighlighting;

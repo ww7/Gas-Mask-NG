@@ -281,3 +281,37 @@ Remote Update have separate native blocks, and Save/Activate stay paired. Two
 focused tests passed for layout and display-mode persistence across focus refresh
 and window recreation. Full suites were not repeated for this presentation fix.
 Evidence: `verification/2026-10-16-toolbar-groups.json`.
+
+
+## ww7.18: reopen, search, comments and useful footer
+
+- Standard application reopen handling opens/raises the existing editor, including
+  restoring a minimized window. It does not toggle the window closed.
+- Move to Local sits with Remote Update and Open in Browser in the context menu.
+  Toolbar actions have system help tooltips; the toolbar refresh label is Update.
+- Replace the read-only lock and file count with the active profile name, unique
+  hostname count and a question-mark help button. Count aliases after valid IPv4
+  or IPv6 addresses, excluding comments, invalid-address lines and duplicate names
+  (case-insensitive, normalized trailing dot). Counting runs on a cancellable worker.
+  This is the current active profile content, not an audit of the live system file.
+- The help sheet explains activation, read-only sources, update scopes and counts,
+  and lists keyboard commands. Long explanations wrap in a scrollable area. It is
+  also available from Help > Gas Mask Help.
+- Cmd+F routes to the native NSTextView find bar even if the sidebar had focus.
+  Existing next/previous/use-selection menu items use the document's native finder.
+  Cmd+Shift+F opens global search over local and cached Remote content, excluding
+  Combined previews to avoid duplicate results. Matching is case/diacritic
+  insensitive, runs off the main thread and returns at most 300 matching lines.
+  Click a result or press Return to open the file and select the match. Snapshot
+  ranges use UTF-16 offsets and are checked against current text before selection.
+- Edit > Toggle Comment (Cmd+/) follows the native responder chain and is disabled
+  for read-only editors. It toggles the current or selected nonblank lines,
+  preserves indentation/line endings, and uses NSTextView's normal undo/change
+  pipeline. No automatic save or activation. Reset undo history on document
+  replacement to prevent edits from one profile being undone into another.
+
+Four focused tests passed for reopen, native find/comment/undo and global-result
+navigation, search/count semantics, and light/dark/compact layouts. Native help and
+search sheets were inspected on synthetic fixtures. The full suite and privileged
+system-hosts activation were not repeated. Evidence:
+`verification/2026-10-16-search-comment-help.json`.

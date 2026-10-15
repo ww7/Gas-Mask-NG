@@ -50,6 +50,9 @@
 - (IBAction)increaseEditorTextSize:(id)sender;
 - (IBAction)decreaseEditorTextSize:(id)sender;
 - (IBAction)resetEditorTextSize:(id)sender;
+- (IBAction)findInEditor:(id)sender;
+- (IBAction)findInAllProfiles:(id)sender;
+- (IBAction)showEditorHelp:(id)sender;
 - (BOOL)editorWindowOpened;
 
 @end

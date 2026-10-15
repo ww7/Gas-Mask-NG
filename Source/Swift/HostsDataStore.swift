@@ -37,6 +37,9 @@ final class HostsDataStore: ObservableObject {
     @Published var filesCount: Int = 0
     @Published var canRemoveFiles: Bool = false
     @Published var renamingHosts: Hosts?
+    @Published var showingGlobalSearch = false
+    @Published var showingHelp = false
+    private(set) var editorSelection: NSRange?
     @Published private(set) var editorFocusRequest: UInt64 = 0
     @Published var isBusy: Bool = false
     @Published private(set) var rowRefreshToken: UInt64 = 0
@@ -152,8 +155,31 @@ final class HostsDataStore: ObservableObject {
         combined.setHostsFiles(files)
     }
 
-    func focusEditor() {
+    func focusEditor(range: NSRange? = nil) {
+        editorSelection = range
         editorFocusRequest &+= 1
+    }
+
+    var activeHosts: Hosts? {
+        hostsGroups.flatMap { ($0.children as? [Hosts]) ?? [] }.first { $0.active() }
+    }
+
+    var searchDocuments: [ProfileSearchDocument] {
+        combinableHosts.compactMap { hosts in
+            guard let path = hosts.path else { return nil }
+            return ProfileSearchDocument(path: path, name: hosts.name() ?? "", remote: hosts is RemoteHosts,
+                                         contents: hosts.contents() ?? "")
+        }
+    }
+
+    func openSearchResult(_ result: ProfileSearchMatch) {
+        guard let hosts = combinableHosts.first(where: { $0.path == result.path }) else { return }
+        let contents = (hosts.contents() ?? "") as NSString
+        guard NSMaxRange(result.range) <= contents.length,
+              contents.substring(with: result.range) == result.matchedText else { return }
+        selectedHosts = hosts
+        showingGlobalSearch = false
+        focusEditor(range: result.range)
     }
 
     // MARK: Selection Sync

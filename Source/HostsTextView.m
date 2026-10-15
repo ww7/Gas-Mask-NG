@@ -87,6 +87,9 @@
     [textView setVerticallyResizable:YES];
     [textView setHorizontallyResizable:YES];
     [textView setAutoresizingMask:NSViewWidthSizable];
+    textView.usesFindBar = YES;
+    textView.incrementalSearchingEnabled = YES;
+    textView.allowsUndo = YES;
     [textView setTextContainerInset:NSMakeSize(8, 8)];
     // Equal document margins; NSTextContainer otherwise adds another 5pt on x.
     [[textView textContainer] setLineFragmentPadding:0];
@@ -95,6 +98,74 @@
     [textView setTextColor:[NSColor colorNamed:@"TextColor"]];
 
     return textView;
+}
+
+// One native text edit keeps undo, model notifications and syntax highlighting in
+// the normal NSTextView pipeline. A selection ending at the next line's start
+// intentionally excludes that next line; indentation and line endings are kept.
+- (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item
+{
+    if ([item action] == @selector(toggleComment:)) { return self.isEditable; }
+    return [super validateUserInterfaceItem:item];
+}
+
+- (IBAction)toggleComment:(id)sender
+{
+    if (!self.isEditable) { return; }
+    NSString *text = self.string;
+    NSRange selection = self.selectedRange;
+    if (selection.location > text.length || NSMaxRange(selection) > text.length) { return; }
+    NSUInteger last = selection.length ? NSMaxRange(selection) - 1 : selection.location;
+    NSRange affected = NSUnionRange([text lineRangeForRange:NSMakeRange(selection.location, 0)],
+                                   [text lineRangeForRange:NSMakeRange(last, 0)]);
+    NSMutableArray<NSNumber*> *markers = [NSMutableArray new];
+    BOOL uncomment = YES;
+    for (NSUInteger pos = affected.location; pos < NSMaxRange(affected);) {
+        NSUInteger end, contentsEnd;
+        [text getLineStart:NULL end:&end contentsEnd:&contentsEnd forRange:NSMakeRange(pos, 0)];
+        NSUInteger marker = pos;
+        while (marker < contentsEnd && [[NSCharacterSet whitespaceCharacterSet] characterIsMember:[text characterAtIndex:marker]]) { marker++; }
+        if (marker < contentsEnd) {
+            [markers addObject:@(marker)];
+            if ([text characterAtIndex:marker] != '#') { uncomment = NO; }
+        }
+        if (end <= pos) { break; }
+        pos = end;
+    }
+    if (!markers.count) { return; }
+    NSMutableArray<NSValue*> *edits = [NSMutableArray new];
+    NSString *replacement = uncomment ? @"" : @"# ";
+    for (NSNumber *position in markers) {
+        NSUInteger index = position.unsignedIntegerValue;
+        NSUInteger length = 0;
+        if (uncomment) {
+            length = 1;
+            if (index + 1 < text.length && [text characterAtIndex:index + 1] == ' ') { length++; }
+        }
+        [edits addObject:[NSValue valueWithRange:NSMakeRange(index, length)]];
+    }
+    NSMutableString *updated = [[text substringWithRange:affected] mutableCopy];
+    for (NSValue *value in edits.reverseObjectEnumerator) {
+        NSRange range = value.rangeValue;
+        range.location -= affected.location;
+        [updated replaceCharactersInRange:range withString:replacement];
+    }
+    NSUInteger (^mapped)(NSUInteger) = ^NSUInteger(NSUInteger point) {
+        NSInteger delta = 0;
+        for (NSValue *value in edits) {
+            NSRange range = value.rangeValue;
+            if (point < range.location) { break; }
+            if (point <= NSMaxRange(range)) { return (NSUInteger)((NSInteger)range.location + delta + replacement.length); }
+            delta += (NSInteger)replacement.length - (NSInteger)range.length;
+        }
+        return (NSUInteger)((NSInteger)point + delta);
+    };
+    NSRange result = NSMakeRange(mapped(selection.location), mapped(NSMaxRange(selection)) - mapped(selection.location));
+    if (![self shouldChangeTextInRange:affected replacementString:updated]) { return; }
+    [self.textStorage replaceCharactersInRange:affected withString:updated];
+    [self didChangeText];
+    [self setSelectedRange:result];
+    [self.undoManager setActionName:@"Toggle Comment"];
 }
 
 // Display-only zoom: keep the monospaced face, syntax colors and typing font.
@@ -201,6 +272,9 @@
 
 -(void)replaceContentWith:(NSString *)newContent
 {
+	// The editor is reused for different profiles and external reloads. Undo from
+	// the previous document must never be applied to the newly displayed file.
+    [self.undoManager removeAllActions];
 	// Cancel any pending async highlighting from a previous call
 	_highlightGeneration++;
 	_replacingContent = YES;

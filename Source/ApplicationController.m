@@ -143,6 +143,32 @@ static ApplicationController *sharedInstance = nil;
 
 - (void)installEditorMenuItems
 {
+    NSMenu *editMenu = [[NSApp.mainMenu itemWithTitle:@"Edit"] submenu];
+    NSMenu *findMenu = [[editMenu itemWithTitle:@"Find"] submenu];
+    for (NSMenuItem *item in findMenu.itemArray) {
+        if (item.action == @selector(performFindPanelAction:)) {
+            item.target = self;
+            item.action = @selector(findInEditor:);
+        }
+    }
+    if (findMenu && ![findMenu itemWithTitle:@"Find in All Profiles…"]) {
+        [findMenu addItem:[NSMenuItem separatorItem]];
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"Find in All Profiles…" action:@selector(findInAllProfiles:) keyEquivalent:@"f"];
+        item.target = self;
+        item.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagShift;
+        [findMenu addItem:item];
+    }
+    if (editMenu && ![editMenu itemWithTitle:@"Toggle Comment"]) {
+        [editMenu addItem:[NSMenuItem separatorItem]];
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"Toggle Comment" action:@selector(toggleComment:) keyEquivalent:@"/"];
+        item.target = nil;
+        item.keyEquivalentModifierMask = NSEventModifierFlagCommand;
+        [editMenu addItem:item];
+    }
+    NSMenu *helpMenu = [[NSApp.mainMenu itemWithTitle:@"Help"] submenu];
+    NSMenuItem *help = [helpMenu itemWithTitle:@"Gas Mask Help"];
+    help.target = self;
+    help.action = @selector(showEditorHelp:);
     NSMenu *viewMenu = [[NSApp.mainMenu itemWithTitle:@"View"] submenu];
     if (viewMenu && ![viewMenu itemWithTitle:@"Increase Text Size"]) {
         [viewMenu addItem:[NSMenuItem separatorItem]];
@@ -171,6 +197,19 @@ static ApplicationController *sharedInstance = nil;
         item.image = [NSImage imageWithSystemSymbolName:@"icloud.and.arrow.down" accessibilityDescription:@"Update Remote Files"];
         [fileMenu addItem:item];
     }
+}
+
+- (IBAction)findInEditor:(id)sender {
+    [self openEditorWindow:nil];
+    [EditorWindowPresenter findInEditor:sender];
+}
+- (IBAction)findInAllProfiles:(id)sender {
+    [self openEditorWindow:nil];
+    [EditorWindowPresenter showGlobalSearch];
+}
+- (IBAction)showEditorHelp:(id)sender {
+    [self openEditorWindow:nil];
+    [EditorWindowPresenter showHelp];
 }
 
 - (IBAction)increaseEditorTextSize:(id)sender { [self adjustEditorTextSize:1]; }
@@ -229,6 +268,12 @@ static ApplicationController *sharedInstance = nil;
 }
 
 #pragma mark - Application Delegate
+
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag
+{
+    [self openEditorWindow:nil];
+    return YES;
+}
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
 {
@@ -390,6 +435,7 @@ static ApplicationController *sharedInstance = nil;
 
 - (void)orderEditorWindowFront
 {
+    if (_editorWindow.isMiniaturized) { [_editorWindow deminiaturize:nil]; }
 	[_editorWindow makeKeyAndOrderFront:nil];
 }
 

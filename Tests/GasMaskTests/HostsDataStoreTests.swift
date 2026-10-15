@@ -81,6 +81,36 @@ final class HostsDataStoreTests: XCTestCase {
         XCTAssertFalse(controller.update(foreign))
     }
 
+    func testProfileSearchAndActiveStatistics_excludeCommentsAndCombinedDuplicates() throws {
+        let contents = "# 1.2.3.4 hidden.test\r\n 127.0.0.1 One.test alias.test # ignored.test\n::1 one.TEST two.test.\ninvalid invalid.test\n\n"
+        XCTAssertEqual(HostsStatistics.uniqueHostCount(contents), 3)
+        XCTAssertEqual(HostsStatistics.uniqueHostCount("# only comments\n"), 0)
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-search-\(UUID().uuidString).hst")
+        try contents.write(to: path, atomically: true, encoding: .utf8)
+        defer { try? FileManager.default.removeItem(at: path) }
+        let local = try XCTUnwrap(Hosts(path: path.path))
+        let combined = try XCTUnwrap(CombinedHosts(path: path.path + ".combined", allHostsFiles: [local]))
+        combined.setHostsFiles([local])
+        let group = try XCTUnwrap(HostsGroup(name: "LOCAL"))
+        group.children = [local, combined]
+        let store = HostsDataStore()
+        store.hostsGroups = [group]
+        XCTAssertEqual(store.searchDocuments.count, 1)
+        let matches = ProfileSearchIndex.matches("ONE.test", documents: store.searchDocuments)
+        XCTAssertEqual(matches.map(\.line), [2, 3])
+        for match in matches {
+            XCTAssertEqual((contents as NSString).substring(with: match.range).lowercased(), "one.test")
+        }
+        let unicode = ProfileSearchDocument(path: "fixture", name: "Unicode", remote: true, contents: "# 😀\r\n::1 café.test\r\n")
+        let match = try XCTUnwrap(ProfileSearchIndex.matches("cafe", documents: [unicode]).first)
+        XCTAssertEqual(match.line, 2)
+        XCTAssertEqual((unicode.contents as NSString).substring(with: match.range), "café")
+        XCTAssertTrue(ProfileSearchIndex.matches("", documents: [unicode]).isEmpty)
+        let big = ProfileSearchDocument(path: "fixture", name: "Big", remote: false,
+            contents: Array(repeating: "127.0.0.1 found.test", count: 1000).joined(separator: "\n"))
+        XCTAssertEqual(ProfileSearchIndex.matches("found", documents: [big]).count, ProfileSearchIndex.resultLimit)
+    }
+
     // MARK: - Notification Name Constants
 
     /// Verify Swift notification names match the ObjC #define values from Gas_Mask_Prefix.pch

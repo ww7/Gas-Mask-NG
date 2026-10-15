@@ -1,45 +1,113 @@
 import SwiftUI
+import Darwin
+
+enum HostsStatistics {
+    // Count unique, enabled hostnames, including aliases, after a valid address.
+    // Full-line and inline comments never contribute to the active count.
+    static func uniqueHostCount(_ contents: String) -> Int {
+        var names = Set<String>()
+        for line in contents.split(whereSeparator: \.isNewline) {
+            if Task<Never, Never>.isCancelled { return 0 }
+            let uncommented = line.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false)[0]
+            let fields = uncommented.split(whereSeparator: \.isWhitespace)
+            guard fields.count > 1 else { continue }
+            var address = in6_addr()
+            let valid = String(fields[0]).withCString {
+                inet_pton(AF_INET, $0, &address) == 1 || inet_pton(AF_INET6, $0, &address) == 1
+            }
+            guard valid else { continue }
+            for field in fields.dropFirst() {
+                let name = field.lowercased()
+                names.insert(name.hasSuffix(".") ? String(name.dropLast()) : name)
+            }
+        }
+        return names.count
+    }
+}
 
 struct StatusBarView: View {
     @ObservedObject var store: HostsDataStore
+    @State private var count: Int?
 
     var body: some View {
         VStack(spacing: 0) {
             Divider()
-            HStack {
-                if store.selectedHosts?.editable == false {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                        .help("Hosts file can not be modified")
-                        .accessibilityLabel("Read-only")
+            HStack(spacing: 8) {
+                if let active = store.activeHosts {
+                    Text("Active: \(active.name() ?? "")")
+                        .lineLimit(1).truncationMode(.middle)
+                    if let count {
+                        Text("· \(count) \(count == 1 ? "host" : "hosts")")
+                            .fixedSize()
+                            .help("Unique hostnames in the active profile, including aliases; comments are excluded")
+                    }
+                } else {
+                    Text("No active profile")
                 }
-
-                Spacer()
-
-                Text(filesCountText)
-                    .font(.system(size: NSFont.smallSystemFontSize))
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
+                Spacer(minLength: 0)
                 if store.isBusy {
-                    ProgressView()
-                        .controlSize(.small)
-                        .accessibilityLabel("Busy")
+                    ProgressView().controlSize(.small).help("Updating hosts files")
                 }
+                Button { store.showingHelp = true } label: {
+                    Image(systemName: "questionmark.circle")
+                }
+                .buttonStyle(.plain)
+                .help("Keyboard shortcuts and help")
+                .accessibilityLabel("Keyboard shortcuts and help")
             }
+            .font(.system(size: NSFont.smallSystemFontSize))
+            .foregroundStyle(.secondary)
             .padding(.horizontal, 8)
             .frame(height: 24)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .task(id: store.activeHosts?.contents() ?? "") {
+            let contents = store.activeHosts?.contents() ?? ""
+            count = nil
+            let worker = Task.detached(priority: .utility) { HostsStatistics.uniqueHostCount(contents) }
+            let result = await withTaskCancellationHandler(operation: { await worker.value }, onCancel: { worker.cancel() })
+            guard !Task.isCancelled else { return }
+            count = result
+        }
+    }
+}
+
+struct EditorHelpView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Gas Mask Help").font(.headline)
+            Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 7) {
+                shortcut("Find in the displayed profile", "⌘F")
+                shortcut("Find next / previous", "⌘G / ⇧⌘G")
+                shortcut("Find in all local and remote profiles", "⇧⌘F")
+                shortcut("Comment / uncomment line or selection", "⌘/")
+                shortcut("Save the selected profile", "⌘S")
+                shortcut("Undo / redo", "⌘Z / ⇧⌘Z")
+                shortcut("Larger / smaller / actual text size", "⌘+ / ⌘− / ⌘0")
+            }
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("The checkmark marks the active profile. Selecting another profile only opens it for viewing; Activate applies it to the system hosts file.")
+                    Text("Remote files and Combined previews are read-only. Move a Remote file to Local to edit it; it will stop updating from its URL. Edit the source files or drag the Included Files rows to change a Combined profile.")
+                    Text("Update in the toolbar refreshes all Remote files. Update Remote File in a profile’s context menu refreshes only that file.")
+                    Text("The bottom counter shows unique hostnames in the active profile, including aliases, excluding comments and duplicate names. It uses the current profile contents; save changes to an active profile to apply edits.")
+                    Text("Configure global window-toggle, profile-switching and update shortcuts in Settings.")
+                        .foregroundStyle(.secondary)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: 220)
+            HStack { Spacer(); Button("Close") { dismiss() }.keyboardShortcut(.cancelAction) }
+        }
+        .font(.system(size: NSFont.smallSystemFontSize))
+        .padding(24).frame(width: 540)
     }
 
-    private var filesCountText: String {
-        switch store.filesCount {
-        case 0: return "No files"
-        case 1: return "One file"
-        default: return "\(store.filesCount) files"
-        }
+    private func shortcut(_ title: String, _ keys: String) -> some View {
+        GridRow { Text(title); Text(keys).foregroundStyle(.secondary) }
     }
 }

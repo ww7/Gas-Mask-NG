@@ -5,6 +5,7 @@ struct HostsTextViewRepresentable: NSViewRepresentable {
     let contentToken: UInt64
     let focusRequest: UInt64
     let onTextChange: (String) -> Void
+    var selectionRange: NSRange? = nil
     @AppStorage("syntaxHighlighting") private var syntaxHighlighting = true
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -72,6 +73,10 @@ struct HostsTextViewRepresentable: NSViewRepresentable {
                       coordinator.lastFocusRequest == focusRequest,
                       coordinator.lastUpdatedHosts === selectedHosts else { return }
                 textView.window?.makeFirstResponder(textView)
+                if let range = selectionRange, NSMaxRange(range) <= (textView.string as NSString).length {
+                    textView.setSelectedRange(range)
+                    textView.scrollRangeToVisible(range)
+                }
             }
         }
     }

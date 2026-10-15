@@ -159,4 +159,18 @@ static void runLoopDrain(NSTimeInterval seconds)
     XCTAssertNotNil([self.controller editorWindowForTesting]);
 }
 
+- (void)testApplicationReopen_showsExistingEditor
+{
+    [self.controller loadEditorWindowForTesting];
+    [self.controller closeEditorWindowForTesting];
+    id<NSApplicationDelegate> delegate = (id<NSApplicationDelegate>)self.controller;
+    XCTAssertTrue([delegate applicationShouldHandleReopen:NSApp hasVisibleWindows:NO]);
+    runLoopDrain(0.1);
+    NSWindow *window = [self.controller editorWindowForTesting];
+    XCTAssertTrue(window.isVisible);
+    XCTAssertTrue([self.controller editorWindowOpened]);
+    XCTAssertTrue([delegate applicationShouldHandleReopen:NSApp hasVisibleWindows:YES]);
+    XCTAssertEqual(window, [self.controller editorWindowForTesting]);
+}
+
 @end

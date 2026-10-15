@@ -1,0 +1,25 @@
+{
+  "candidate": "0.8.7-ww7.18",
+  "result": "passed",
+  "focused_tests": 4,
+  "full_suite_run": false,
+  "fixtures": "temporary synthetic profiles; isolated test bundle preferences; find pasteboard restored",
+  "xcresult": "build/ww7.18-release-check.xcresult",
+  "checks": [
+    "reopening hidden editor and reopening visible editor reuse the same window",
+    "Move to Local is in the Remote context-menu block; toolbar Update label and help strings",
+    "native find bar opens and Find Next selects a match; menu wiring covers Find, Next, Previous and Use Selection",
+    "Cmd+/ uses native responder chain; current/selected lines preserve indentation and CRLF; undo/redo and readonly validation",
+    "switching profiles clears undo history to prevent cross-document edits",
+    "global search excludes Combined documents and supports case/diacritic-insensitive matches with UTF-16 positions",
+    "global search result opens its profile and selects the matching text; Return opens the first result",
+    "unique host counter excludes full-line and inline comments, invalid addresses and duplicate aliases",
+    "help and global search sheets inspected through native accessibility and screenshots on synthetic fixtures",
+    "light/dark/compact/icon-only layout and footer remain correct"
+  ],
+  "native_visual_inspection": [
+    "help sheet wraps explanation text and allows scrolling",
+    "global search shows Remote result with name, line and matching content"
+  ],
+  "runtime_warnings": []
+}

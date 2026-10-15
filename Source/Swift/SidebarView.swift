@@ -217,16 +217,13 @@ struct SidebarView: View {
                     NSWorkspace.shared.open(url)
                 }
             }
-        }
-
-        Divider()
-
-        if hosts is RemoteHosts {
             Button("Move to Local") {
                 HostsMainController.defaultInstance()?.move(hosts, toControllerClass: LocalHostsController.self)
             }
             .disabled(!hosts.exists)
         }
+
+        Divider()
 
         Button("Rename") {
             requestRename(hosts)
