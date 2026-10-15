@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #import "AbstractHostsManager.h"
+@class RemoteHosts;
 
 @interface RemoteHostsManager : AbstractHostsManager {
 	@private
@@ -28,5 +29,6 @@
 
 - (void)loadRemoteHostsProperties;
 - (void)startUpdater;
+- (BOOL)updateHosts:(RemoteHosts*)hosts;
 
 @end

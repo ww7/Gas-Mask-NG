@@ -287,7 +287,8 @@ final class EditorWindowPresenterTests: XCTestCase {
             let scroll = try XCTUnwrap(descendants(content).compactMap { $0 as? NSScrollView }
                 .first { $0.documentView is HostsTextView })
             let textView = try XCTUnwrap(scroll.documentView as? HostsTextView)
-            XCTAssertEqual(textView.textContainerInset.height, 8)
+            XCTAssertEqual(textView.textContainerInset, NSSize(width: 8, height: 8))
+            XCTAssertEqual(textView.textContainer?.lineFragmentPadding, 0)
             XCTAssertEqual(textView.font?.fontName,
                 NSFont.monospacedSystemFont(ofSize: textView.font?.pointSize ?? 12, weight: .medium).fontName)
             let sidebarTable = try XCTUnwrap(descendants(content).compactMap { $0 as? NSTableView }

@@ -22,6 +22,10 @@ struct EditorToolbar: ToolbarContent {
             }
         }
 
+        if #available(macOS 26.0, *) {
+            ToolbarSpacer(.fixed, placement: .navigation)
+        }
+
         ToolbarItem(id: "remove", placement: .navigation) {
             Button {
                 hostsToRemove = store.selectedHosts
@@ -45,13 +49,31 @@ struct EditorToolbar: ToolbarContent {
             }
         }
 
+        if #available(macOS 26.0, *) {
+            ToolbarSpacer(.fixed, placement: .navigation)
+        }
+
+        ToolbarItem(id: "update-remote", placement: .navigation) {
+            Button {
+                ApplicationController.defaultInstance()?.updateAndSynchronize(nil)
+            } label: {
+                Label("Update Remote Files", systemImage: "icloud.and.arrow.down")
+            }
+            .help("Update Remote Files")
+            .disabled(!store.canUpdateRemoteFiles)
+        }
+
+        if #available(macOS 26.0, *) {
+            ToolbarSpacer(.fixed, placement: .navigation)
+        }
+
         ToolbarItem(id: "save", placement: .navigation) {
             Button {
                 if let hosts = store.selectedHosts {
                     HostsMainController.defaultInstance()?.save(hosts)
                 }
             } label: {
-                Label("Save", systemImage: "checkmark")
+                Label("Save", systemImage: "arrow.down")
             }
             .keyboardShortcut("s", modifiers: .command)
             .disabled(store.selectedHosts == nil || store.selectedHosts?.saved() != false)
@@ -63,23 +85,13 @@ struct EditorToolbar: ToolbarContent {
                     HostsMainController.defaultInstance()?.activateHostsFile(hosts)
                 }
             } label: {
-                Label("Activate", systemImage: "power")
+                Label("Activate", systemImage: "checkmark")
             }
             .disabled(
                 store.selectedHosts == nil
                 || store.selectedHosts?.active() == true
                 || store.selectedHosts?.exists != true
             )
-        }
-
-        ToolbarItem(id: "update-remote", placement: .navigation) {
-            Button {
-                ApplicationController.defaultInstance()?.updateAndSynchronize(nil)
-            } label: {
-                Label("Update Remote Files", systemImage: "icloud.and.arrow.down")
-            }
-            .help("Update Remote Files")
-            .disabled(!store.canUpdateRemoteFiles)
         }
     }
 }

@@ -20,11 +20,13 @@
 
 #import "AbstractHostsController.h"
 
-@class RemoteHostsManager;
+@class RemoteHostsManager, RemoteHosts;
 
 @interface RemoteHostsController : AbstractHostsController {
 	@private
 	RemoteHostsManager *manager;
 }
+
+- (BOOL)updateHosts:(RemoteHosts*)hosts;
 
 @end

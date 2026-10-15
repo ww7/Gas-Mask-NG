@@ -98,16 +98,15 @@ struct HostsFileRow<Name: View>: View {
 
     var body: some View {
         HStack(spacing: 4) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 10, weight: .regular))
+                .frame(width: 10, height: 16)
+                .opacity(hosts.active() ? 1 : 0)
+                .accessibilityHidden(true)
             fileIcon.frame(width: 16, height: 16)
             name
-                .font(.system(size: NSFont.smallSystemFontSize))
+                .font(.system(size: NSFont.smallSystemFontSize, weight: hosts.active() ? .bold : .regular))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            if hosts.active() {
-                Circle()
-                    .fill(.green)
-                    .frame(width: 6, height: 6)
-                    .accessibilityLabel("Active")
-            }
             if let error = hosts.error() {
                 HostsErrorBadge(error: error)
             }

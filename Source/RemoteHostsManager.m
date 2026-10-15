@@ -35,6 +35,7 @@
 - (void)saveRemoteHostsProperties;
 - (void)startTimer;
 - (void)update;
+- (void)downloadHosts:(RemoteHosts*)hosts;
 - (void)updateByNotification;
 - (void)changeTimerState:(NSNotification *)notification;
 - (void)changeTimerInterval;
@@ -112,6 +113,22 @@
 
 #pragma mark -
 #pragma mark Override
+
+- (BOOL)updateHosts:(RemoteHosts*)hosts
+{
+    // Context-menu refresh targets this exact managed object, independent of
+    // editor selection. Share the normal downloader/save/notification lifecycle.
+    if (!hosts || ![hosts url] ||
+        [[hostsController hostsFiles] indexOfObjectIdenticalTo:hosts] == NSNotFound ||
+        [self numberOfDownloaders] > 0 || ![[Network defaultInstance] online]) {
+        return NO;
+    }
+    [timer invalidate];
+    timer = nil;
+    firstUpdate = NO;
+    [self downloadHosts:hosts];
+    return YES;
+}
 
 - (void)hostsDownloaded:(HostsDownloader*)downloader
 {
@@ -220,12 +237,16 @@
 	for (RemoteHosts *hosts in files) {
 		logDebug(@"Searching updates for \"%@\"", [hosts name]);
 		
-		HostsDownloader *downloader = [[HostsDownloader alloc] initWithHosts:hosts url:[hosts url]];
-        [self addDownloader:downloader];
-        
-		[downloader setDelegate:self];
-		[downloader download];
+        [self downloadHosts:hosts];
 	}
+}
+
+- (void)downloadHosts:(RemoteHosts*)hosts
+{
+    HostsDownloader *downloader = [[HostsDownloader alloc] initWithHosts:hosts url:[hosts url]];
+    [self addDownloader:downloader];
+    [downloader setDelegate:self];
+    [downloader download];
 }
 
 - (void)updateByNotification

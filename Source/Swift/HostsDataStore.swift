@@ -88,6 +88,17 @@ final class HostsDataStore: ObservableObject {
         }
     }
 
+    func canUpdate(_ remote: RemoteHosts) -> Bool {
+        !isBusy && remote.url != nil && hostsGroups.contains { group in
+            !group.synchronizing() && ((group.children as? [Hosts]) ?? []).contains { $0 === remote }
+        }
+    }
+
+    func update(_ remote: RemoteHosts) {
+        guard canUpdate(remote) else { return }
+        _ = HostsMainController.defaultInstance()?.update(remote)
+    }
+
     // MARK: Combined Composition
 
     var combinableHosts: [Hosts] {

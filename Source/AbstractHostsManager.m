@@ -69,6 +69,7 @@
     [self removeDownloader:downloader];
 	
 	[hosts setEnabled:YES];
+    [hosts setError:nil];
 }
 
 - (void)hostsDownloadingStarted:(HostsDownloader*)downloader
@@ -100,6 +101,7 @@
 - (void)hostsDownloadFailed:(HostsDownloader*)downloader
 {
 	logError(@"Downloading failed");
+	[self decreaseActiveDownloadsCount];
 	
 	Hosts *hosts = [downloader hosts];
 	[hosts setEnabled:YES];

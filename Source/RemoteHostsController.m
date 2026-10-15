@@ -126,6 +126,11 @@
 	return YES;
 }
 
+- (BOOL)updateHosts:(RemoteHosts*)hosts
+{
+    return [manager updateHosts:hosts];
+}
+
 @end
 
 @implementation RemoteHostsController (Private)

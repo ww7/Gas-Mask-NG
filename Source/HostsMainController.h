@@ -26,6 +26,7 @@
 #define HostsFileWillBeRemovedNotification @"HostsFileWillBeRemovedNotification"
 
 @protocol HostsControllerProtocol;
+@class RemoteHosts;
 
 
 @protocol HostsControllerDelegateProtocol
@@ -102,6 +103,7 @@
 - (void)saveHosts:(Hosts*)hosts;
 
 - (BOOL)canRemoveFiles;
+- (BOOL)updateRemoteHosts:(RemoteHosts*)hosts;
 - (void)remove:(id)sender;
 - (void)removeSelectedHostsFile:(id)sender;
 - (void)removeHostsFile:(Hosts*)hosts moveToTrash:(BOOL)moveToTrash;

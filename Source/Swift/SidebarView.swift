@@ -193,7 +193,16 @@ struct SidebarView: View {
         }
         .disabled(!hosts.exists)
 
-        if hosts is RemoteHosts || hosts is CombinedHosts {
+        if let remote = hosts as? RemoteHosts {
+            Divider()
+            Button {
+                store.update(remote)
+            } label: {
+                Label("Update Remote File", systemImage: "icloud.and.arrow.down")
+            }
+            .disabled(!store.canUpdate(remote))
+        } else if hosts is CombinedHosts {
+            Divider()
             Button {
                 ApplicationController.defaultInstance()?.updateAndSynchronize(nil)
             } label: {

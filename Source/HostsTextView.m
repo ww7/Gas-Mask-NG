@@ -87,7 +87,9 @@
     [textView setVerticallyResizable:YES];
     [textView setHorizontallyResizable:YES];
     [textView setAutoresizingMask:NSViewWidthSizable];
-    [textView setTextContainerInset:NSMakeSize(0, 8)];
+    [textView setTextContainerInset:NSMakeSize(8, 8)];
+    // Equal document margins; NSTextContainer otherwise adds another 5pt on x.
+    [[textView textContainer] setLineFragmentPadding:0];
     [textView observeEditorFontSize];
     [textView setBackgroundColor:[NSColor colorNamed:@"BackgroundColor"]];
     [textView setTextColor:[NSColor colorNamed:@"TextColor"]];

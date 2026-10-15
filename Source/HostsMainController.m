@@ -243,6 +243,16 @@ static HostsMainController *sharedInstance = nil;
 	[self saveHosts:hosts];
 }
 
+- (BOOL)updateRemoteHosts:(RemoteHosts*)hosts
+{
+    for (id controller in controllers) {
+        if ([controller isKindOfClass:[RemoteHostsController class]]) {
+            return [(RemoteHostsController*)controller updateHosts:hosts];
+        }
+    }
+    return NO;
+}
+
 - (void)saveHosts:(Hosts*)hosts
 {
     [self stopTrackingFileChanges];

@@ -240,3 +240,27 @@ preserving profiles and settings. This supersedes the earlier per-version
 installation requirements above; publication remains separately authorized.
 Installed ww7.15 over ww7.13 with a backup of the previous app and data. Verified
 the installed bundle, signature, unchanged profiles/settings and system hosts.
+
+
+## ww7.16: targeted remote refresh and toolbar presentation
+
+Remote profile context menus show a separator and singular **Update Remote File**.
+The action passes the clicked object through the main/remote controllers to the
+existing download manager, independently of editor selection. Global menu/toolbar
+refresh retains its all-files scope. Duplicate in-flight, offline, URL-less and
+unmanaged-object updates are rejected. An error now decrements the active download
+counter; an unchanged successful response clears previous download errors.
+
+Active sidebar profiles use a regular-weight checkmark in a reserved leading slot
+and a bold name. Inactive rows reserve the same space; the file-type icon remains
+visible during inline rename. The green active dot is removed. Save uses the
+standard SF Symbol `arrow.down`, and Activate uses `checkmark`. On macOS 26+ native
+fixed toolbar spacers separate Create, Remove and Update Remote Files, followed by
+Save/Activate. Older systems retain their individual native toolbar items.
+
+Editor document margins are 8 points on both axes, with NSTextContainer's extra
+horizontal line-fragment padding disabled. Four focused tests passed using
+synthetic files and an intercepted reserved test URL; no live profiles, remote
+servers or system hosts file were used. Rendered light/dark/compact and rename
+snapshots were inspected. Full-suite/manual system-activation acceptance was not
+performed. Evidence: `verification/2026-10-16-remote-context-toolbar.json`.

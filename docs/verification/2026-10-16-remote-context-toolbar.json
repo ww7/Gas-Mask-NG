@@ -1,0 +1,32 @@
+{
+  "candidate": "0.8.7-ww7.16",
+  "result": "passed",
+  "focused_tests": 4,
+  "full_suite_run": false,
+  "fixtures": "temporary profiles, isolated test bundle preferences, URLProtocol for a reserved .test host",
+  "xcresult": "build/ww7.16-verified.xcresult",
+  "checks": [
+    "context target differs from editor selection; only its URL is requested and only its file changes",
+    "duplicate queued refresh, offline and unmanaged-object requests rejected",
+    "changed, unchanged, failed and recovered download lifecycle releases busy and synchronizing states",
+    "successful unchanged response clears earlier download error",
+    "native rename blur/submit, sorting and editor focus, Cmd +/-/0 dispatch",
+    "8-point document insets on both axes with zero extra line-fragment padding",
+    "light, dark and compact window/footer/composition geometry",
+    "active row uses fixed leading checkmark slot and bold name; file icon remains while renaming",
+    "native fixed toolbar spacers separate Create, Remove and Update Remote Files"
+  ],
+  "snapshots": [
+    "build/ui-qa/combined-light.png",
+    "build/ui-qa/combined-dark.png",
+    "build/ui-qa/combined-compact.png",
+    "build/ui-qa/sidebar-rename.png"
+  ],
+  "runtime_warnings": [
+    {
+      "issueType": "Runtime Warning",
+      "message": "[Internal] Thread running at User-interactive quality-of-service class waiting on a lower QoS thread running at Default quality-of-service class. Investigate ways to avoid priority inversions",
+      "sourceURL": "file:///Users/ww7/w/projects/ww7/GasMask/Tests/GasMaskTests/EditorWindowPresenterTests.swift"
+    }
+  ]
+}

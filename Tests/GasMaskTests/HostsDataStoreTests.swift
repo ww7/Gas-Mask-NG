@@ -3,6 +3,84 @@ import XCTest
 
 final class HostsDataStoreTests: XCTestCase {
 
+    func testRemoteRefresh_targetsContextFileAndRecoversAfterFailure() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-refresh-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let files = try ["First", "Second"].map { name -> RemoteHosts in
+            let path = directory.appendingPathComponent("\(name).hst")
+            try "127.0.0.1 old.example.test".write(to: path, atomically: true, encoding: .utf8)
+            let file = try XCTUnwrap(RemoteHosts(path: path.path))
+            file.url = URL(string: "https://gasmask-refresh.example.test/\(name)")!
+            return file
+        }
+        let main = try XCTUnwrap(HostsMainController.defaultInstance())
+        let network = try XCTUnwrap(Network.defaultInstance())
+        let previousOnline = network.online
+        let previousControllers = main.value(forKey: "controllers")
+        let previousContent = main.content
+        let previousProperties = Preferences.remoteHostsFilesProperties()
+        let controller = RemoteHostsController()
+        controller.hostsFiles.addObjects(from: files)
+        let group = try XCTUnwrap(controller.hostsGroup())
+        group.children = files
+        main.setValue([LocalHostsController(), controller, CombinedHostsController()], forKey: "controllers")
+        main.content = [group]
+        network.online = true
+        RefreshFixtureProtocol.fail = false
+        RefreshFixtureProtocol.paths = []
+        URLProtocol.registerClass(RefreshFixtureProtocol.self)
+        defer {
+            URLProtocol.unregisterClass(RefreshFixtureProtocol.self)
+            // The manager owns a periodic timer after completion; stop it before
+            // restoring the fixture controller's surrounding test state.
+            let manager = controller.value(forKey: "manager") as? NSObject
+            (manager?.value(forKey: "timer") as? Timer)?.invalidate()
+            main.setValue(previousControllers, forKey: "controllers")
+            main.content = previousContent
+            Preferences.setRemoteHostsFilesProperties(previousProperties)
+            network.online = previousOnline
+        }
+        let store = HostsDataStore()
+        store.selectedHosts = files[0]
+        let original = try Data(contentsOf: URL(fileURLWithPath: files[0].path))
+        func waitForCompletion() {
+            let deadline = Date(timeIntervalSinceNow: 5)
+            repeat { RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.02)) }
+            while store.isBusy && Date() < deadline
+            XCTAssertFalse(store.isBusy)
+            XCTAssertFalse(group.synchronizing())
+            XCTAssertTrue(files[1].enabled())
+        }
+        store.update(files[1])
+        XCTAssertFalse(controller.update(files[1]), "Duplicate request while queued must be rejected")
+        waitForCompletion()
+        XCTAssertEqual(RefreshFixtureProtocol.paths, ["/Second"])
+        XCTAssertTrue(store.selectedHosts === files[0], "Context action must not depend on or change selection")
+        XCTAssertEqual(try Data(contentsOf: URL(fileURLWithPath: files[0].path)), original)
+        XCTAssertEqual(files[1].contents(), RefreshFixtureProtocol.body)
+        XCTAssertEqual(try String(contentsOfFile: files[1].path, encoding: .utf8), RefreshFixtureProtocol.body)
+        XCTAssertTrue(files[1].saved())
+
+        // Unchanged content and an error both end the busy state; a failed
+        // refresh must not leave the group permanently synchronizing.
+        store.update(files[1]); waitForCompletion()
+        RefreshFixtureProtocol.fail = true
+        store.update(files[1]); waitForCompletion()
+        XCTAssertNotNil(files[1].error())
+        XCTAssertEqual(files[1].contents(), RefreshFixtureProtocol.body)
+        RefreshFixtureProtocol.fail = false
+        store.update(files[1]); waitForCompletion()
+        XCTAssertNil(files[1].error(), "Successful unchanged response clears the previous download error")
+        XCTAssertEqual(RefreshFixtureProtocol.paths, Array(repeating: "/Second", count: 4))
+        network.online = false
+        XCTAssertFalse(controller.update(files[1]))
+        network.online = true
+        let foreign = try XCTUnwrap(RemoteHosts(path: directory.appendingPathComponent("Foreign.hst").path))
+        foreign.url = files[1].url
+        XCTAssertFalse(controller.update(foreign))
+    }
+
     // MARK: - Notification Name Constants
 
     /// Verify Swift notification names match the ObjC #define values from Gas_Mask_Prefix.pch
@@ -204,4 +282,30 @@ final class HostsDataStoreTests: XCTestCase {
         XCTAssertEqual(reopened.contents(), combined.contents())
     }
 
+}
+
+// Intercept only this test's reserved host: no live downloads or system hosts.
+private final class RefreshFixtureProtocol: URLProtocol {
+    static var paths: [String] = []
+    static var fail = false
+    static let body = "127.0.0.1 updated.example.test"
+    override class func canInit(with request: URLRequest) -> Bool {
+        request.url?.host == "gasmask-refresh.example.test"
+    }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        DispatchQueue.main.async {
+            Self.paths.append(self.request.url!.path)
+            if Self.fail {
+                self.client?.urlProtocol(self, didFailWithError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCannotConnectToHost))
+            } else {
+                let response = HTTPURLResponse(url: self.request.url!, statusCode: 200, httpVersion: nil,
+                    headerFields: ["Content-Type": "text/plain"])!
+                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+                self.client?.urlProtocol(self, didLoad: Data(Self.body.utf8))
+                self.client?.urlProtocolDidFinishLoading(self)
+            }
+        }
+    }
+    override func stopLoading() {}
 }
