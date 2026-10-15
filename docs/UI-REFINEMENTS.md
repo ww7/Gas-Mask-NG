@@ -165,3 +165,10 @@ geometry, neutral row highlighting across rename and immediate field-editor focu
 Inspected the captured native rename image. Full test suites were not run. Universal
 Release build and extracted-package signature verification are separate checks;
 installation and publication remain owner-authorized steps.
+
+## ww7.12: separator before Quit
+
+Restore one separator immediately before Quit Gas Mask; keep Update Remote Files
+and Settings… adjacent. Retain the ww7.11 sidebar changes. Build/package validation
+only for this one-line UI change. The owner authorized installation in Applications
+with profiles/settings preserved and the prior app/data backed up.

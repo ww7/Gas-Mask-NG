@@ -156,6 +156,8 @@
     [item setTarget:controller];
     [self addItem:item];
 
+    [self addItem:[NSMenuItem separatorItem]];
+
 	item = [[NSMenuItem alloc] initWithTitle:@"Quit Gas Mask" action:NULL keyEquivalent:@""];
 	[item setAction:@selector(quit:)];
 	[item setTarget:controller];

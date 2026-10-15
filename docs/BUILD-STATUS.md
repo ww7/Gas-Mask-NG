@@ -1,21 +1,17 @@
 # Build status
 
-15 October 2026. Local candidate `0.8.7-ww7.11`, internal build `20261015.11`.
+15 October 2026. Local candidate `0.8.7-ww7.12`, internal build `20261015.12`.
 
-The owner prefers short iterations and will verify behavior manually. One focused
-native sidebar test passed on temporary synthetic profiles, checking Combined-first
-ordering, a row height no greater than 22 points, zero inter-row spacing, neutral
-row highlighting before/during rename, and immediate name-field keyboard focus.
-The complete XCTest and storage suites were not run for ww7.11. The prior
-[ww7.4 test evidence](verification/2026-10-15-sidebar.json) remains historical.
+The owner prefers short iterations and will verify behavior manually. This candidate
+adds one menu separator immediately before Quit Gas Mask and retains all ww7.11
+sidebar refinements. Update Remote Files and Settings… remain adjacent.
 
-Changes: show the Combined section before Local and Remote in the left sidebar
-without reordering the model or next/previous activation. Use 20-point rows with
-zero vertical insets/spacing. Native sidebar style imposed 32-point rows on the
-current macOS; use plain-list layout with hidden separators and a custom rounded
-neutral selection background. Disable the native table's emphasized highlight so
-row selection stays gray while the name field gains keyboard focus. Text selection
-inside the name field keeps standard system behavior. Retains all ww7.10 changes.
+Validation for ww7.12 is the universal Release build and extracted-package signature
+and architecture checks. No test suite was run for this one-line menu change.
+The [focused ww7.11 sidebar test](verification/2026-10-15-sidebar-compact.json)
+and [ww7.4 suite results](verification/2026-10-15-sidebar.json) remain evidence for
+those versions. The owner explicitly requested installation of this candidate with
+profile/settings preservation and a backup of the previous application.
 
 Build with `scripts/build-release.sh`: Xcode 27.0 (27A266a), macOS SDK 27.0,
 arm64 + x86_64, minimum macOS 13.0. The packaged app records its exact source
