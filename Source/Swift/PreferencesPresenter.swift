@@ -13,7 +13,7 @@ import SwiftUI
         let tabVC = NSTabViewController()
         tabVC.tabStyle = .toolbar
 
-        let contentSize = NSSize(width: 550, height: 150)
+        let contentSize = NSSize(width: 550, height: 180)
 
         func makeTab<V: View>(label: String, symbolName: String, rootView: V) -> NSTabViewItem {
             let hc = NSHostingController(rootView: rootView)

@@ -174,6 +174,7 @@ static ApplicationController *sharedInstance = nil;
 	if (NSClassFromString(@"XCTestCase") != nil) {
 		return;
 	}
+    [AppAppearance applyPreference];
 	[NotificationHelper initNotificationCenter];
 	(void)[GlobalShortcuts shared]; // Register global hotkeys
 

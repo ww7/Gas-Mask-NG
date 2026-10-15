@@ -51,7 +51,7 @@ struct EditorToolbar: ToolbarContent {
                     HostsMainController.defaultInstance()?.save(hosts)
                 }
             } label: {
-                Label("Save", systemImage: "internaldrive")
+                Label("Save", systemImage: "checkmark")
             }
             .keyboardShortcut("s", modifiers: .command)
             .disabled(store.selectedHosts == nil || store.selectedHosts?.saved() != false)

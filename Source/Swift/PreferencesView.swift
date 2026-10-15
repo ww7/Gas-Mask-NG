@@ -1,14 +1,34 @@
 import SwiftUI
 
+// Apply at launch and immediately after a settings change. A nil application
+// appearance follows macOS automatically, including later system theme changes.
+@objc final class AppAppearance: NSObject {
+    @objc static func applyPreference() {
+        switch UserDefaults.standard.string(forKey: "appAppearance") {
+        case "light": NSApp.appearance = NSAppearance(named: .aqua)
+        case "dark": NSApp.appearance = NSAppearance(named: .darkAqua)
+        default: NSApp.appearance = nil
+        }
+    }
+}
+
 // MARK: - General Tab
 
 struct GeneralTab: View {
     @StateObject private var loginItemObserver = LoginItemObserver()
     @AppStorage("overrideExternalModifications") private var overrideExternalModifications = true
     @AppStorage("showNameInStatusBar") private var showNameInStatusBar = false
+    @AppStorage("appAppearance") private var appAppearance = "system"
 
     var body: some View {
         Form {
+            Picker("Appearance", selection: $appAppearance) {
+                Text("System").tag("system")
+                Text("Light").tag("light")
+                Text("Dark").tag("dark")
+            }
+            .pickerStyle(.menu)
+            .onChange(of: appAppearance) { _ in AppAppearance.applyPreference() }
             Toggle("Open at Login", isOn: $loginItemObserver.isEnabled)
             Toggle("Override external modifications", isOn: $overrideExternalModifications)
             Toggle("Show Host File Name in Menu Bar", isOn: $showNameInStatusBar)

@@ -23,6 +23,7 @@
 #import "ApplicationController.h"
 #import "RemoteHostsController.h"
 #import "Pair.h"
+#import "CombinedHosts.h"
 
 @interface HostsMenu (Private)
 - (void)createItems;
@@ -65,7 +66,19 @@
 
 - (void)createItems
 {
-	NSArray *pairs = [[HostsMainController defaultInstance] allHostsFilesGrouped];
+	NSArray *groups = [[HostsMainController defaultInstance] allHostsFilesGrouped];
+    // Menu order only: keep the sidebar and profile-switching order unchanged.
+    NSMutableArray *pairs = [NSMutableArray arrayWithCapacity:groups.count];
+    for (Pair *pair in groups) {
+        if ([[(NSArray *)pair.right firstObject] isKindOfClass:[CombinedHosts class]]) {
+            [pairs addObject:pair];
+        }
+    }
+    for (Pair *pair in groups) {
+        if (![[(NSArray *)pair.right firstObject] isKindOfClass:[CombinedHosts class]]) {
+            [pairs addObject:pair];
+        }
+    }
 	
 	if ([self haveItemsInOneGroup:pairs]) {
 		for (int i=0; i<[pairs count]; i++) {
@@ -113,9 +126,8 @@
 }
 
 - (void)createExtraItems
-{	
-	[self addItem:[NSMenuItem separatorItem]];
-	
+{
+    BOOL hasProfiles = self.numberOfItems > 0;
 	ApplicationController *controller = [ApplicationController defaultInstance];
 	NSMenuItem *item;
 	
@@ -128,7 +140,11 @@
 		[item setAction:@selector(openEditorWindow:)];
 	}
 	[item setTarget:controller];
-	[self addItem:item];
+    [self insertItem:item atIndex:0];
+    [self insertItem:[NSMenuItem separatorItem] atIndex:1];
+    if (hasProfiles) {
+        [self addItem:[NSMenuItem separatorItem]];
+    }
 	
 	item = [[NSMenuItem alloc] initWithTitle:@"Preferences..." action:NULL keyEquivalent:@""];
 	[item setAction:@selector(openPreferencesWindow:)];

@@ -66,3 +66,18 @@ row count after removal/addition and visible first-row text after a same-count
 reorder. A native drag put Production ahead of Development and the preview
 followed that order. The interactive preview runner exited before finishing its
 test; the subsequent complete automated suite passed all layout/refresh checks.
+
+## ww7.5: menu order, checkmark and appearance
+
+- Move the existing Show/Close Editor Window action to the top of the status-item
+  menu, followed by a separator. Put Combined profiles before the other groups;
+  retain the sidebar and next/previous profile order.
+- Use SF Symbols `checkmark` for Save.
+- Add General > Appearance with System, Light and Dark. Apply the saved choice at
+  startup and changes immediately to NSApplication. System clears the application
+  override and follows later macOS theme changes. No existing settings are rebased.
+- Increase Preferences content height to fit the new dropdown.
+
+The owner requested build-only verification and will perform functional testing.
+Do not attribute ww7.4's 146 test results to this version. No test suite was run
+for ww7.5. This is a local candidate; publication and installation are separate.
