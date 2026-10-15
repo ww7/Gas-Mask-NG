@@ -64,7 +64,8 @@ static ApplicationController *sharedInstance = nil;
 		shouldQuit = YES;
 
 		BOOL isTesting = NSClassFromString(@"XCTestCase") != nil;
-		if (!isTesting) {
+		BOOL forkBuild = [[NSBundle.mainBundle objectForInfoDictionaryKey:@"WW7ForkBuild"] boolValue];
+		if (!isTesting && !forkBuild) {
 			_updaterController = [[SPUStandardUpdaterController alloc]
 								  initWithStartingUpdater:YES
 								  updaterDelegate:nil

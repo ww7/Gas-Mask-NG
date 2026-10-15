@@ -1,0 +1,63 @@
+{
+  "repository": "https://github.com/2ndalpha/gasmask",
+  "captured_at": "2026-10-15T15:27:00Z",
+  "base": "7e0fa133a4584db5d465525e2812bda271e57893",
+  "pull_requests": [
+    {
+      "number": 162,
+      "title": "Sort Local hosts when loading",
+      "url": "https://github.com/2ndalpha/gasmask/pull/162",
+      "head_sha": "5b877b2c5f2978cbf21952e5990858b552a5a05e",
+      "head_repository": "rstad/gasmask",
+      "draft": false
+    },
+    {
+      "number": 183,
+      "title": "Dark mode (part 2)",
+      "url": "https://github.com/2ndalpha/gasmask/pull/183",
+      "head_sha": "787068506188f4333c4ba8cbc83b0287f09786c1",
+      "head_repository": "2ndalpha/gasmask",
+      "draft": false
+    },
+    {
+      "number": 193,
+      "title": "Move host file storage to \"~/Library/Application Support/Gas Mask\"",
+      "url": "https://github.com/2ndalpha/gasmask/pull/193",
+      "head_sha": "dc536c2282dd6f244281799548c407711823013a",
+      "head_repository": "thepigeonoftime/gasmask",
+      "draft": false
+    },
+    {
+      "number": 217,
+      "title": "chore: using different library for shortcuts",
+      "url": "https://github.com/2ndalpha/gasmask/pull/217",
+      "head_sha": "62ea7b2ecde76eeb5d887e0029ae125f15d9a46f",
+      "head_repository": "2ndalpha/gasmask",
+      "draft": true
+    },
+    {
+      "number": 220,
+      "title": "updated for Apple Silicon",
+      "url": "https://github.com/2ndalpha/gasmask/pull/220",
+      "head_sha": "61dcc292c958aca65b41b2a8a2d40d0f95b00fae",
+      "head_repository": "sweetppro/gasmask",
+      "draft": false
+    },
+    {
+      "number": 239,
+      "title": "feat: restore info bubble as SwiftUI popover on badge icons",
+      "url": "https://github.com/2ndalpha/gasmask/pull/239",
+      "head_sha": "cda53527bd83cc481adddae9d8c5011f43743c14",
+      "head_repository": "2ndalpha/gasmask",
+      "draft": false
+    },
+    {
+      "number": 243,
+      "title": "fix: resolve CI test failures on macos-26-intel runners",
+      "url": "https://github.com/2ndalpha/gasmask/pull/243",
+      "head_sha": "7915d175731a5d941d5e7cc2272ca86b17ac78df",
+      "head_repository": "dduvnjak/gasmask",
+      "draft": false
+    }
+  ]
+}

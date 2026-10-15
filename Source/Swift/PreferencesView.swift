@@ -97,18 +97,23 @@ struct UpdateTab: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Toggle("Automatically check for updates", isOn: Binding(
-                get: { sparkleObserver.automaticChecksEnabled },
-                set: { sparkleObserver.setAutomaticChecks($0) }
-            ))
+            if Bundle.main.object(forInfoDictionaryKey: "WW7ForkBuild") as? Bool == true {
+                Text("Updates for this fork are available on Forgejo.")
+                Link("Open Releases", destination: URL(string: "https://git.ww7.work/ww7-forks/gasmask/releases")!)
+            } else {
+                Toggle("Automatically check for updates", isOn: Binding(
+                    get: { sparkleObserver.automaticChecksEnabled },
+                    set: { sparkleObserver.setAutomaticChecks($0) }
+                ))
 
-            Text(sparkleObserver.lastCheckDateFormatted)
-                .font(.caption)
+                Text(sparkleObserver.lastCheckDateFormatted)
+                    .font(.caption)
 
-            Button("Check Now") {
-                sparkleObserver.checkForUpdates()
+                Button("Check Now") {
+                    sparkleObserver.checkForUpdates()
+                }
+                .disabled(!sparkleObserver.canCheckForUpdates)
             }
-            .disabled(!sparkleObserver.canCheckForUpdates)
         }
         .padding(20)
     }

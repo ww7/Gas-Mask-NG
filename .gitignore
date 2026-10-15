@@ -1,2 +1,5 @@
 xcuserdata
 build
+dist/
+.DS_Store
+graphify-out/

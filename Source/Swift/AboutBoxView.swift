@@ -2,7 +2,8 @@ import SwiftUI
 
 struct AboutBoxView: View {
     private var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
+        Bundle.main.object(forInfoDictionaryKey: "WW7BuildLabel") as? String
+            ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
     }
 
     var body: some View {

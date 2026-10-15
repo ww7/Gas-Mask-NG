@@ -42,7 +42,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.8.6</string>
+	<string>0.8.7</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -59,7 +59,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>0.8.6</string>
+	<string>20261015.1</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
 	<key>LSUIElement</key>
@@ -90,7 +90,7 @@
 		</dict>
 	</array>
 	<key>SUEnableAutomaticChecks</key>
-	<string>YES</string>
+	<false/>
 	<key>SUFeedURL</key>
 	<string>http://gmask.clockwise.ee/check_update/</string>
 	<key>SUPublicDSAKeyFile</key>
@@ -125,5 +125,9 @@
 			</dict>
 		</dict>
 	</array>
+	<key>WW7ForkBuild</key>
+	<true/>
+	<key>WW7BuildLabel</key>
+	<string>0.8.7-ww7.1</string>
 </dict>
 </plist>

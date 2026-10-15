@@ -1,4 +1,17 @@
 # Gas Mask
+
+This is the private **ww7 all-open-PR fork**, based on upstream `master` plus the
+seven PRs open on 15 October 2026. See [integration decisions](docs/INTEGRATION.md)
+and [build status](docs/BUILD-STATUS.md). Obsolete PR implementations are resolved
+against the current SwiftUI/MASShortcut code; their original heads remain in history.
+
+Build a universal Release with `scripts/build-release.sh` and run tests with
+`scripts/test.sh` after installing full Xcode. Fork downloads will be published in
+[Forgejo releases](https://git.ww7.work/ww7-forks/gasmask/releases).
+
+The upstream documentation follows. Its download link is the original release,
+not this integrated fork.
+
 [![Build Status](https://github.com/2ndalpha/gasmask/actions/workflows/push.yml/badge.svg)](https://github.com/2ndalpha/gasmask/actions/workflows/push.yml)
 
 Gas Mask is a simple hosts file manager for macOS.
@@ -16,7 +29,9 @@ Drag the application from Downloads into the Applications folder. The first time
 ## How it works
 Gas Mask monitors `/etc/hosts` system file and updates it with your activated hosts file.
 
-Gas Mask stores your custom hosts files in `~/Library/Gas Mask` directory.
+This fork stores custom hosts files in `~/Library/Application Support/Gas Mask`.
+It copies legacy profiles from `~/Library/Gas Mask` while retaining the originals;
+see the [migration rules](docs/INTEGRATION.md#storage-and-runtime-boundaries).
 
 Application log can be found in `~/Library/Logs/Gas Mask.log`. It's worth having a look for errors in there when posting an issue.
 
