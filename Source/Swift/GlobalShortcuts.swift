@@ -15,6 +15,12 @@ import MASShortcut
             NSBindingOption.valueTransformerName.rawValue: MASDictionaryTransformerName
         ]
 
+        binder.bindShortcut(withDefaultsKey: ShowEditorWindowHotkeyPrefKey) {
+            DispatchQueue.main.async {
+                ApplicationController.defaultInstance()?.openEditorWindow(nil)
+            }
+        }
+
         let nc = NotificationCenter.default
         // Notification names from Gas_Mask_Prefix.pch lines 42–44 (not importable in Swift)
         binder.bindShortcut(withDefaultsKey: ActivatePreviousFilePrefKey) {

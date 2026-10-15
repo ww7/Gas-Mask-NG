@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #define ShowEditWindowKey @"showEditWindow"
+#define ShowEditorWindowHotkeyPrefKey @"showEditorWindowHotkey"
 #define ActivatePreviousFilePrefKey @"activatePreviousHotkey"
 #define ActivateNextFilePrefKey @"activateNextHotkey"
 #define UpdateAndSynchronizePrefKey @"updateAndSynchronizeHotkey"

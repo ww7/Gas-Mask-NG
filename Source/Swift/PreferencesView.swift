@@ -21,7 +21,7 @@ struct GeneralTab: View {
     @AppStorage("appAppearance") private var appAppearance = "system"
 
     var body: some View {
-        Form {
+        VStack(alignment: .leading, spacing: 10) {
             Picker("Appearance", selection: $appAppearance) {
                 Text("System").tag("system")
                 Text("Light").tag("light")
@@ -33,7 +33,8 @@ struct GeneralTab: View {
             Toggle("Override external modifications", isOn: $overrideExternalModifications)
             Toggle("Show Host File Name in Menu Bar", isOn: $showNameInStatusBar)
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
     }
 }
 
@@ -43,10 +44,11 @@ struct EditorTab: View {
     @AppStorage("syntaxHighlighting") private var syntaxHighlighting = true
 
     var body: some View {
-        Form {
+        VStack(alignment: .leading, spacing: 10) {
             Toggle("Syntax Highlighting", isOn: $syntaxHighlighting)
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
     }
 }
 
@@ -78,7 +80,8 @@ struct RemoteTab: View {
                 }
             }
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
     }
 }
 
@@ -86,7 +89,13 @@ struct RemoteTab: View {
 
 struct HotkeysTab: View {
     var body: some View {
-        Form {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Show Editor Window:")
+                    .frame(width: 160, alignment: .trailing)
+                ShortcutRecorderView(prefsKey: ShowEditorWindowHotkeyPrefKey)
+                    .frame(width: 150, height: 25)
+            }
             HStack {
                 Text("Activate Previous File:")
                     .frame(width: 160, alignment: .trailing)
@@ -106,7 +115,8 @@ struct HotkeysTab: View {
                     .frame(width: 150, height: 25)
             }
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
     }
 }
 
@@ -135,6 +145,7 @@ struct UpdateTab: View {
                 .disabled(!sparkleObserver.canCheckForUpdates)
             }
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
     }
 }

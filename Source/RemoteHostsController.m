@@ -93,7 +93,14 @@
 		return nil;
 	}
 	
-	NSString *name = [self generateName:[url host]];
+    NSString *fileName = url.hasDirectoryPath ? nil : url.lastPathComponent;
+    if (fileName.length == 0 || [fileName isEqualToString:@"/"] ||
+        [fileName isEqualToString:@"."] || [fileName isEqualToString:@".."]) {
+        fileName = url.host ?: @"Remote Hosts";
+    }
+    // A decoded URL component must remain a single local profile filename.
+    fileName = [fileName stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
+    NSString *name = [self generateName:fileName];
 	
 	RemoteHosts *hosts = [[RemoteHosts alloc] initWithPath: [self constructPath:name]];
 	[hosts setUrl:url];

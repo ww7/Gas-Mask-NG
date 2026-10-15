@@ -90,3 +90,19 @@ observers, and selects it in both the editor and the native controller. The load
 notification uses the same path when loading completes later. This is shared by
 Local, Combined and Remote profiles and does not reactivate or rewrite any profile.
 Build-only verification per the owner's preference; functional acceptance is manual.
+
+## ww7.7: shortcut, compact settings/sidebar and Remote names
+
+- Add Hotkeys > Show Editor Window using a new `showEditorWindowHotkey` key and
+  MASShortcutBinder. It raises the editor rather than toggling it; no default
+  combination is assigned, and the legacy boolean `showEditWindow` is untouched.
+- Use equal 14-point top/bottom content padding and fit Preferences to the selected
+  tab's natural height at 500 points wide. Keep its top edge fixed when switching
+  tabs. Remove the oversized common content height and vertically centered forms.
+- Set the left profile sidebar minimum row height to 24 points with 2-point vertical
+  row insets; retain the existing compact Combined list.
+- Name newly added Remote profiles from the final URL filename (including its
+  extension), with hostname fallback for directory/root URLs and existing duplicate
+  name suffixes. Preserve the source URL and all previously saved profile names.
+
+Build-only verification as requested; no automated test suite run.

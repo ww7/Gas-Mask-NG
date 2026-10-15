@@ -17,12 +17,14 @@ struct SidebarView: View {
                     ForEach(children, id: \.self) { hosts in
                         rowContent(for: hosts)
                             .tag(hosts)
+                            .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
                     }
                 }
                 .onDrop(of: [.fileURL, .url], delegate: SidebarDropDelegate(group: group))
             }
         }
         .listStyle(.sidebar)
+        .environment(\.defaultMinListRowHeight, 24)
         .onChange(of: store.renamingHosts) { newValue in
             if let hosts = newValue {
                 beginRename(hosts)
