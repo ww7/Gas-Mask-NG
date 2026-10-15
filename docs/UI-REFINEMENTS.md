@@ -234,4 +234,9 @@ Two focused native tests passed: compact neutral sidebar presentation and editor
 layout/scrolling in light, dark and compact windows. Rendered snapshots were
 inspected with synthetic profiles. Eight-point text inset, initial monospace font,
 non-floating headers, footer separation and composition geometry are asserted.
-All ww7.14 changes remain included; installation/publication are separate steps.
+All ww7.14 changes remain included. On 16 October 2026 the owner authorized
+installing every successfully built and verified new version in Applications,
+preserving profiles and settings. This supersedes the earlier per-version
+installation requirements above; publication remains separately authorized.
+Installed ww7.15 over ww7.13 with a backup of the previous app and data. Verified
+the installed bundle, signature, unchanged profiles/settings and system hosts.

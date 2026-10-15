@@ -1,6 +1,6 @@
 # Build status
 
-16 October 2026. Local candidate `0.8.7-ww7.15`, internal build `20261016.15`.
+16 October 2026. Installed local build `0.8.7-ww7.15`, internal build `20261016.15`.
 
 Two focused native UI tests passed on isolated synthetic profiles. Layout was
 checked in light, dark and compact windows: the footer stays separate, long text
@@ -26,5 +26,13 @@ commit. Archives are ad-hoc signed, without Developer ID signing or notarization
 
 The last published release is
 [ww7.13](https://git.ww7.work/ww7-forks/gasmask/releases/tag/v0.8.7-ww7.13).
-This build does not automatically replace the installed app or modify personal
-profiles/preferences. See [UI-REFINEMENTS.md](UI-REFINEMENTS.md).
+Installed ww7.15 in `/Applications/Gas Mask.app`, replacing ww7.13. Verified the
+installed bundle against the release archive and checked its strict code signature.
+Profile/settings file hashes, effective preferences and `/etc/hosts` were unchanged.
+The app was not launched for acceptance. Previous app and data are retained under
+`~/Library/Application Support/ww7/Gas Mask Backups/2026-10-15T220334Z-ww7.15/`;
+the local receipt is `build/install-ww7.15-receipt.json`.
+
+The owner now authorizes installation after each successfully built and verified
+new version, preserving profiles/preferences. Publishing remains separate.
+See [UI-REFINEMENTS.md](UI-REFINEMENTS.md).

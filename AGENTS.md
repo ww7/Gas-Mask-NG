@@ -10,8 +10,14 @@ Forgejo repository `ww7-forks/gasmask`. Preserve original authors and merge ance
 Build with `scripts/build-release.sh`, test with `scripts/test.sh`. Storage migration
 can be tested without full Xcode using `scripts/test-storage.sh`. Tests and smoke
 checks must use temporary fixtures, never the owner's live profiles or `/etc/hosts`.
-The app is not installed automatically. Release artifacts are locally signed and
-are not Developer ID signed or notarized.
+Owner standing authorization (16 October 2026): after each successfully built and
+verified new version, install it in `/Applications/Gas Mask.app`. Close the running
+app gracefully, preserving pending edits, and back up the previous app, profiles
+and preferences before replacement. Verify that profiles and settings are
+preserved; installation must not activate profiles or rewrite `/etc/hosts`.
+Publishing to Forgejo remains a separate owner-authorized action.
+
+Release artifacts are locally signed and are not Developer ID signed or notarized.
 
 The local code graph is `graphify-out/graph.json` (ignored by Git). Refresh it with
 `graphify update .` after code changes.

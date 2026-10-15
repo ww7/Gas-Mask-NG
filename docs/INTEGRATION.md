@@ -57,7 +57,11 @@ developer-directory selection. Run `scripts/test.sh` for the XCTest suite and
 The fork does not start the upstream Sparkle updater, whose feed points at an old
 HTTP endpoint. Settings links to this fork's Forgejo releases instead. The original
 app identifier is preserved so profiles and preferences remain compatible. The
-installed app is not replaced automatically.
+owner has authorized installing each successfully built and verified new version
+in `/Applications/Gas Mask.app` (16 October 2026). Preserve profiles/preferences,
+back up the previous app and data, and verify them after replacement. Installation
+does not activate profiles or rewrite the system hosts file. Publishing remains a
+separate owner-authorized action.
 
 Release archives are ad-hoc signed locally; they are not Developer ID signed or
 Apple notarized. A successful build/test run does not establish real privileged
