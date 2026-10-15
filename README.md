@@ -45,7 +45,7 @@ To add new files, click `Create(+)` button in the toolbar and select the type of
 
 To remove a file, select it and press the `Remove` button in toolbar.
 
-To activate a file, select it and press `Activate` button in toolbar, or select it from the menu bar icon when the editor is hidden. Gas Mask will update the `/etc/hosts` file with the currently activated file. The active file is marked with a check in the editor list, and can also be displayed next to the Gas Mask menu bar icon (Preferences > Show Host File Name in Status Bar)
+To activate a file, select it and press `Activate` button in toolbar, or select it from the menu bar icon when the editor is hidden. Gas Mask will update the `/etc/hosts` file with the currently activated file. The active file is marked with a check in the editor list, and can also be displayed next to the Gas Mask menu bar icon (Preferences > Show Host File Name in Menu Bar)
 
 #### Local files
 These are ordinary local files that you can edit.

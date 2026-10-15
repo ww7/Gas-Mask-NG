@@ -11,7 +11,7 @@ struct GeneralTab: View {
         Form {
             Toggle("Open at Login", isOn: $loginItemObserver.isEnabled)
             Toggle("Override external modifications", isOn: $overrideExternalModifications)
-            Toggle("Show Host File Name in Status Bar", isOn: $showNameInStatusBar)
+            Toggle("Show Host File Name in Menu Bar", isOn: $showNameInStatusBar)
         }
         .padding(20)
     }

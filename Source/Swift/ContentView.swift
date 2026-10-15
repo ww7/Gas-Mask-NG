@@ -16,6 +16,7 @@ struct ContentView: View {
                     store?.selectedHosts?.setContents(newText)
                 }
             )
+            .clipped()
         }
     }
 }

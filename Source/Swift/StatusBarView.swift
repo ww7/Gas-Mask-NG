@@ -30,8 +30,9 @@ struct StatusBarView: View {
                 }
             }
             .padding(.horizontal, 8)
-            .padding(.vertical, 3)
+            .frame(height: 24)
         }
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private var filesCountText: String {

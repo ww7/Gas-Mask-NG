@@ -16,34 +16,51 @@ struct CombinedHostsPickerView: View {
         let allFiles = allNonCombinedHosts()
         let includedFiles = (combined.hostsFiles() as? [Hosts]) ?? []
 
-        ScrollView {
-            VStack(alignment: .leading, spacing: 2) {
-                if allFiles.isEmpty {
-                    Text("No hosts files available to combine.")
-                        .foregroundStyle(.secondary)
-                        .font(.system(size: NSFont.smallSystemFontSize))
-                        .padding(.horizontal, 8)
-                } else {
-                    ForEach(allFiles, id: \.self) { hosts in
-                        Toggle(
-                            hosts.name() ?? "",
-                            isOn: toggleBinding(for: hosts, in: combined, includedFiles: includedFiles)
-                        )
-                        .toggleStyle(.checkbox)
-                        .font(.system(size: NSFont.smallSystemFontSize))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 1)
+        VStack(spacing: 0) {
+            HStack {
+                Text("Included Files")
+                    .font(.system(size: NSFont.smallSystemFontSize, weight: .semibold))
+                Spacer()
+                Text("\(includedFiles.count) of \(allFiles.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 28)
+            .background(Color(nsColor: .windowBackgroundColor))
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    if allFiles.isEmpty {
+                        Text("No hosts files available to combine.")
+                            .foregroundStyle(.secondary)
+                            .font(.system(size: NSFont.smallSystemFontSize))
+                            .padding(.horizontal, 12)
+                    } else {
+                        ForEach(allFiles, id: \.self) { hosts in
+                            Toggle(isOn: toggleBinding(for: hosts, in: combined)) {
+                                Label(hosts.name() ?? "", systemImage: hosts is RemoteHosts ? "globe" : "doc")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .toggleStyle(.checkbox)
+                            .controlSize(.small)
+                            .font(.system(size: NSFont.smallSystemFontSize))
+                            .padding(.horizontal, 12)
+                            .frame(height: 24)
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 4)
             }
-            .padding(.vertical, 4)
+            .frame(height: max(32, min(CGFloat(allFiles.count) * 24 + 8, 152)))
         }
-        .frame(maxHeight: 150)
+        .background(Color(nsColor: .controlBackgroundColor))
     }
 
     // MARK: - Toggle Binding
 
-    private func toggleBinding(for hosts: Hosts, in combined: CombinedHosts, includedFiles: [Hosts]) -> Binding<Bool> {
+    private func toggleBinding(for hosts: Hosts, in combined: CombinedHosts) -> Binding<Bool> {
         Binding(
             get: {
                 let current = (combined.hostsFiles() as? [Hosts]) ?? []

@@ -75,8 +75,11 @@
     [textView setupColors];
 
     [textStorage setDelegate:textView];
+    [textView setMinSize:NSZeroSize];
+    [textView setMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+    [textView setVerticallyResizable:YES];
     [textView setHorizontallyResizable:YES];
-    [textView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+    [textView setAutoresizingMask:NSViewWidthSizable];
     [textView setFont:[NSFont monospacedSystemFontOfSize:12 weight:NSFontWeightMedium]];
     [textView setBackgroundColor:[NSColor colorNamed:@"BackgroundColor"]];
     [textView setTextColor:[NSColor colorNamed:@"TextColor"]];

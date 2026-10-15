@@ -6,7 +6,7 @@ struct EditorToolbar: ToolbarContent {
     @State private var hostsToRemove: Hosts?
 
     var body: some ToolbarContent {
-        ToolbarItem(id: "create", placement: .automatic) {
+        ToolbarItem(id: "create", placement: .navigation) {
             Menu {
                 Button("Local") {
                     HostsMainController.defaultInstance()?.createNewHostsFile(nil)
@@ -22,7 +22,7 @@ struct EditorToolbar: ToolbarContent {
             }
         }
 
-        ToolbarItem(id: "remove", placement: .automatic) {
+        ToolbarItem(id: "remove", placement: .navigation) {
             Button {
                 hostsToRemove = store.selectedHosts
             } label: {
@@ -45,7 +45,7 @@ struct EditorToolbar: ToolbarContent {
             }
         }
 
-        ToolbarItem(id: "save", placement: .automatic) {
+        ToolbarItem(id: "save", placement: .navigation) {
             Button {
                 if let hosts = store.selectedHosts {
                     HostsMainController.defaultInstance()?.save(hosts)
@@ -57,7 +57,7 @@ struct EditorToolbar: ToolbarContent {
             .disabled(store.selectedHosts == nil || store.selectedHosts?.saved() != false)
         }
 
-        ToolbarItem(id: "activate", placement: .automatic) {
+        ToolbarItem(id: "activate", placement: .navigation) {
             Button {
                 if let hosts = store.selectedHosts {
                     HostsMainController.defaultInstance()?.activateHostsFile(hosts)
