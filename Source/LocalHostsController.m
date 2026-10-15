@@ -76,11 +76,9 @@
 			}
 			
 			[hostsFiles addObject:hosts];
-            		// grossly sorting array every time we add a host?  Probably there is a better way.
-            		NSSortDescriptor *sort = [NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES];
-            		[hostsFiles sortUsingDescriptors:[NSArray arrayWithObject:sort]];
 		}
 	}
+	[hostsFiles sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES]]];
 }
 
 - (Hosts*)createNewHostsFile

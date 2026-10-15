@@ -19,18 +19,68 @@
  ***************************************************************************/
 
 #import "FileUtil.h"
+#import "Preferences.h"
 
 static NSString *dataDirectory = nil;
+
+@interface FileUtil (Migration)
++ (NSString *)dataDirectoryForLibraryDirectory:(NSString *)library defaults:(NSUserDefaults *)defaults;
+@end
 
 @implementation FileUtil
 
 + (NSString*)dataDirectory
 {
-	if (dataDirectory == nil) {
-		NSArray *array = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-		dataDirectory = [[array objectAtIndex:0] stringByAppendingString:@"/Gas Mask/"];
-	}
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		NSString *library = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES).firstObject;
+		dataDirectory = [self dataDirectoryForLibraryDirectory:library defaults:NSUserDefaults.standardUserDefaults];
+	});
 	return dataDirectory;
+}
+
+// Accept a library root and defaults store so migration can be verified in isolation.
++ (NSString *)dataDirectoryForLibraryDirectory:(NSString *)library defaults:(NSUserDefaults *)defaults
+{
+	NSString *legacy = [[library stringByAppendingPathComponent:@"Gas Mask"] stringByAppendingString:@"/"];
+	NSString *destination = [[library stringByAppendingPathComponent:@"Application Support/Gas Mask"] stringByAppendingString:@"/"];
+	NSFileManager *manager = NSFileManager.defaultManager;
+	BOOL legacyIsDirectory = NO;
+	if (![manager fileExistsAtPath:legacy isDirectory:&legacyIsDirectory] || !legacyIsDirectory) {
+		return destination;
+	}
+
+	NSString *activePath = [defaults stringForKey:ActiveHostsFilePrefKey];
+	NSString *migrationKey = @"ww7ApplicationSupportMigrationCompleted";
+	BOOL destinationIsDirectory = NO;
+	if ([manager fileExistsAtPath:destination isDirectory:&destinationIsDirectory]) {
+		if (destinationIsDirectory && ([defaults boolForKey:migrationKey] || [activePath hasPrefix:destination])) {
+			return destination;
+		}
+		logWarn(@"Both data locations exist; keeping legacy profiles until the conflict is resolved.");
+		return legacy;
+	}
+
+	NSString *parent = [library stringByAppendingPathComponent:@"Application Support"];
+	NSString *staging = [parent stringByAppendingPathComponent:
+		[@".Gas Mask-migration-" stringByAppendingString:NSUUID.UUID.UUIDString]];
+	NSError *error = nil;
+	BOOL copied = [manager createDirectoryAtPath:parent withIntermediateDirectories:YES attributes:nil error:&error]
+		&& [manager copyItemAtPath:legacy.stringByStandardizingPath toPath:staging error:&error]
+		&& [manager moveItemAtPath:staging toPath:destination.stringByStandardizingPath error:&error];
+	if (!copied) {
+		[manager removeItemAtPath:staging error:nil];
+		logError(@"Cannot copy profiles to Application Support; continuing with legacy data: %@", error);
+		return legacy;
+	}
+
+	if ([activePath hasPrefix:legacy]) {
+		[defaults setObject:[destination stringByAppendingString:[activePath substringFromIndex:legacy.length]]
+			forKey:ActiveHostsFilePrefKey];
+	}
+	[defaults setBool:YES forKey:migrationKey];
+	logInfo(@"Copied profiles to Application Support. Original profiles remain at %@", legacy);
+	return destination;
 }
 
 + (NSString*)localHostFilesDirectory
@@ -50,22 +100,13 @@ static NSString *dataDirectory = nil;
 
 + (BOOL)moveToTrash:(NSString *)path
 {
-	FSRef source;
-	OSErr error;
-	
-	error = FSPathMakeRef((UInt8 *)[path fileSystemRepresentation], &source, NULL);
-	if (error != noErr) {
-		if (error == fnfErr) {
-			logDebug(@"File not found: \"%@\"", path);
-		}
-		else {
-			logDebug(@"Unknown error: %d", error);
-		}
-		return NO;
+	NSError *error = nil;
+	BOOL moved = [NSFileManager.defaultManager trashItemAtURL:[NSURL fileURLWithPath:path]
+		resultingItemURL:nil error:&error];
+	if (!moved) {
+		logError(@"Cannot move file to Trash: %@ (%@)", path, error);
 	}
-	
-	error = FSMoveObjectToTrashSync(&source, NULL, 0);
-	return error == noErr;
+	return moved;
 }
 
 @end

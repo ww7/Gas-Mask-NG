@@ -169,6 +169,11 @@ static ApplicationController *sharedInstance = nil;
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
 {
+	// The test host must not load/migrate real profiles, start downloads, or request permissions.
+	if (NSClassFromString(@"XCTestCase") != nil) {
+		return;
+	}
+	[NotificationHelper initNotificationCenter];
 	(void)[GlobalShortcuts shared]; // Register global hotkeys
 
 	checkForUpdatesMenuItem.target = _updaterController;

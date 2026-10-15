@@ -144,6 +144,8 @@
 		FF000004000000000000FF01 /* AboutBoxPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000003000000000000FF01 /* AboutBoxPresenter.swift */; };
 		FF000006000000000000FF01 /* AboutBoxPresenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000005000000000000FF01 /* AboutBoxPresenterTests.swift */; };
 		E1000001000000000000EE01 /* ErrorPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1000002000000000000EE01 /* ErrorPopoverView.swift */; };
+		E2000001000000000000EE01 /* RestartDNSResponder.scpt in Resources */ = {isa = PBXBuildFile; fileRef = E2000002000000000000EE01 /* RestartDNSResponder.scpt */; };
+		E2000003000000000000EE01 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2000004000000000000EE01 /* UserNotifications.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -359,6 +361,8 @@
 		FF000003000000000000FF01 /* AboutBoxPresenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AboutBoxPresenter.swift; path = Source/Swift/AboutBoxPresenter.swift; sourceTree = "<group>"; };
 		FF000005000000000000FF01 /* AboutBoxPresenterTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AboutBoxPresenterTests.swift; sourceTree = "<group>"; };
 		E1000002000000000000EE01 /* ErrorPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ErrorPopoverView.swift; path = Source/Swift/ErrorPopoverView.swift; sourceTree = "<group>"; };
+		E2000002000000000000EE01 /* RestartDNSResponder.scpt */ = {isa = PBXFileReference; lastKnownFileType = file; path = Resources/RestartDNSResponder.scpt; sourceTree = "<group>"; };
+		E2000004000000000000EE01 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -375,6 +379,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				351416CF28C3A7B80093A452 /* Sparkle in Frameworks */,
+				E2000003000000000000EE01 /* UserNotifications.framework in Frameworks */,
 				AA1B2C3D4E5F000100000001 /* MASShortcut in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				354E7F8110AEFBC500FC4757 /* Security.framework in Frameworks */,
@@ -966,6 +971,7 @@
 				3530F93E113598A800E591BA /* Alert.png in Resources */,
 				3513A600113908A900AD789D /* Read Only.png in Resources */,
 				35498EDB12187F5D00E46952 /* Offline_rollover.png in Resources */,
+				E2000001000000000000EE01 /* RestartDNSResponder.scpt in Resources */,
 				35DA4DF6123BF4F30043CA87 /* sparkle_dsa_pub.pem in Resources */,
 				35A4CD301534927F005176BD /* Combined Hosts Hint.png in Resources */,
 				359289AB1659222E00492494 /* CHANGELOG.txt in Resources */,

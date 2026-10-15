@@ -139,6 +139,7 @@
 	}
 	
 	[Util flushDirectoryServiceCache];
+	[Util restartDNSResponder];
 	return YES;
 }
 
@@ -322,6 +323,7 @@
 	}
 	
 	[Util flushDirectoryServiceCache];
+	[Util restartDNSResponder];
 	return YES;
 }
 
