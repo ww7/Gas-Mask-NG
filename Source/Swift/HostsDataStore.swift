@@ -50,9 +50,12 @@ final class HostsDataStore: ObservableObject {
     // MARK: Init
 
     init() {
+        observeNotifications()
         refreshGroups()
         refreshFilesCount()
-        observeNotifications()
+        // Startup loads profiles before creating the editor, so the load
+        // notification may already have fired. Read the current active object too.
+        selectActiveHosts()
     }
 
     deinit {
@@ -133,6 +136,13 @@ final class HostsDataStore: ObservableObject {
 
     // MARK: Selection Sync
 
+    private func selectActiveHosts() {
+        guard let active = HostsMainController.defaultInstance()?.activeHostsFile() else { return }
+        // Keep the native controller selection and SwiftUI editor in sync.
+        // Selection does not activate the profile or write the system hosts file.
+        selectedHosts = active
+    }
+
     /// Called when the ObjC layer selects a hosts file (via notification).
     private func syncSelectionFromModel(_ hosts: Hosts?) {
         isSyncingSelection = true
@@ -184,8 +194,7 @@ final class HostsDataStore: ObservableObject {
         ) { [weak self] _ in
             self?.refreshGroups()
             self?.refreshFilesCount()
-            let active = HostsMainController.defaultInstance()?.activeHostsFile()
-            self?.syncSelectionFromModel(active)
+            self?.selectActiveHosts()
         }
         notificationObservers.append(loadedObserver)
 

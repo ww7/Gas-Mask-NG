@@ -1,14 +1,15 @@
 # Build status
 
-15 October 2026. Local candidate `0.8.7-ww7.5`, internal build `20261015.5`.
+15 October 2026. Local candidate `0.8.7-ww7.6`, internal build `20261015.6`.
 
 The owner requested a short iteration and will verify behavior manually. Validation
 for this candidate is the universal Release build, package architecture and strict
-local signature checks. No XCTest or storage test suite was run for ww7.5.
+local signature checks. No XCTest or storage test suite was run for ww7.6.
 The prior [ww7.4 test evidence](verification/2026-10-15-sidebar.json) remains
 historical evidence for that version, rather than a result for this candidate.
 
-Changes: topmost editor-window action in the menu with a separator, Combined-first
+Changes: select the already-loaded active profile when the editor is created,
+including Local, Combined and Remote profiles. Retain the topmost editor-window action in the menu with a separator, Combined-first
 menu groups, Save checkmark, and General > Appearance: System / Light / Dark.
 The selected appearance is applied immediately and restored on launch. System
 uses the current macOS appearance without a fixed override.

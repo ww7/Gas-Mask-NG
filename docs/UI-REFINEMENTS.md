@@ -81,3 +81,12 @@ test; the subsequent complete automated suite passed all layout/refresh checks.
 The owner requested build-only verification and will perform functional testing.
 Do not attribute ww7.4's 146 test results to this version. No test suite was run
 for ww7.5. This is a local candidate; publication and installation are separate.
+
+## ww7.6: show the active profile on startup
+
+The initial profile-load notification can precede creation of the SwiftUI store.
+The store now reads the active model object during initialization, after registering
+observers, and selects it in both the editor and the native controller. The load
+notification uses the same path when loading completes later. This is shared by
+Local, Combined and Remote profiles and does not reactivate or rewrite any profile.
+Build-only verification per the owner's preference; functional acceptance is manual.
