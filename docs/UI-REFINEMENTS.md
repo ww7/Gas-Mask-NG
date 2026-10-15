@@ -45,3 +45,17 @@ toolbar. Icons-only persistence was checked across focus/refresh and a recreated
 window with isolated defaults. Active-save/restore tests intercepted the concrete
 NSTask implementation and observed only four noninteractive cache flushes;
 inactive saves launched none. Live hosts/profile hashes remained unchanged.
+
+## ww7.4: compact Combined sidebar
+
+| Request | Boundary and verification contract |
+| --- | --- |
+| Use a standard Save icon | Replace the custom vector with SF Symbols `internaldrive`, matching the other toolbar icons |
+| Put composition on the right | Horizontal split between the text editor and a narrow right sidebar; check pane geometry in light/dark and compact windows |
+| Compact rows without counts | 22-point native rows, no numbering or selected/total count; grip, removal icon, then filename |
+| Drag to reorder | Native local NSTableView insertion, autoscroll and cancellation; only the grip starts dragging. No composition mutation before an accepted drop; reject foreign/cross-profile drags |
+| Keep add/remove and persistence | Compact + menu in the sidebar header. Remove only membership. Verify both directions, insertion after the last row, no-op/invalid drops, generated content and save/reload order |
+
+Tests use synthetic profiles and isolated defaults. Installation is a separate
+owner-authorized step with a backup of the existing app, both profile stores and
+the effective preference domain. Preserve live profile bytes and preferences.

@@ -4,11 +4,7 @@ struct ContentView: View {
     @ObservedObject var store: HostsDataStore
 
     var body: some View {
-        VStack(spacing: 0) {
-            if store.selectedHosts is CombinedHosts {
-                CombinedHostsPickerView(store: store)
-                Divider()
-            }
+        HSplitView {
             HostsTextViewRepresentable(
                 selectedHosts: store.selectedHosts,
                 contentToken: store.rowRefreshToken,
@@ -17,6 +13,11 @@ struct ContentView: View {
                 }
             )
             .clipped()
+            .frame(minWidth: 80, maxWidth: .infinity, maxHeight: .infinity)
+            if store.selectedHosts is CombinedHosts {
+                CombinedHostsPickerView(store: store)
+                    .frame(minWidth: 160, idealWidth: 200, maxWidth: 240, maxHeight: .infinity)
+            }
         }
     }
 }

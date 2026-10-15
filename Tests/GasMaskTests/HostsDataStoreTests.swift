@@ -169,4 +169,39 @@ final class HostsDataStoreTests: XCTestCase {
         XCTAssertEqual(empty.hostsFiles()?.count, 0)
     }
 
+    func testCombinedDropInsertion_boundariesAndSavedOrder() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("GasMaskDrop-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let files = try ["Alpha", "Beta", "Gamma", "Delta"].map { name in
+            let path = directory.appendingPathComponent("\(name).hst")
+            try "127.0.0.1 \(name.lowercased()).example.test".write(to: path, atomically: true, encoding: .utf8)
+            return try XCTUnwrap(Hosts(path: path.path))
+        }
+        let path = directory.appendingPathComponent("Combined.hst")
+        try "".write(to: path, atomically: true, encoding: .utf8)
+        let combined = try XCTUnwrap(CombinedHosts(path: path.path, allHostsFiles: files))
+        combined.setHostsFiles(files)
+        let store = HostsDataStore()
+        XCTAssertTrue(store.move(files[0], in: combined, toInsertionIndex: 4))
+        XCTAssertEqual((combined.hostsFiles() as? [Hosts])?.map { $0.name() }, ["Beta", "Gamma", "Delta", "Alpha"])
+        XCTAssertTrue(store.move(files[0], in: combined, toInsertionIndex: 0))
+        XCTAssertEqual((combined.hostsFiles() as? [Hosts])?.map { $0.name() }, ["Alpha", "Beta", "Gamma", "Delta"])
+        XCTAssertTrue(store.move(files[2], in: combined, toInsertionIndex: 1))
+        XCTAssertFalse(combined.saved())
+        combined.save()
+        // Dropping on either boundary of the same row and invalid/external rows
+        // must not dirty a saved composition or lose/duplicate any file.
+        XCTAssertFalse(store.move(files[0], in: combined, toInsertionIndex: 0))
+        XCTAssertFalse(store.move(files[0], in: combined, toInsertionIndex: 1))
+        XCTAssertFalse(store.move(files[0], in: combined, toInsertionIndex: -1))
+        XCTAssertFalse(store.move(files[0], in: combined, toInsertionIndex: 5))
+        let foreign = try XCTUnwrap(Hosts(path: directory.appendingPathComponent("foreign.hst").path))
+        XCTAssertFalse(store.move(foreign, in: combined, toInsertionIndex: 1))
+        XCTAssertTrue(combined.saved())
+        let reopened = try XCTUnwrap(CombinedHosts(path: path.path, allHostsFiles: files))
+        XCTAssertEqual((reopened.hostsFiles() as? [Hosts])?.map { $0.name() }, ["Alpha", "Gamma", "Beta", "Delta"])
+        XCTAssertEqual(reopened.contents(), combined.contents())
+    }
+
 }

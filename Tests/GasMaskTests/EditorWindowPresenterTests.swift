@@ -115,6 +115,12 @@ final class EditorWindowPresenterTests: XCTestCase {
             let footerHeight = content.isFlipped
                 ? content.bounds.maxY - rect.maxY
                 : rect.minY - content.bounds.minY
+            let table = try XCTUnwrap(descendants(content).compactMap { $0 as? CombinedFilesTableView }.first)
+            let listRect = table.enclosingScrollView!.convert(table.enclosingScrollView!.bounds, to: content)
+            XCTAssertGreaterThanOrEqual(listRect.minX, rect.maxX, "Composition must sit to the right of the editor in \(name)")
+            XCTAssertLessThanOrEqual(listRect.width, 240, "Right sidebar stays compact in \(name)")
+            XCTAssertEqual(table.rowHeight, 22)
+            XCTAssertEqual(table.numberOfRows, combined.hostsFiles()?.count ?? 0)
             XCTAssertGreaterThanOrEqual(footerHeight, 24, "Editor must reserve the opaque footer in \(name)")
             XCTAssertGreaterThan(scroll.contentView.bounds.minY, 0, "Long Combined content must scroll to its end in \(name)")
 
@@ -132,10 +138,17 @@ final class EditorWindowPresenterTests: XCTestCase {
             // A temporary marker allows native UI inspection against these synthetic
             // fixtures. Normal test runs continue immediately; preview pauses time out.
             let hold = output.appendingPathComponent("hold-preview")
-            let deadline = Date(timeIntervalSinceNow: 60)
+            let holdSeconds = min(Double((try? String(contentsOf: hold, encoding: .utf8)) ?? "") ?? 60, 180)
+            let deadline = Date(timeIntervalSinceNow: holdSeconds)
             if name == "combined-light" {
                 while FileManager.default.fileExists(atPath: hold.path), Date() < deadline {
-                    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+                    // XCTest holds the main thread here. Dispatch real AppKit
+                    // events as well as run-loop sources so native mouse drags
+                    // from the inspection tool reach the fixture window.
+                    while let event = NSApp.nextEvent(matching: .any, until: Date(), inMode: .default, dequeue: true) {
+                        NSApp.sendEvent(event)
+                    }
+                    RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.01))
                 }
             }
         }

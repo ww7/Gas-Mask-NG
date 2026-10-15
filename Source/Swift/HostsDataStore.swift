@@ -109,6 +109,21 @@ final class HostsDataStore: ObservableObject {
         update(combined, files: files)
     }
 
+    /// AppKit drop rows are insertion boundaries in the original array, including
+    /// the boundary after the last row. No-op and cancelled drops leave it saved.
+    @discardableResult
+    func move(_ hosts: Hosts, in combined: CombinedHosts, toInsertionIndex insertion: Int) -> Bool {
+        var files = (combined.hostsFiles() as? [Hosts]) ?? []
+        guard let source = files.firstIndex(where: { $0 === hosts }),
+              (0...files.count).contains(insertion) else { return false }
+        let destination = insertion > source ? insertion - 1 : insertion
+        guard destination != source else { return false }
+        files.remove(at: source)
+        files.insert(hosts, at: destination)
+        update(combined, files: files)
+        return true
+    }
+
     private func update(_ combined: CombinedHosts, files: [Hosts]) {
         objectWillChange.send()
         // The model regenerates preview text, posts a row update and marks the
