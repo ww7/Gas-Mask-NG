@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-15",
+  "tested_commit": "ce0d8014f911fc266d68e0876517472934a5642d",
+  "runtime_source_tree_sha256": "c7d0dd70a1707691a156f911b40fd50483cfcee083e1b281ec904683312334d3",
+  "release_tag": "v0.8.7-ww7.3",
+  "xcode_version": "27.0",
+  "xcode_build": "27A266a",
+  "macos_version": "27.0.1",
+  "sdk_version": "27.0",
+  "test_architecture": "arm64",
+  "release_architectures": [
+    "arm64",
+    "x86_64"
+  ],
+  "xctest": {
+    "result": "Passed",
+    "totalTestCount": 145,
+    "passedTests": 145,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "expectedFailures": 0,
+    "runtimeWarnings": [],
+    "testFailures": [],
+    "startTime": 1792085361.955,
+    "finishTime": 1792085466.753
+  },
+  "storage_migration_assertions_passed": 28,
+  "live_hosts_and_profiles_unchanged": true,
+  "signature": "ad-hoc",
+  "notarized": false,
+  "result_bundle": "build/TestResults-20261015T172912Z.xcresult",
+  "regression_checks": {
+    "combined_add_remove_reorder_save_reload": true,
+    "combined_empty_list_roundtrip": true,
+    "toolbar_icons_only_survives_focus_refresh_and_window_recreation": true,
+    "toolbar_restore_icons_and_labels": true,
+    "active_saves_and_restore_system_fixture_only": true,
+    "intercepted_noninteractive_cache_flushes": 4,
+    "privileged_dns_script_removed_from_source_and_bundle": true
+  },
+  "ui_qa": {
+    "synthetic_profiles_only": true,
+    "appearances": [
+      "light",
+      "dark"
+    ],
+    "window_sizes": [
+      [
+        1100,
+        700
+      ],
+      [
+        620,
+        480
+      ]
+    ],
+    "opaque_footer_reserved_points": 25,
+    "long_text_scrolls_to_end": true,
+    "native_move_first_file_down": true,
+    "native_add_file_count": [
+      5,
+      6
+    ],
+    "native_remove_file_count": [
+      6,
+      5
+    ],
+    "save_icon": "template vector floppy disk",
+    "native_result_bundle": "build/Regression-Native-QA.xcresult",
+    "test_bundle_identifier": "work.ww7.gasmask.tests",
+    "native_qa_bundle_identifier": "work.ww7.gasmask.nativeqa",
+    "local_screenshots": "build/ui-qa/"
+  }
+}

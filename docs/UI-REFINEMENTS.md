@@ -36,3 +36,12 @@ existing hosts ACL already allowed writes. Removing that unconditional restart
 restores the upstream noninteractive cache-flush behavior without changing file
 permissions or weakening authorization when initial write access is needed.
 Combined profile storage remains the same ordered `type/name` format.
+
+Verified follow-up: all 145 XCTest tests and all 28 storage assertions passed.
+Native fixture interaction moved Development below Production, added Work
+(5 to 6 included files), and removed QA (6 to 5). The composition was marked
+unsaved and regenerated the preview. The floppy-disk icon rendered in the native
+toolbar. Icons-only persistence was checked across focus/refresh and a recreated
+window with isolated defaults. Active-save/restore tests intercepted the concrete
+NSTask implementation and observed only four noninteractive cache flushes;
+inactive saves launched none. Live hosts/profile hashes remained unchanged.
