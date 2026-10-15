@@ -17,7 +17,12 @@ import MASShortcut
 
         binder.bindShortcut(withDefaultsKey: ShowEditorWindowHotkeyPrefKey) {
             DispatchQueue.main.async {
-                ApplicationController.defaultInstance()?.openEditorWindow(nil)
+                guard let controller = ApplicationController.defaultInstance() else { return }
+                if controller.editorWindowOpened() {
+                    controller.closeEditorWindow(nil)
+                } else {
+                    controller.openEditorWindow(nil)
+                }
             }
         }
 

@@ -119,3 +119,16 @@ Build-only verification as requested; no automated test suite run.
 
 Build-only verification per the owner's preference; behavior acceptance is manual.
 This local candidate is not installed or published automatically.
+
+## ww7.9: settings margins and editor-window toggle
+
+- Center the settings content as a 400-point block in the existing 500-point
+  window. Apply shared 50-point horizontal and 26-point vertical padding in the
+  presenter, preserving leading alignment and each control's label alignment.
+  Continue fitting window height to the selected tab.
+- Make the existing editor-window hotkey toggle the same open/close actions used
+  by the menu. Preserve the shortcut defaults key and assigned combination; label
+  it Show / Hide Editor Window. Widen the aligned Hotkeys label column to fit.
+
+Build-only verification per the owner's preference. No automatic publication or
+installation; functional acceptance remains manual.

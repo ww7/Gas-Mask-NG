@@ -15,7 +15,10 @@ import SwiftUI
 
         func makeTab<V: View>(label: String, symbolName: String, rootView: V) -> NSTabViewItem {
             let hc = NSHostingController(rootView: rootView
-                .frame(width: 500, alignment: .leading)
+                // Center the content block; controls retain their own alignment.
+                .frame(width: 400, alignment: .leading)
+                .padding(.horizontal, 50)
+                .padding(.vertical, 26)
                 .fixedSize(horizontal: false, vertical: true))
             hc.view.layoutSubtreeIfNeeded()
             hc.preferredContentSize = NSSize(width: 500, height: ceil(hc.view.fittingSize.height))

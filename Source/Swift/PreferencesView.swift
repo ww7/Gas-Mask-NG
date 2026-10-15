@@ -33,8 +33,6 @@ struct GeneralTab: View {
             Toggle("Override external modifications", isOn: $overrideExternalModifications)
             Toggle("Show Host File Name in Menu Bar", isOn: $showNameInStatusBar)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
     }
 }
 
@@ -47,8 +45,6 @@ struct EditorTab: View {
         VStack(alignment: .leading, spacing: 10) {
             Toggle("Syntax Highlighting", isOn: $syntaxHighlighting)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
     }
 }
 
@@ -80,8 +76,6 @@ struct RemoteTab: View {
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
     }
 }
 
@@ -91,32 +85,30 @@ struct HotkeysTab: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Show Editor Window:")
-                    .frame(width: 160, alignment: .trailing)
+                Text("Show / Hide Editor Window:")
+                    .frame(width: 190, alignment: .trailing)
                 ShortcutRecorderView(prefsKey: ShowEditorWindowHotkeyPrefKey)
                     .frame(width: 150, height: 25)
             }
             HStack {
                 Text("Activate Previous File:")
-                    .frame(width: 160, alignment: .trailing)
+                    .frame(width: 190, alignment: .trailing)
                 ShortcutRecorderView(prefsKey: ActivatePreviousFilePrefKey)
                     .frame(width: 150, height: 25)
             }
             HStack {
                 Text("Activate Next File:")
-                    .frame(width: 160, alignment: .trailing)
+                    .frame(width: 190, alignment: .trailing)
                 ShortcutRecorderView(prefsKey: ActivateNextFilePrefKey)
                     .frame(width: 150, height: 25)
             }
             HStack {
                 Text("Update Remote Files:")
-                    .frame(width: 160, alignment: .trailing)
+                    .frame(width: 190, alignment: .trailing)
                 ShortcutRecorderView(prefsKey: UpdateAndSynchronizePrefKey)
                     .frame(width: 150, height: 25)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
     }
 }
 
@@ -145,7 +137,5 @@ struct UpdateTab: View {
                 .disabled(!sparkleObserver.canCheckForUpdates)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
     }
 }
