@@ -106,3 +106,16 @@ Build-only verification per the owner's preference; functional acceptance is man
   name suffixes. Preserve the source URL and all previously saved profile names.
 
 Build-only verification as requested; no automated test suite run.
+
+## ww7.8: immediate inline rename
+
+- Request keyboard focus after inserting the inline name field, including Rename
+  from the context menu and the existing new-profile notification path.
+- Begin on double-click, Return or keypad Enter. Keep ordinary single-click list
+  selection. Scope unmodified Return to the native focused left-sidebar table;
+  exclude text fields, the document editor and the Combined composition table.
+- Return commits once and Escape cancels. Changing the selected profile cancels
+  an in-progress rename. Keep existing name validation and model notifications.
+
+Build-only verification per the owner's preference; behavior acceptance is manual.
+This local candidate is not installed or published automatically.

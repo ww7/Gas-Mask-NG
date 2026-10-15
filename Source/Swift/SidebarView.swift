@@ -6,6 +6,7 @@ struct SidebarView: View {
 
     @State private var editingName: String = ""
     @State private var isEditing = false
+    @FocusState private var renameFieldFocused: Bool
     @State private var renameError: String?
     @State private var hostsToRemove: Hosts?
 
@@ -23,11 +24,21 @@ struct SidebarView: View {
                 .onDrop(of: [.fileURL, .url], delegate: SidebarDropDelegate(group: group))
             }
         }
+        .background(SidebarRenameKeyHandler(enabled: !isEditing) {
+            if let hosts = store.selectedHosts {
+                requestRename(hosts)
+            }
+        })
         .listStyle(.sidebar)
         .environment(\.defaultMinListRowHeight, 24)
         .onChange(of: store.renamingHosts) { newValue in
             if let hosts = newValue {
                 beginRename(hosts)
+            }
+        }
+        .onChange(of: store.selectedHosts) { newValue in
+            if isEditing, newValue !== store.renamingHosts {
+                cancelRename()
             }
         }
         .alert("Rename Error", isPresented: Binding(
@@ -62,6 +73,10 @@ struct SidebarView: View {
             renameField(for: hosts)
         } else {
             HostsRowView(hosts: hosts, isGroup: false, refreshToken: store.rowRefreshToken)
+                .contentShape(Rectangle())
+                .simultaneousGesture(TapGesture(count: 2).onEnded {
+                    requestRename(hosts)
+                })
                 .contextMenu { contextMenuItems(for: hosts) }
         }
     }
@@ -71,6 +86,14 @@ struct SidebarView: View {
     private func renameField(for hosts: Hosts) -> some View {
         TextField("Name", text: $editingName)
         .textFieldStyle(.plain)
+        .focused($renameFieldFocused)
+        .task {
+            // The field must be inserted before requesting keyboard focus.
+            await Task.yield()
+            if isEditing, store.renamingHosts === hosts {
+                renameFieldFocused = true
+            }
+        }
         .font(.system(size: NSFont.smallSystemFontSize))
         .onSubmit {
             commitRename(hosts)
@@ -80,19 +103,26 @@ struct SidebarView: View {
         }
     }
 
+    private func requestRename(_ hosts: Hosts) {
+        store.selectedHosts = hosts
+        store.renamingHosts = hosts
+    }
+
     private func beginRename(_ hosts: Hosts) {
+        store.selectedHosts = hosts
         editingName = hosts.name() ?? ""
         isEditing = true
     }
 
     private func commitRename(_ hosts: Hosts) {
         defer {
+            renameFieldFocused = false
             isEditing = false
             store.renamingHosts = nil
         }
 
         let trimmed = editingName.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty, trimmed != hosts.name() else { return }
 
         if trimmed.contains("/") {
             renameError = "File name cannot contain forward slash."
@@ -109,6 +139,7 @@ struct SidebarView: View {
     }
 
     private func cancelRename() {
+        renameFieldFocused = false
         isEditing = false
         store.renamingHosts = nil
     }
@@ -155,7 +186,7 @@ struct SidebarView: View {
         }
 
         Button("Rename") {
-            store.renamingHosts = hosts
+            requestRename(hosts)
         }
 
         Divider()
@@ -205,5 +236,59 @@ extension SidebarView {
             }
             return handled
         }
+    }
+}
+
+// Handle Return before the native list handles the key itself.
+// Scope the native handler to the focused table inside this sidebar. Text fields,
+// the document editor and the Combined composition table keep their normal keys.
+private struct SidebarRenameKeyHandler: NSViewRepresentable {
+    let enabled: Bool
+    let rename: () -> Void
+
+    func makeNSView(context: Context) -> KeyView {
+        KeyView()
+    }
+
+    func updateNSView(_ view: KeyView, context: Context) {
+        view.enabled = enabled
+        view.rename = rename
+    }
+
+    static func dismantleNSView(_ view: KeyView, coordinator: ()) {
+        view.stopMonitoring()
+    }
+
+    final class KeyView: NSView {
+        var enabled = false
+        var rename: (() -> Void)?
+        private var monitor: Any?
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            stopMonitoring()
+            guard window != nil else { return }
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                guard let self, self.enabled,
+                      let window = self.window, window.isKeyWindow,
+                      event.window === window,
+                      event.keyCode == 36 || event.keyCode == 76,
+                      event.modifierFlags.intersection([.command, .control, .option, .shift]).isEmpty,
+                      let table = window.firstResponder as? NSTableView else { return event }
+                let sidebarFrame = self.convert(self.bounds, to: nil)
+                let tableFrame = table.convert(table.bounds, to: nil)
+                guard sidebarFrame.contains(NSPoint(x: tableFrame.midX, y: tableFrame.midY)),
+                      let rename = self.rename else { return event }
+                rename()
+                return nil
+            }
+        }
+
+        func stopMonitoring() {
+            if let monitor { NSEvent.removeMonitor(monitor) }
+            monitor = nil
+        }
+
+        deinit { stopMonitoring() }
     }
 }
