@@ -264,3 +264,20 @@ synthetic files and an intercepted reserved test URL; no live profiles, remote
 servers or system hosts file were used. Rendered light/dark/compact and rename
 snapshots were inspected. Full-suite/manual system-activation acceptance was not
 performed. Evidence: `verification/2026-10-16-remote-context-toolbar.json`.
+
+
+## ww7.17: icon-only toolbar grouping correction
+
+Active sidebar names use regular weight; the leading checkmark remains the active
+indicator. In ww7.16 icon-and-label snapshots appeared separated, but icon-only
+mode merged Remove, Remote Update and Save/Activate into one glass background.
+AppKit positions navigational items ahead of ordinary items. The fixed native
+spaces now carry the navigation role too, so they stay between the leading actions.
+Apply the role to existing spaces and through the scoped toolbar will-add observer;
+no custom backgrounds, dimensions or replacement toolbar are introduced.
+
+Inspected rendered icon-only and icon-and-label snapshots: Create, Remove and
+Remote Update have separate native blocks, and Save/Activate stay paired. Two
+focused tests passed for layout and display-mode persistence across focus refresh
+and window recreation. Full suites were not repeated for this presentation fix.
+Evidence: `verification/2026-10-16-toolbar-groups.json`.

@@ -105,7 +105,7 @@ struct HostsFileRow<Name: View>: View {
                 .accessibilityHidden(true)
             fileIcon.frame(width: 16, height: 16)
             name
-                .font(.system(size: NSFont.smallSystemFontSize, weight: hosts.active() ? .bold : .regular))
+                .font(.system(size: NSFont.smallSystemFontSize, weight: .regular))
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let error = hosts.error() {
                 HostsErrorBadge(error: error)

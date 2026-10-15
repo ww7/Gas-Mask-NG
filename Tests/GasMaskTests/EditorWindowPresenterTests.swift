@@ -274,7 +274,8 @@ final class EditorWindowPresenterTests: XCTestCase {
         for (name, appearance, size) in [
             ("combined-light", NSAppearance.Name.aqua, NSSize(width: 1100, height: 700)),
             ("combined-dark", NSAppearance.Name.darkAqua, NSSize(width: 1100, height: 700)),
-            ("combined-compact", NSAppearance.Name.aqua, NSSize(width: 620, height: 480))
+            ("combined-compact", NSAppearance.Name.aqua, NSSize(width: 620, height: 480)),
+            ("combined-icons", NSAppearance.Name.aqua, NSSize(width: 1100, height: 700))
         ] {
             preview.appearance = NSAppearance(named: appearance)
             preview.setContentSize(size)
@@ -282,6 +283,15 @@ final class EditorWindowPresenterTests: XCTestCase {
             preview.makeKeyAndOrderFront(nil)
             if #available(macOS 14.0, *) { NSApp.activate() }
             RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.4))
+            preview.toolbar?.displayMode = name == "combined-icons" ? .iconOnly : .iconAndLabel
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))
+            if name == "combined-icons" {
+                if #available(macOS 26.0, *) {
+                    let spaces = (preview.toolbar?.items ?? []).filter { $0.itemIdentifier == .space }
+                    XCTAssertEqual(spaces.count, 3)
+                    XCTAssertTrue(spaces.allSatisfy { $0.isNavigational }, "Spaces must stay among the leading actions in icon-only mode")
+                }
+            }
             let content = try XCTUnwrap(preview.contentView)
             content.layoutSubtreeIfNeeded()
             let scroll = try XCTUnwrap(descendants(content).compactMap { $0 as? NSScrollView }

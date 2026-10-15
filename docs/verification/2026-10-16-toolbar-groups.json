@@ -1,0 +1,21 @@
+{
+  "candidate": "0.8.7-ww7.17",
+  "result": "passed",
+  "focused_tests": 2,
+  "full_suite_run": false,
+  "fixtures": "temporary profiles and test bundle preferences",
+  "xcresult": "build/ww7.17-final.xcresult",
+  "checks": [
+    "regular-weight active name with fixed leading checkmark slot",
+    "native toolbar fixed spaces carry the navigation role, including newly inserted items",
+    "rendered Create, Remove and Update blocks separated in icon-only and icon-and-label modes",
+    "toolbar mode survives focus refresh and window recreation",
+    "light, dark, compact editor geometry and footer scrolling"
+  ],
+  "snapshots": [
+    "build/ui-qa/combined-icons.png",
+    "build/ui-qa/combined-light.png",
+    "build/ui-qa/combined-dark.png"
+  ],
+  "runtime_warnings": []
+}

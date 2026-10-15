@@ -9,6 +9,7 @@ import SwiftUI
     private let defaults: UserDefaults
     private var toolbarObservation: NSKeyValueObservation?
     private var displayModeObservation: NSKeyValueObservation?
+    private var toolbarItemObserver: NSObjectProtocol?
     private weak var observedToolbar: NSToolbar?
     static let toolbarDisplayModeKey = "editorToolbarDisplayMode"
 
@@ -54,13 +55,33 @@ import SwiftUI
     private func configureToolbar() {
         guard let toolbar = window.toolbar, toolbar !== observedToolbar else { return }
         displayModeObservation = nil
+        if let toolbarItemObserver { NotificationCenter.default.removeObserver(toolbarItemObserver) }
         observedToolbar = toolbar
+        // AppKit positions navigation items before ordinary toolbar items.
+        // SwiftUI's fixed spaces need the same role to stay between the leading
+        // actions, otherwise icon-only mode merges them into one glass group.
+        toolbar.items.forEach(Self.configureNavigationSpace)
+        toolbarItemObserver = NotificationCenter.default.addObserver(
+            forName: NSToolbar.willAddItemNotification, object: toolbar, queue: .main
+        ) { notification in
+            if let item = notification.userInfo?[NSToolbarUserInfoKey.itemKey] as? NSToolbarItem {
+                Self.configureNavigationSpace(item)
+            }
+        }
         let savedMode = NSToolbar.DisplayMode(rawValue: UInt(defaults.integer(forKey: Self.toolbarDisplayModeKey)))
         toolbar.displayMode = savedMode.flatMap { $0 == .default ? nil : $0 } ?? .iconAndLabel
         displayModeObservation = toolbar.observe(\.displayMode, options: [.new]) { [weak self] toolbar, _ in
             guard toolbar.displayMode != .default else { return }
             self?.defaults.set(Int(toolbar.displayMode.rawValue), forKey: Self.toolbarDisplayModeKey)
         }
+    }
+
+    private static func configureNavigationSpace(_ item: NSToolbarItem) {
+        if item.itemIdentifier == .space { item.isNavigational = true }
+    }
+
+    deinit {
+        if let toolbarItemObserver { NotificationCenter.default.removeObserver(toolbarItemObserver) }
     }
 
     // MARK: - NSWindowDelegate
