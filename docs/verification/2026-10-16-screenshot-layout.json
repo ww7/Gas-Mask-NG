@@ -1,0 +1,22 @@
+{
+  "candidate": "0.8.7-ww7.15",
+  "result": "passed",
+  "focused_tests": 2,
+  "full_suite_run": false,
+  "fixtures": "isolated test preferences and synthetic profile files",
+  "checks": [
+    "non-floating sidebar labels remove header rule",
+    "explicit trailing sidebar divider rendered",
+    "8-point vertical text inset",
+    "initial font is monospaced",
+    "light and dark and compact geometry",
+    "long text scrolls above opaque footer",
+    "compact neutral row presentation"
+  ],
+  "snapshots": [
+    "build/ui-qa/combined-light.png",
+    "build/ui-qa/combined-dark.png",
+    "build/ui-qa/combined-compact.png"
+  ],
+  "xcresult": "build/tests/Logs/Test/Test-Gas Mask-2026.10.16_00-41-42-+0300.xcresult"
+}

@@ -216,3 +216,22 @@ compact neutral rows, native menu key dispatch (including sidebar focus), unchan
 profile bytes/saved state after zoom, typing-font reset and File-menu refresh wiring.
 Inspected the native rename snapshot with the retained Combined icon and trailing
 active dot. No full test suite or live remote download was run for this iteration.
+
+## ww7.15: screenshot layout follow-up
+
+- Draw a standard vertical Divider along the left sidebar's trailing edge. The
+  overlay does not intercept mouse input or disable native split-view resizing.
+- Disable floating group rows in the sidebar's native table. This removes the
+  horizontal rule/shadow under the first Combined header while retaining section
+  labels. Use the semantic secondary label color for readable dark-mode headers.
+- Set the editor's vertical text-container inset to 8 points, preserving existing
+  horizontal text padding and scrolling/opaque-footer behavior.
+- Keep the initial editor font monospaced even when the default NSTextView font
+  already has the saved point size; font preference application compares the full
+  expected font rather than point size alone.
+
+Two focused native tests passed: compact neutral sidebar presentation and editor
+layout/scrolling in light, dark and compact windows. Rendered snapshots were
+inspected with synthetic profiles. Eight-point text inset, initial monospace font,
+non-floating headers, footer separation and composition geometry are asserted.
+All ww7.14 changes remain included; installation/publication are separate steps.

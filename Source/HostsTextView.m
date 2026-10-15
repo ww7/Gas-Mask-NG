@@ -87,6 +87,7 @@
     [textView setVerticallyResizable:YES];
     [textView setHorizontallyResizable:YES];
     [textView setAutoresizingMask:NSViewWidthSizable];
+    [textView setTextContainerInset:NSMakeSize(0, 8)];
     [textView observeEditorFontSize];
     [textView setBackgroundColor:[NSColor colorNamed:@"BackgroundColor"]];
     [textView setTextColor:[NSColor colorNamed:@"TextColor"]];
@@ -121,7 +122,8 @@
     NSNumber *savedSize = [[NSUserDefaults standardUserDefaults] objectForKey:EditorFontSizePrefKey];
     CGFloat size = savedSize ? savedSize.doubleValue : 12;
     size = isfinite(size) ? MIN(40, MAX(8, size)) : 12;
-    if (self.font.pointSize != size) { [self setEditorFontSize:size]; }
+    NSFont *expectedFont = [NSFont monospacedSystemFontOfSize:size weight:NSFontWeightMedium];
+    if (![self.font isEqual:expectedFont]) { [self setEditorFontSize:size]; }
 }
 
 - (void)dealloc

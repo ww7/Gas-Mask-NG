@@ -1,23 +1,24 @@
 # Build status
 
-16 October 2026. Local candidate `0.8.7-ww7.14`, internal build `20261016.14`.
+16 October 2026. Local candidate `0.8.7-ww7.15`, internal build `20261016.15`.
 
-The owner prefers short iterations. Two focused native UI tests passed with
-isolated preferences and temporary synthetic files. They cover rename completion,
-immediate alphabetical sidebar reordering with selection retained, compact/neutral
-rows, and native View-menu Cmd+, Cmd-, Cmd0 plus Cmd= alias. Zoom works with document
-or sidebar focus; it preserves the profile's saved state, text and on-disk bytes.
-The File-menu refresh action and its image were checked. Full XCTest and storage
-suites were not run for ww7.14.
+Two focused native UI tests passed on isolated synthetic profiles. Layout was
+checked in light, dark and compact windows: the footer stays separate, long text
+scrolls, the text container reserves 8 points vertically, and the sidebar uses
+non-floating group labels. Inspected rendered images for the vertical sidebar
+separator, removal of the header rule and readable dark-mode section labels.
+The original monospaced font is also verified at initial display. Full XCTest
+and storage suites were not run for ww7.15; prior ww7.14 menu/rename/zoom evidence
+is in [sidebar/text-size verification](verification/2026-10-16-sidebar-text-size.json).
 
-The activity dot now follows the name column. A shared file-row layout retains the
-file-type icon and column geometry during inline rename. Sort sidebar children by
-localized natural name order without changing model activation order or Combined
-composition. View-menu text-size commands persist 8–40 pt, with 12 pt reset; native
-text views observe the preference and retain monospaced font/typing attributes.
-Add Update Remote Files with icloud.and.arrow.down in File, the status-item menu,
-Remote/Combined profile context menus, and the toolbar. All entry points use the
-existing update-and-synchronize action for all remote profiles.
+Changes: draw an explicit standard vertical divider at the trailing edge of the
+navigation sidebar without intercepting resize/mouse input. Disable floating
+native table group rows, which produced the stray horizontal rule below Combined.
+Add an 8-point vertical text-container inset below the toolbar. Apply semantic
+secondary color to sidebar section labels in either appearance. Compare the full
+font when applying the text-size preference, retaining monospace on initial load
+when the system's initial proportional font happens to share the same point size.
+Retains all ww7.14 row, sorting, text-size and Remote-refresh controls.
 
 Build with `scripts/build-release.sh`: Xcode 27.0 (27A266a), macOS SDK 27.0,
 arm64 + x86_64, minimum macOS 13.0. The packaged app records its exact source

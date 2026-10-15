@@ -26,6 +26,7 @@ struct HostsRowView: View {
         HStack(spacing: 4) {
             Text(hosts.name() ?? "")
                 .font(.system(size: NSFont.smallSystemFontSize, weight: .semibold))
+                .foregroundColor(Color(nsColor: .secondaryLabelColor))
             Spacer()
             groupBadges
         }

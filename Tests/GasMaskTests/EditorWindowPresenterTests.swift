@@ -84,6 +84,7 @@ final class EditorWindowPresenterTests: XCTestCase {
         XCTAssertEqual(table.selectedRow, 1, "Combined must be first, after its section header")
         XCTAssertLessThanOrEqual(table.rect(ofRow: table.selectedRow).height, 22)
         XCTAssertEqual(table.intercellSpacing.height, 0)
+        XCTAssertFalse(table.floatsGroupRows, "Sidebar labels must not draw a floating header rule")
         store.renamingHosts = combined
         settle()
         XCTAssertEqual(table.selectionHighlightStyle, .none, "Renaming must not restore the native blue row highlight")
@@ -286,6 +287,12 @@ final class EditorWindowPresenterTests: XCTestCase {
             let scroll = try XCTUnwrap(descendants(content).compactMap { $0 as? NSScrollView }
                 .first { $0.documentView is HostsTextView })
             let textView = try XCTUnwrap(scroll.documentView as? HostsTextView)
+            XCTAssertEqual(textView.textContainerInset.height, 8)
+            XCTAssertEqual(textView.font?.fontName,
+                NSFont.monospacedSystemFont(ofSize: textView.font?.pointSize ?? 12, weight: .medium).fontName)
+            let sidebarTable = try XCTUnwrap(descendants(content).compactMap { $0 as? NSTableView }
+                .first { !($0 is CombinedFilesTableView) })
+            XCTAssertFalse(sidebarTable.floatsGroupRows)
             if let container = textView.textContainer {
                 textView.layoutManager?.ensureLayout(for: container)
             }
@@ -304,6 +311,8 @@ final class EditorWindowPresenterTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(footerHeight, 24, "Editor must reserve the opaque footer in \(name)")
             XCTAssertGreaterThan(scroll.contentView.bounds.minY, 0, "Long Combined content must scroll to its end in \(name)")
 
+            textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
             let frameView = content.superview ?? content
             let bitmap = try XCTUnwrap(frameView.bitmapImageRepForCachingDisplay(in: frameView.bounds))
             frameView.cacheDisplay(in: frameView.bounds, to: bitmap)

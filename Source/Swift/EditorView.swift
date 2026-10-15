@@ -11,6 +11,14 @@ struct EditorView: View {
         VStack(spacing: 0) {
             NavigationSplitView {
                 SidebarView(store: store)
+                    .overlay {
+                        HStack(spacing: 0) {
+                            Spacer(minLength: 0)
+                            Divider()
+                        }
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                    }
                     .navigationSplitViewColumnWidth(min: 140, ideal: 160, max: 300)
             } detail: {
                 ContentView(store: store)

@@ -303,6 +303,9 @@ private struct SidebarListAppearance: NSViewRepresentable {
         private func styleSidebarTables(in view: NSView) {
             if let table = view as? NSTableView, contains(table) {
                 table.selectionHighlightStyle = .none
+                // A navigation sidebar has ordinary section labels, not floating
+                // table headers with a separator/shadow under the first group.
+                if table.floatsGroupRows { table.floatsGroupRows = false }
                 if table.intercellSpacing.height != 0 {
                     table.intercellSpacing = NSSize(width: table.intercellSpacing.width, height: 0)
                 }
