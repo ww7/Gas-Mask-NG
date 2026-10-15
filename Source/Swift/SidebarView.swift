@@ -35,11 +35,7 @@ struct SidebarView: View {
                 .onDrop(of: [.fileURL, .url], delegate: SidebarDropDelegate(group: group))
             }
         }
-        .background(SidebarNativeBehavior(enabled: !isEditing) {
-            if let hosts = store.selectedHosts {
-                requestRename(hosts)
-            }
-        })
+        .background(SidebarListAppearance())
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(Color(nsColor: .windowBackgroundColor))
@@ -51,8 +47,8 @@ struct SidebarView: View {
             }
         }
         .onChange(of: store.selectedHosts) { newValue in
-            if isEditing, newValue !== store.renamingHosts {
-                cancelRename()
+            if isEditing, let hosts = store.renamingHosts, newValue !== hosts {
+                commitRename(hosts)
             }
         }
         .alert("Rename Error", isPresented: Binding(
@@ -115,8 +111,11 @@ struct SidebarView: View {
             }
         }
         .font(.system(size: NSFont.smallSystemFontSize))
+        .onChange(of: renameFieldFocused) { focused in
+            if !focused { commitRename(hosts) }
+        }
         .onSubmit {
-            commitRename(hosts)
+            commitRename(hosts, focusEditor: true)
         }
         .onExitCommand {
             cancelRename()
@@ -134,15 +133,16 @@ struct SidebarView: View {
         isEditing = true
     }
 
-    private func commitRename(_ hosts: Hosts) {
-        defer {
-            renameFieldFocused = false
-            isEditing = false
-            store.renamingHosts = nil
-        }
-
+    private func commitRename(_ hosts: Hosts, focusEditor: Bool = false) {
+        // Submit and focus loss can arrive in the same turn. Finish the session
+        // first so the model is renamed once and the inline field always closes.
+        guard isEditing, store.renamingHosts === hosts else { return }
         let trimmed = editingName.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty, trimmed != hosts.name() else { return }
+        cancelRename()
+        guard !trimmed.isEmpty, trimmed != hosts.name() else {
+            if focusEditor { store.focusEditor() }
+            return
+        }
 
         if trimmed.contains("/") {
             renameError = "File name cannot contain forward slash."
@@ -153,6 +153,7 @@ struct SidebarView: View {
         let renamed = controller.rename(hosts, to: trimmed)
         if renamed {
             NotificationCenter.default.post(name: .hostsFileRenamed, object: hosts)
+            if focusEditor { store.focusEditor() }
         } else {
             renameError = "A file with that name already exists."
         }
@@ -259,31 +260,17 @@ extension SidebarView {
     }
 }
 
-// Handle Return before the native list handles the key itself.
-// Scope the native handler to the focused table inside this sidebar. Text fields,
-// the document editor and the Combined composition table keep their normal keys.
-private struct SidebarNativeBehavior: NSViewRepresentable {
-    let enabled: Bool
-    let rename: () -> Void
-
-    func makeNSView(context: Context) -> KeyView {
-        KeyView()
+// Appearance only. Keyboard and text editing use normal SwiftUI/AppKit handling.
+private struct SidebarListAppearance: NSViewRepresentable {
+    func makeNSView(context: Context) -> AppearanceView {
+        AppearanceView()
     }
 
-    func updateNSView(_ view: KeyView, context: Context) {
-        view.enabled = enabled
-        view.rename = rename
+    func updateNSView(_ view: AppearanceView, context: Context) {
         view.needsLayout = true
     }
 
-    static func dismantleNSView(_ view: KeyView, coordinator: ()) {
-        view.stopMonitoring()
-    }
-
-    final class KeyView: NSView {
-        var enabled = false
-        var rename: (() -> Void)?
-        private var monitor: Any?
+    final class AppearanceView: NSView {
 
         // The List owns its table/delegate. Change only presentation, retaining
         // native selection, keyboard navigation and accessibility behavior.
@@ -311,28 +298,5 @@ private struct SidebarNativeBehavior: NSViewRepresentable {
             for child in view.subviews { styleSidebarTables(in: child) }
         }
 
-        override func viewDidMoveToWindow() {
-            super.viewDidMoveToWindow()
-            stopMonitoring()
-            guard window != nil else { return }
-            monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                guard let self, self.enabled,
-                      let window = self.window, window.isKeyWindow,
-                      event.window === window,
-                      event.keyCode == 36 || event.keyCode == 76,
-                      event.modifierFlags.intersection([.command, .control, .option, .shift]).isEmpty,
-                      let table = window.firstResponder as? NSTableView else { return event }
-                guard self.contains(table), let rename = self.rename else { return event }
-                rename()
-                return nil
-            }
-        }
-
-        func stopMonitoring() {
-            if let monitor { NSEvent.removeMonitor(monitor) }
-            monitor = nil
-        }
-
-        deinit { stopMonitoring() }
     }
 }

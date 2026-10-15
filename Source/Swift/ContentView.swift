@@ -8,6 +8,7 @@ struct ContentView: View {
             HostsTextViewRepresentable(
                 selectedHosts: store.selectedHosts,
                 contentToken: store.rowRefreshToken,
+                focusRequest: store.editorFocusRequest,
                 onTextChange: { [weak store] newText in
                     store?.selectedHosts?.setContents(newText)
                 }

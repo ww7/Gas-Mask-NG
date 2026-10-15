@@ -3,6 +3,7 @@ import SwiftUI
 struct HostsTextViewRepresentable: NSViewRepresentable {
     let selectedHosts: Hosts?
     let contentToken: UInt64
+    let focusRequest: UInt64
     let onTextChange: (String) -> Void
     @AppStorage("syntaxHighlighting") private var syntaxHighlighting = true
 
@@ -60,6 +61,19 @@ struct HostsTextViewRepresentable: NSViewRepresentable {
         if textView.syntaxHighlighting() != syntaxHighlighting {
             textView.setSyntaxHighlighting(syntaxHighlighting)
         }
+
+        if focusRequest != context.coordinator.lastFocusRequest {
+            let coordinator = context.coordinator
+            coordinator.lastFocusRequest = focusRequest
+            // Wait for SwiftUI to remove the submitted inline name field before
+            // making the existing AppKit document editor the first responder.
+            DispatchQueue.main.async { [weak textView, weak coordinator] in
+                guard let textView, let coordinator,
+                      coordinator.lastFocusRequest == focusRequest,
+                      coordinator.lastUpdatedHosts === selectedHosts else { return }
+                textView.window?.makeFirstResponder(textView)
+            }
+        }
     }
 
     func makeCoordinator() -> Coordinator {
@@ -74,6 +88,7 @@ struct HostsTextViewRepresentable: NSViewRepresentable {
         // Weak to avoid retaining a deleted Hosts object; nilling forces a content refresh
         weak var lastUpdatedHosts: Hosts?
         var lastContentToken: UInt64 = 0
+        var lastFocusRequest: UInt64 = 0
         var isUpdatingFromModel = false
 
         init(onTextChange: @escaping (String) -> Void) {

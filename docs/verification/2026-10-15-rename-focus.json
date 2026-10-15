@@ -1,0 +1,20 @@
+{
+  "candidate": "0.8.7-ww7.13",
+  "result": "passed",
+  "focused_tests": 2,
+  "full_suite_run": false,
+  "tests": [
+    "EditorWindowPresenterTests.testRename_endsOnBlurAndSubmitFocusesDocument",
+    "EditorWindowPresenterTests.testSidebar_compactNeutralSelectionAndCombinedFirst"
+  ],
+  "fixtures": "isolated test bundle preferences and temporary synthetic profile files",
+  "checks": [
+    "blur commits actual on-disk rename and closes inline field",
+    "blur preserves clicked document focus",
+    "submit renames once and focuses document",
+    "Escape cancels without modifying file name",
+    "Return in the list does not begin rename",
+    "Combined first with compact rows and neutral selection"
+  ],
+  "xcresult": "build/tests/Logs/Test/Test-Gas Mask-2026.10.15_23-17-01-+0300.xcresult"
+}

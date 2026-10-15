@@ -96,6 +96,85 @@ final class EditorWindowPresenterTests: XCTestCase {
         try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
     }
 
+    func testRename_endsOnBlurAndSubmitFocusesDocument() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-rename-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appendingPathComponent("New Profile.hst")
+        try "127.0.0.1 fixture.example.test".write(to: path, atomically: true, encoding: .utf8)
+        let hosts = try XCTUnwrap(Hosts(path: path.path))
+        let main = try XCTUnwrap(HostsMainController.defaultInstance())
+        let previousControllers = main.value(forKey: "controllers")
+        let previousContent = main.content
+        defer {
+            main.setValue(previousControllers, forKey: "controllers")
+            main.content = previousContent
+        }
+        let controller = LocalHostsController()
+        controller.hostsFiles.add(hosts)
+        let group = try XCTUnwrap(controller.hostsGroup())
+        group.children = [hosts]
+        main.setValue([controller], forKey: "controllers")
+        main.content = [group]
+        let store = HostsDataStore()
+        store.selectedHosts = hosts
+        let preview = EditorWindowPresenter.makeEditorWindow(store: store)
+        preview.makeKeyAndOrderFront(nil)
+        defer { preview.orderOut(nil) }
+        func settle() {
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))
+            preview.contentView?.layoutSubtreeIfNeeded()
+        }
+        func descendants(_ view: NSView) -> [NSView] {
+            [view] + view.subviews.flatMap(descendants)
+        }
+        settle()
+        let content = try XCTUnwrap(preview.contentView)
+        let editor = try XCTUnwrap(descendants(content).compactMap { $0 as? HostsTextView }.first)
+        func beginRename(_ name: String) throws -> NSTextView {
+            NotificationCenter.default.post(name: .hostsFileShouldBeRenamed, object: hosts)
+            settle()
+            let fieldEditor = try XCTUnwrap(preview.firstResponder as? NSTextView)
+            XCTAssertFalse(fieldEditor === editor)
+            fieldEditor.insertText(name, replacementRange: NSRange(location: 0, length: (fieldEditor.string as NSString).length))
+            settle()
+            return fieldEditor
+        }
+        // New-file rename: leaving for the document commits and restores the row.
+        _ = try beginRename("Blur Renamed")
+        XCTAssertTrue(preview.makeFirstResponder(editor))
+        settle()
+        XCTAssertNil(store.renamingHosts)
+        XCTAssertEqual(hosts.name(), "Blur Renamed")
+        XCTAssertTrue(preview.firstResponder === editor)
+        XCTAssertEqual(store.editorFocusRequest, 0, "Blur must not redirect the clicked focus target")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: try XCTUnwrap(hosts.path)))
+
+        let submitted = try beginRename("Submit Renamed")
+        submitted.doCommand(by: #selector(NSResponder.insertNewline(_:)))
+        settle()
+        XCTAssertNil(store.renamingHosts)
+        XCTAssertEqual(hosts.name(), "Submit Renamed")
+        XCTAssertTrue(preview.firstResponder === editor)
+        XCTAssertEqual(store.editorFocusRequest, 1, "Return must finish only once")
+
+        let cancelled = try beginRename("Discard This Name")
+        cancelled.doCommand(by: #selector(NSResponder.cancelOperation(_:)))
+        settle()
+        XCTAssertNil(store.renamingHosts)
+        XCTAssertEqual(hosts.name(), "Submit Renamed")
+        XCTAssertEqual(store.editorFocusRequest, 1)
+
+        let table = try XCTUnwrap(descendants(content).compactMap { $0 as? NSTableView }.first)
+        XCTAssertTrue(preview.makeFirstResponder(table))
+        let enter = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
+            modifierFlags: [], timestamp: 0, windowNumber: preview.windowNumber,
+            context: nil, characters: "\r", charactersIgnoringModifiers: "\r", isARepeat: false, keyCode: 36))
+        table.keyDown(with: enter)
+        settle()
+        XCTAssertNil(store.renamingHosts, "Return in the list must not start renaming")
+    }
+
     func testEditorLayout_keepsTextAboveFooter_inLightDarkAndCompactWindows() throws {
         let previousPolicy = NSApp.activationPolicy()
         NSApp.setActivationPolicy(.regular)

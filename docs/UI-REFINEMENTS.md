@@ -172,3 +172,21 @@ Restore one separator immediately before Quit Gas Mask; keep Update Remote Files
 and Settings… adjacent. Retain the ww7.11 sidebar changes. Build/package validation
 only for this one-line UI change. The owner authorized installation in Applications
 with profiles/settings preserved and the prior app/data backed up.
+
+## ww7.13: standard rename completion and editor focus
+
+- Keep rename entry through double-click, the Rename context-menu action and the
+  existing new-file request. Remove Enter-to-start and the local NSEvent monitor.
+- Observe the name field's SwiftUI FocusState. Losing focus commits the draft and
+  restores its normal row without moving focus away from the clicked target.
+- Enter submits and explicitly requests focus in the existing AppKit document
+  editor after SwiftUI removes the name field. Escape cancels. Finish the session
+  before renaming the model so submit and blur cannot rename it twice.
+- Keep the native sidebar appearance bridge limited to appearance; it registers
+  no event handlers or keyboard hooks.
+
+Two focused synthetic-profile native tests passed: rename lifecycle/focus and
+compact Combined-first neutral sidebar presentation. The lifecycle test checks
+actual temporary-file moves, document first responder, Escape cancellation and
+Return in the native list. Full test suites were not run. Publication includes
+all accumulated changes since ww7.4; the owner authorized push and release upload.

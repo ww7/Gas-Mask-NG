@@ -37,6 +37,7 @@ final class HostsDataStore: ObservableObject {
     @Published var filesCount: Int = 0
     @Published var canRemoveFiles: Bool = false
     @Published var renamingHosts: Hosts?
+    @Published private(set) var editorFocusRequest: UInt64 = 0
     @Published var isBusy: Bool = false
     @Published private(set) var rowRefreshToken: UInt64 = 0
 
@@ -132,6 +133,10 @@ final class HostsDataStore: ObservableObject {
         // The model regenerates preview text, posts a row update and marks the
         // composition unsaved. Saving serializes this exact order.
         combined.setHostsFiles(files)
+    }
+
+    func focusEditor() {
+        editorFocusRequest &+= 1
     }
 
     // MARK: Selection Sync
