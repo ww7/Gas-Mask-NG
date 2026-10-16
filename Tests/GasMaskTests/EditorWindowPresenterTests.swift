@@ -144,9 +144,23 @@ final class EditorWindowPresenterTests: XCTestCase {
         let table = try XCTUnwrap(descendants(content).compactMap { $0 as? NSTableView }.first)
         XCTAssertEqual(table.selectedRow, 2, "New Profile sorts after Middle Profile")
         func beginRename(_ name: String) throws -> NSTextView {
+            // Simulate the foreground-window precondition of a real row click.
+            // Cooperative NSApp.activate() may be declined on a CI desktop.
+            NSApp.activate(ignoringOtherApps: true)
+            preview.makeKeyAndOrderFront(nil)
             NotificationCenter.default.post(name: .hostsFileShouldBeRenamed, object: hosts)
             settle()
-            let fieldEditor = try XCTUnwrap(preview.firstResponder as? NSTextView)
+            // SwiftUI installs its native field editor asynchronously. Wait for
+            // the actual focus transition instead of assuming a fixed render
+            // duration, with a bounded diagnostic failure.
+            let deadline = Date(timeIntervalSinceNow: 3)
+            while !((preview.firstResponder as? NSTextView)?.isFieldEditor ?? false), Date() < deadline {
+                RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.01))
+                preview.contentView?.layoutSubtreeIfNeeded()
+            }
+            let fieldEditor = try XCTUnwrap(preview.firstResponder as? NSTextView,
+                "Rename focus did not settle: responder=\(String(describing: preview.firstResponder)), key=\(preview.isKeyWindow), active=\(NSApp.isActive), renaming=\(String(describing: store.renamingHosts?.name()))")
+            XCTAssertTrue(fieldEditor.isFieldEditor)
             XCTAssertFalse(fieldEditor === editor)
             fieldEditor.insertText(name, replacementRange: NSRange(location: 0, length: (fieldEditor.string as NSString).length))
             settle()

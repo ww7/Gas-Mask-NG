@@ -55,7 +55,7 @@ developer-directory selection. Run `scripts/test.sh` for the XCTest suite and
 `scripts/test-storage.sh` for the standalone migration checks.
 
 The fork does not start the upstream Sparkle updater, whose feed points at an old
-HTTP endpoint. Settings links to this fork's Forgejo releases instead. The original
+HTTP endpoint. Settings links to the public GitHub development repository's releases instead. The original
 app identifier is preserved so profiles and preferences remain compatible. The
 owner has authorized installing each successfully built and verified new version
 in `/Applications/Gas Mask.app` (16 October 2026). Preserve profiles/preferences,
