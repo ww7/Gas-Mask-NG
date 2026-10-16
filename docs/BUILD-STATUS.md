@@ -44,3 +44,13 @@ The first GitHub CI run selected the macOS 15 image's default Xcode 16 and faile
 at compile time because `ToolbarSpacer` requires the macOS 26 SDK. The workflow
 now uses `macos-26` (Xcode 26), while the app deployment target remains macOS 13.
 CI results are tracked separately from the verified local installation.
+
+GitHub CI [run 38827995962](https://github.com/ww7/gas-mask-ng/actions/runs/38827995962)
+passed functional tests and the universal Release build on macOS 26 / Xcode 26.6,
+at `e4cc728fcd1d7f44f582b71b98fdc80951aa7a50`. An earlier run passed 135/136 tests:
+the rename fixture attempted editing in a non-key, inactive window. It now
+establishes the normal foreground-click precondition and waits for the actual
+field editor with a bounded timeout. This changed the test harness, not the app.
+The local one-test recheck passed, with an AppKit test-activation QoS diagnostic
+recorded in the evidence. GitHub also warns that checkout v4's Node 20 metadata is
+being run on Node 24; the warning did not fail the job. No zero-warning CI claim.

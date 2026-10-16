@@ -28,6 +28,13 @@ No intentional backdoor was found in the reviewed first-party startup, network,
 launch and privileged-write paths. This is a scoped source review, not a proof
 that all source and third-party binary behavior is free of malicious behavior.
 
+GitHub CI [run 38827995962](https://github.com/ww7/gas-mask-ng/actions/runs/38827995962)
+passed the functional suite and universal Release build on macOS 26 / Xcode 26.6.
+The rename fixture explicitly establishes a foreground window before simulating
+editing; its earlier inactive-window failure is retained in CI history. Local
+one-test rechecking emitted a test-activation QoS diagnostic; evidence records it.
+The runner's Node-runtime metadata warning is also recorded, not hidden.
+
 ## Stable-release gates
 
 1. **Privileged writes:** replace deprecated `AuthorizationExecuteWithPrivileges`

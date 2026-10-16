@@ -113,5 +113,54 @@
     "system_hosts_unchanged": true,
     "launched": false,
     "backup": "~/Library/Application Support/ww7/Gas Mask Backups/2026-10-16T000220Z-ww7.20/"
+  },
+  "github_ci": {
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "e4cc728fcd1d7f44f582b71b98fdc80951aa7a50",
+    "url": "https://github.com/ww7/gas-mask-ng/actions/runs/38827995962",
+    "runner": "macos-26",
+    "steps": [
+      {
+        "name": "Set up job",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "conclusion": "success"
+      },
+      {
+        "name": "Functional tests with temporary fixtures",
+        "conclusion": "success"
+      },
+      {
+        "name": "Universal release build (local signature only)",
+        "conclusion": "success"
+      },
+      {
+        "name": "Preserve test diagnostics on failure",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "conclusion": "success"
+      },
+      {
+        "name": "Complete job",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "focus_fixture_recheck": {
+    "passed_tests": 1,
+    "failed_tests": 0,
+    "runtime_warnings": [
+      {
+        "issueType": "Runtime Warning",
+        "message": "[Internal] Thread running at User-interactive quality-of-service class waiting on a lower QoS thread running at Default quality-of-service class. Investigate ways to avoid priority inversions",
+        "sourceURL": "file:///Users/ww7/w/projects/ww7/GasMask/Tests/GasMaskTests/EditorWindowPresenterTests.swift"
+      }
+    ],
+    "triage": "AppKit foreground activation in the XCTest fixture emitted a QoS priority-inversion diagnostic. No production workaround was added."
   }
 }
