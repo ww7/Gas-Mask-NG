@@ -289,10 +289,17 @@ static ApplicationController *sharedInstance = nil;
 	[self initStructure];
 
 	[hostsController load];
+}
 
-	if (!openedAtLogin() && [Preferences showEditorWindow]) {
-		[self openEditorWindow:nil];
-	}
+- (void)applicationDidFinishLaunching:(NSNotification *)notification
+{
+    if (NSClassFromString(@"XCTestCase") != nil) return;
+    // Changing LSUIElement/accessory activation policy before AppKit finishes
+    // launching can display an inert menu/window until a second open event.
+    // Keep model loading early, but present/activate the UI after launch.
+    if (!openedAtLogin() && [Preferences showEditorWindow]) {
+        [self openEditorWindow:nil];
+    }
 }
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename

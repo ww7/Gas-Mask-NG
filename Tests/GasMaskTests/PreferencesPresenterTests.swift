@@ -79,21 +79,17 @@ final class PreferencesPresenterTests: XCTestCase {
         tabVC.selectedTabViewItemIndex = index
         RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.3))
 
-        // Render only this fixture window; never capture the owner's desktop.
-        let view = try XCTUnwrap(w.contentView)
-        view.layoutSubtreeIfNeeded()
-        let bitmap = try XCTUnwrap(view.bitmapImageRepForCachingDisplay(in: view.bounds))
-        view.cacheDisplay(in: view.bounds, to: bitmap)
-        let output = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("build/preferences-qa")
-        try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
-        let image = NSImage(size: view.bounds.size)
-        image.lockFocus()
-        NSColor.windowBackgroundColor.setFill()
-        view.bounds.fill()
-        bitmap.draw(in: view.bounds)
-        image.unlockFocus()
-        let flattened = try XCTUnwrap(NSBitmapImageRep(data: try XCTUnwrap(image.tiffRepresentation)))
-        try XCTUnwrap(flattened.representation(using: .png, properties: [:])).write(to: output.appendingPathComponent("\(name).png"))
+        // Capture this fixture window only; never capture desktop rectangles
+        // which might contain an overlapping owner window.
+        let windowID = CGWindowID(w.windowNumber)
+        if let image = CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, [.boundsIgnoreFraming]) {
+            let bitmap = NSBitmapImageRep(cgImage: image)
+            if let png = bitmap.representation(using: .png, properties: [:]) {
+                let output = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("build/preferences-qa")
+                try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+                try png.write(to: output.appendingPathComponent("\(name).png"))
+            }
+        }
     }
 
     func testScreenshot_allTabs() throws {

@@ -36,6 +36,13 @@ int main(int argc,char **argv) {
     if(!exact(fd,&request,sizeof request,1))return 4;
     struct GMReply reply={0};int received=exact(fd,&reply,sizeof reply,0);close(fd);
     if(!strcmp(argv[3],"malformed")){puts(received ? "FAIL malformed accepted":"PASS malformed refused");return received?5:0;}
+    if(!strcmp(argv[3],"rejected")) {
+        puts(received ? "FAIL untrusted peer accepted":"PASS untrusted peer refused");return received?5:0;
+    }
+    if(!strcmp(argv[3],"unsafe")) {
+        int refused=received && ntohl(reply.magic)==GM_PROTOCOL_MAGIC && ntohl(reply.status)==GM_UNSAFE_TARGET;
+        puts(refused ? "PASS unsafe target refused":"FAIL unsafe target accepted");return refused?0:5;
+    }
     int valid=received && ntohl(reply.magic)==GM_PROTOCOL_MAGIC && ntohl(reply.status)==GM_OK;
     puts(valid ? "PASS authenticated status":"FAIL authenticated status");return valid?0:5;
 }
