@@ -21,8 +21,8 @@ locations to preserve existing installations.
 - Native document search, global search across Local and downloaded Remote lists
   without Combined duplicates, optional regular expressions and direct navigation.
 - Syntax highlighting, line commenting, font zoom and customizable global shortcuts.
-- System, light and dark appearance; independent menu-bar and Dock symbols, with
-  seven approved Dock palettes for both Mask and Balloon.
+- System, light and dark appearance; a shared Mask or Balloon symbol for the
+  menu bar and Dock, with seven approved Dock palettes for either symbol.
 
 ## Build and test
 
