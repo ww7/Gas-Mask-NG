@@ -164,6 +164,11 @@ final class HostsDataStore: ObservableObject {
         hostsGroups.flatMap { ($0.children as? [Hosts]) ?? [] }.first { $0.active() }
     }
 
+    // The selected Combined owns its diagnostics in the Included Files panel.
+    // Hide the active-list footer counter there, even if another list is active,
+    // so two different scopes cannot look like duplicate Combined results.
+    var showsActiveConflictsInFooter: Bool { !(selectedHosts is CombinedHosts) }
+
     // Both the selected Combined panel and the active-list footer analyze the
     // same value snapshots, never the owner's system hosts file.
     func conflictDocuments(for hosts: Hosts?) -> [ProfileSearchDocument] {

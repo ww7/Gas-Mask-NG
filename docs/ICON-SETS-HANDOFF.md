@@ -13,6 +13,10 @@ custom icon to a disposable signed bundle failed strict signature verification
 (resource fork/FinderInfo). No installed-bundle mutation is used. The primary Finder/default app icon is
 now the exact approved Mask/Heritage appiconset, replacing the older silhouette.
 
+ww7.24 layout revision: the final Icon/Color/Preview:/Apply row is contiguous
+and leading-aligned; no trailing spacer pushes preview/actions to the right.
+The preview tooltip and caption read 'Finder uses default icon.'.
+
 16 October 2026. The owner approved exactly two sets, `mask` and `balloon`, and
 all seven palettes listed below. This pass packages their artwork, including
 a monochrome menu-bar balloon and matching Dock palettes. **Icon selection in

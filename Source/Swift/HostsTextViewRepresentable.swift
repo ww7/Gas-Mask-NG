@@ -19,6 +19,10 @@ struct HostsTextViewRepresentable: NSViewRepresentable {
         scrollView.documentView = textView
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = true
+        scrollView.scrollerStyle = .overlay
+        scrollView.autohidesScrollers = true
+        scrollView.verticalScroller?.controlSize = .small
+        scrollView.horizontalScroller?.controlSize = .small
         scrollView.drawsBackground = false
 
         context.coordinator.textView = textView

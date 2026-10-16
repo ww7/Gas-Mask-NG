@@ -80,7 +80,9 @@ struct CombinedFilesList: NSViewRepresentable {
         table.setDraggingSourceOperationMask([], forLocal: false)
         let scroll = NSScrollView()
         scroll.hasVerticalScroller = true
+        scroll.scrollerStyle = .overlay
         scroll.autohidesScrollers = true
+        scroll.verticalScroller?.controlSize = .small
         scroll.drawsBackground = false
         scroll.documentView = table
         context.coordinator.refresh(table, store: store, combined: combined)
@@ -240,6 +242,12 @@ private final class CombinedFileCell: NSTableCellView {
 struct CombinedDomainConflict: Identifiable {
     let domain: String
     let sources: [CombinedConflictSource]
+    let withinList: Bool
+    let betweenLists: Bool
+    var scope: String {
+        if withinList && betweenLists { return "Within and between files" }
+        return betweenLists ? "Between files" : "Within a file"
+    }
     var id: String { domain }
 }
 
@@ -283,6 +291,8 @@ enum CombinedConflictIndex {
             }
         }
         var conflicting: [String: [CombinedConflictSource]] = [:]
+        var withinList = Set<String>()
+        var betweenLists = Set<String>()
         for (key, sources) in records {
             if Task<Never, Never>.isCancelled { return [] }
             // A domain is ambiguous whenever one address family has more than
@@ -290,6 +300,9 @@ enum CombinedConflictIndex {
             // Identical repeated mappings and IPv4 + IPv6 remain harmless.
             let addresses = Set(sources.values.flatMap { $0.map(\.address) })
             guard addresses.count > 1 else { continue }
+            let sets = sources.values.map { Set($0.map(\.address)) }
+            if sets.contains(where: { $0.count > 1 }) { withinList.insert(key.domain) }
+            if sources.count > 1 && Set(sets).count > 1 { betweenLists.insert(key.domain) }
             conflicting[key.domain, default: []].append(contentsOf: sources.values.flatMap { $0 })
         }
         let order = Dictionary(documents.enumerated().map { ($1.path, $0) }, uniquingKeysWith: { first, _ in first })
@@ -299,7 +312,7 @@ enum CombinedConflictIndex {
                 if first != second { return first < second }
                 if $0.line != $1.line { return $0.line < $1.line }
                 return $0.address < $1.address
-            })
+            }, withinList: withinList.contains(domain), betweenLists: betweenLists.contains(domain))
         }.sorted { $0.domain.localizedStandardCompare($1.domain) == .orderedAscending }
     }
 }
@@ -351,7 +364,7 @@ struct CombinedConflictsView: View {
             conflicts = result
         }
         .sheet(isPresented: $showingDetails) {
-            CombinedConflictsDetailView(conflicts: conflicts ?? [])
+            CombinedConflictsDetailView(conflicts: conflicts ?? [], listName: combined.name(), isCombined: true)
         }
     }
 }
@@ -359,20 +372,30 @@ struct CombinedConflictsView: View {
 struct CombinedConflictsDetailView: View {
     let conflicts: [CombinedDomainConflict]
     var listName: String? = nil
+    var isCombined = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(listName.map { "Conflicts in \($0)" } ?? "Domain Conflicts").font(.headline)
-            Text("The same domain has different IPs within one list or between Combined sources. IPv4 and IPv6 are checked separately; identical repeated mappings are ignored. Multiple IPs can be intentional — review the entries before changing them.")
+            Text(isCombined
+                 ? "Conflicts inside the included files and between them. Each mapping shows its source file and line. A conflict inherited from one file is still counted once in Combined."
+                 : "Different IPs for the same domain within this list. Each mapping shows its line number. IPv4 and IPv6 are checked separately; identical repeats are ignored.")
                 .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             List(conflicts) { conflict in
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(conflict.domain).fontWeight(.semibold).textSelection(.enabled)
+                    HStack {
+                        Text(conflict.domain).fontWeight(.semibold).textSelection(.enabled)
+                        Spacer(minLength: 8)
+                        if isCombined { Text(conflict.scope).font(.caption).foregroundStyle(.secondary) }
+                    }
                     ForEach(conflict.sources) { source in
                         HStack(alignment: .top, spacing: 12) {
-                            Label("\(source.name) · line \(source.line)", systemImage: source.remote ? "globe" : "doc")
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: source.remote ? "globe" : "doc").foregroundStyle(.secondary)
+                            Text(source.name).lineLimit(1).truncationMode(.middle)
+                                .help(source.path)
+                            Text("line \(source.line)").font(.caption).foregroundStyle(.secondary)
+                            Spacer(minLength: 12)
                             Text(source.address).font(.system(.body, design: .monospaced)).textSelection(.enabled)
                         }
                         .help(source.path)
@@ -382,7 +405,7 @@ struct CombinedConflictsDetailView: View {
             if conflicts.isEmpty {
                 Text("No domain conflicts found.").foregroundStyle(.secondary)
             }
-            Text("Edit the source lists to resolve conflicts. No addresses are changed automatically.")
+            Text("Multiple IPs can be intentional. Review the source lists; no addresses are changed automatically.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             HStack { Spacer(); Button("Close") { dismiss() }.keyboardShortcut(.cancelAction) }
         }

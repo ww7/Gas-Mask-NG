@@ -64,7 +64,7 @@ struct StatusBarView: View {
                             .fixedSize()
                             .help("Unique hostnames in the active profile, including aliases; comments are excluded")
                     }
-                    if let conflicts {
+                    if store.showsActiveConflictsInFooter, let conflicts {
                         Button { showingConflicts = true } label: {
                             Label("\(conflicts.count) \(conflicts.count == 1 ? "conflict" : "conflicts")",
                                   systemImage: conflicts.isEmpty ? "checkmark.circle" : "exclamationmark.triangle")
@@ -108,7 +108,8 @@ struct StatusBarView: View {
             conflicts = result.1
         }
         .sheet(isPresented: $showingConflicts) {
-            CombinedConflictsDetailView(conflicts: conflicts ?? [], listName: store.activeHosts?.name())
+            CombinedConflictsDetailView(conflicts: conflicts ?? [], listName: store.activeHosts?.name(),
+                                        isCombined: store.activeHosts is CombinedHosts)
         }
     }
 }
@@ -138,7 +139,7 @@ struct EditorHelpView: View {
                     Text("Remote files and Combined previews are read-only. Move a Remote file to Local to edit it; it will stop updating from its URL. Edit the source files or drag the Included Files rows to change a Combined profile.")
                     Text("System changes require administrator approval once per app session. Background updates never prompt; Pending means the cached list needs Activate before it affects the system. No permanent system-file write permission is granted.")
                     Text("Update in the toolbar refreshes all Remote files. Update Remote File in a profile’s context menu refreshes only that file.")
-                    Text("The footer shows unique hostnames and conflicting domains in the active list. Click the conflict count for addresses, source lists and line numbers. Comments and identical repeats are ignored, and IPv4/IPv6 are separate. Counts include unsaved or Pending contents; save or Activate to apply them.")
+                    Text("The footer shows unique hostnames and conflicting domains in the active list. Click the conflict count for addresses, source lists and line numbers. When viewing Combined, its own counter is shown only in Included Files. Comments and identical repeats are ignored, and IPv4/IPv6 are separate. Counts include unsaved or Pending contents; save or Activate to apply them.")
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)

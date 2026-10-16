@@ -566,6 +566,55 @@ final class EditorWindowPresenterTests: XCTestCase {
         XCTAssertFalse(PrivilegedActions.hasAuthorizedSession())
     }
 
+    func testCombinedConflictPanel_preservesSourceNamesAndOwnsPresentation() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-combined-details-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let localPath = directory.appendingPathComponent("Local Source.hst")
+        let remotePath = directory.appendingPathComponent("Remote Source.hst")
+        let combinedPath = directory.appendingPathComponent("Combined Fixture.hst")
+        try "127.0.0.1 internal.test\n127.0.0.2 internal.test\n127.0.0.1 shared.test\n".write(to: localPath, atomically: true, encoding: .utf8)
+        try "127.0.0.3 shared.test\n".write(to: remotePath, atomically: true, encoding: .utf8)
+        try "".write(to: combinedPath, atomically: true, encoding: .utf8)
+        let local = try XCTUnwrap(Hosts(path: localPath.path))
+        let remote = try XCTUnwrap(RemoteHosts(path: remotePath.path))
+        let combined = try XCTUnwrap(CombinedHosts(path: combinedPath.path, allHostsFiles: [local, remote]))
+        combined.setHostsFiles([local, remote])
+        local.setActive(true)
+        let localGroup = try XCTUnwrap(HostsGroup(name: "LOCAL")); localGroup.children = [local]
+        let remoteGroup = try XCTUnwrap(HostsGroup(name: "REMOTE")); remoteGroup.children = [remote]
+        let combinedGroup = try XCTUnwrap(HostsGroup(name: "COMBINED")); combinedGroup.children = [combined]
+        let store = HostsDataStore()
+        store.hostsGroups = [localGroup, remoteGroup, combinedGroup]
+        store.selectedHosts = combined
+        XCTAssertFalse(store.showsActiveConflictsInFooter, "Combined's panel must be the only counter while it is displayed")
+        let combinedConflicts = CombinedConflictIndex.conflicts(in: store.conflictDocuments(for: combined))
+        XCTAssertEqual(combinedConflicts.map(\.domain), ["internal.test", "shared.test"])
+        XCTAssertEqual(combinedConflicts[0].scope, "Within a file")
+        XCTAssertEqual(combinedConflicts[1].scope, "Between files")
+        XCTAssertEqual(combinedConflicts[1].sources.map(\.name), ["Local Source", "Remote Source"])
+        XCTAssertEqual(combinedConflicts[1].sources.map(\.line), [3, 1])
+        XCTAssertEqual(CombinedConflictIndex.conflicts(in: store.conflictDocuments(for: store.activeHosts)).count, 1)
+        let preview = EditorWindowPresenter.makeEditorWindow(store: store)
+        preview.title = "Combined Diagnostics Fixture"
+        preview.makeKeyAndOrderFront(nil)
+        defer { preview.orderOut(nil) }
+        let hold = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("build/ui-qa/hold-combined-conflicts")
+        let inspecting = FileManager.default.fileExists(atPath: hold.path)
+        let deadline = Date(timeIntervalSinceNow: 90)
+        while FileManager.default.fileExists(atPath: hold.path), Date() < deadline {
+            while let event = NSApp.nextEvent(matching: .any, until: Date(), inMode: .default, dequeue: true) { NSApp.sendEvent(event) }
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.02))
+        }
+        if inspecting { XCTAssertNotNil(preview.attachedSheet, "The Combined panel click must open its own details") }
+        if let sheet = preview.attachedSheet { preview.endSheet(sheet) }
+        store.selectedHosts = remote
+        XCTAssertTrue(store.showsActiveConflictsInFooter)
+        XCTAssertTrue(store.activeHosts === local)
+        XCTAssertFalse(PrivilegedActions.hasAuthorizedSession())
+    }
+
     func testToolbarDisplayMode_survivesFocusRefreshAndWindowRecreation() throws {
         let suite = "GasMaskToolbarTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))

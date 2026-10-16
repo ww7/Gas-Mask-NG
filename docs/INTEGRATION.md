@@ -177,3 +177,23 @@ its sealed bundle or weaken helper code validation.
 Global-search rows flow list names directly into matching text without fixed
 name/line-number columns. Navigation still uses precise UTF-16 match ranges;
 source line numbers remain in tooltips/accessibility, not a visible extra column.
+
+## ww7.24 Combined scope, compact scrollers and settings layout
+
+When a Combined is displayed, its Included Files panel is the sole conflict
+counter and analyzes that Combined's sources. The active-list footer counter is
+hidden in that context, including when another list is active. Outside Combined,
+the footer retains the active-list scope. Detail sheets include the actual list
+name, explicit source text beside every address, source line numbers and conflict
+categories (within a file / between files / both). A Combined can inherit exactly
+the same domain conflicts as one source; domains are still counted once.
+
+Native editor/Included Files scroll views explicitly use overlay scrollers,
+autohiding and small scroller controls. An ordinary new NSScrollView on the
+workstation already preferred overlay, so no claim is made that a recent code
+change switched the system's scroller style. No global macOS preference is changed.
+
+General places all three checkboxes in one horizontal row. The final row flows
+Icon, Color, Preview: and Apply without a flexible right-alignment spacer. The
+preview help and caption read exactly 'Finder uses default icon.'. Approved
+artwork, Apply persistence and Dock visibility behavior are retained.

@@ -78,7 +78,6 @@ import SwiftUI
 struct IconSettingsView: View {
     @State private var symbol = IconPreferences.shared.symbol
     @State private var palette = IconPreferences.shared.dockPalette
-    @State private var applied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -96,23 +95,20 @@ struct IconSettingsView: View {
                 }
                 .fixedSize()
                 .accessibilityIdentifier("icon-color-picker")
-                Spacer(minLength: 0)
+                Text("Preview:")
                 Image("Dock_\(symbol)_\(palette.replacingOccurrences(of: "-", with: "_"))")
                     .resizable().interpolation(.high).frame(width: 32, height: 32)
                     .accessibilityLabel("Selected icon preview")
+                    .help("Finder uses default icon.")
                 Button("Apply") {
                     IconPreferences.shared.applySelection(symbol: symbol, palette: palette)
-                    applied = true
                 }
                 .accessibilityIdentifier("apply-icon")
                 .help("Apply the icon to the menu bar and Dock and save this choice")
             }
-            Text(applied ? "Applied to the menu bar and Dock. Finder uses the installed app icon."
-                         : "Menu bar and Dock icon. Finder uses the installed app icon.")
+            Text("Finder uses default icon.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .pickerStyle(.menu)
-        .onChange(of: symbol) { _ in applied = false }
-        .onChange(of: palette) { _ in applied = false }
     }
 }

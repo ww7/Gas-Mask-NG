@@ -22,23 +22,20 @@ struct GeneralTab: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 20) {
-                Picker("Appearance", selection: $appAppearance) {
-                    Text("System").tag("system")
-                    Text("Light").tag("light")
-                    Text("Dark").tag("dark")
-                }
-                .pickerStyle(.menu).fixedSize()
-                .onChange(of: appAppearance) { _ in AppAppearance.applyPreference() }
-                Spacer(minLength: 0)
-                Toggle("Show Name in Menu Bar", isOn: $showNameInStatusBar)
-                    .fixedSize()
+            Picker("Appearance", selection: $appAppearance) {
+                Text("System").tag("system")
+                Text("Light").tag("light")
+                Text("Dark").tag("dark")
             }
+            .pickerStyle(.menu).fixedSize()
+            .onChange(of: appAppearance) { _ in AppAppearance.applyPreference() }
             Divider()
-            VStack(alignment: .leading, spacing: 12) {
-                Toggle("Open at Login", isOn: $loginItemObserver.isEnabled)
+            HStack(spacing: 16) {
+                Toggle("Open at Login", isOn: $loginItemObserver.isEnabled).fixedSize()
                 Toggle("Override external modifications", isOn: $overrideExternalModifications)
+                    .fixedSize()
                     .help("Restore the active list when another app changes the system hosts file; authorization is never requested in the background")
+                Toggle("Show Name in Menu Bar", isOn: $showNameInStatusBar).fixedSize()
             }
             Divider()
             IconSettingsView()
