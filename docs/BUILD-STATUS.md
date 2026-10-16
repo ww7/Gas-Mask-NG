@@ -1,6 +1,6 @@
 # Build status
 
-## ww7.24 installed local UI build
+## ww7.24 public prerelease and local installation
 
 16 October 2026. Built and installed `0.8.7-ww7.24` / `20261016.24`.
 Exact application source: `4819e5371e6f20215773b34a12fbfdcff61bbd23`.
@@ -41,8 +41,24 @@ ACL and flags were unchanged. Previous app/data backup:
 `~/Library/Application Support/ww7/Gas Mask Backups/2026-10-16T070951Z-ww7.24/`.
 Private receipt: `build/install-ww7.24-receipt.json`. The installed app remains
 closed. Installation did not activate profiles or write the system hosts file.
-No source push or release upload was performed in this pass; local ad-hoc
-signatures only, without Developer ID/notarization.
+After explicit owner authorization, all product changes and release notes were
+pushed to GitHub main. [GitHub CI 38872154375](https://github.com/ww7/gas-mask-ng/actions/runs/38872154375)
+passed the functional suite and universal build at
+`7a48bac79ca11c3cf6aa410fc44f2c984b5c9980`. The runner reported Node-runtime
+and macOS-capacity annotations; neither was an application test failure.
+
+Published [ww7.24](https://github.com/ww7/gas-mask-ng/releases/tag/v0.8.7-ww7.24)
+as a prerelease with the exact verified ZIP, BUILD-INFO.json and SHA256SUMS.
+All three downloaded GitHub assets matched local bytes; an anonymous public ZIP
+download also matched the SHA-256 above. Only factory defaults are included.
+Local ad-hoc signatures only, without Developer ID/notarization.
+
+The sole previous GitHub release, ww7.22, was removed at the owner's request
+only after ww7.24 became public. The prior description/assets were backed up and
+checked locally in ignored `build/release-backups/github-before-ww7.24/`.
+The ww7.22 Git tag and complete commit ancestry remain. A fresh public API check
+listed only ww7.24 and returned 404 for the old release. Private delivery receipt:
+`build/ww7-24-github-delivery-receipt.json`.
 
 ## ww7.23 installed local UI build
 

@@ -80,6 +80,17 @@ candidate, not a notarized download. Do not label it stable until the outstandin
 lifecycle checks have evidence. Fresh local verification is in BUILD-STATUS.md;
 older observations above remain the previous public baseline, not current totals.
 
+## ww7.24 publication
+
+Published [ww7.24](https://github.com/ww7/gas-mask-ng/releases/tag/v0.8.7-ww7.24)
+after fresh archive/privacy checks and successful GitHub functional tests and
+universal build. The release includes the app ZIP, SHA256SUMS and BUILD-INFO.json;
+owner profiles and preferences are excluded. It remains a prerelease under the
+same lifecycle acceptance limits above. The owner requested removal of older
+GitHub Releases; ww7.22 was backed up locally before its release entry/assets
+were removed. Its Git tag and source ancestry remain. See BUILD-STATUS.md for
+exact source, archive digest, CI and delivery evidence.
+
 ## Distribution and naming
 
 `Gas Mask NG` / `gas-mask-ng` is the working public project name. The installed
