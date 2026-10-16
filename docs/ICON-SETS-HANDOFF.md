@@ -1,5 +1,10 @@
 # Icon sets and settings handoff
 
+Current implementation scope (owner revision, 16 October 2026): Settings exposes
+one shared **Icon** choice for menu bar and Dock, plus **Icon Color Scheme** for
+the Dock. This supersedes the three independent controls described in the original
+handoff below. The approved artwork, palettes and template requirements are unchanged.
+
 16 October 2026. The owner approved exactly two sets, `mask` and `balloon`, and
 all seven palettes listed below. This pass packages their artwork, including
 a monochrome menu-bar balloon and matching Dock palettes. **Icon selection in

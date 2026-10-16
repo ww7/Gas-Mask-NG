@@ -3,39 +3,59 @@ import AppKit
 @testable import Gas_Mask
 
 final class SecurityAndIconsTests: XCTestCase {
-    func testIndependentIconSettingsAll28CombinationsAndRelaunch() throws {
+    func testSharedIconAll14CombinationsAndRelaunch() throws {
         let suite = "gasmask-icon-fixtures-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         let visibility = NSApp.activationPolicy()
         var applied: NSImage?
         let prefs = IconPreferences(defaults: defaults) { applied = $0 }
-        for menu in IconPreferences.symbols {
-            for dock in IconPreferences.symbols {
-                for palette in IconPreferences.palettes {
-                    defaults.set(menu, forKey: "menuBarIcon")
-                    defaults.set(dock, forKey: "dockIcon")
-                    defaults.set(palette, forKey: "dockPalette")
-                    prefs.apply()
-                    XCTAssertEqual(prefs.menuSymbol, menu)
-                    XCTAssertEqual(prefs.dockSymbol, dock)
-                    XCTAssertEqual(prefs.dockPalette, palette)
-                    XCTAssertNotNil(applied)
-                    XCTAssertTrue(applied === NSImage(named: prefs.dockAssetName))
-                    XCTAssertTrue(prefs.menuBarImage.isTemplate)
-                    XCTAssertEqual(prefs.menuBarImage.size, NSSize(width: 16, height: 16))
-                    let restored = IconPreferences(defaults: try XCTUnwrap(UserDefaults(suiteName: suite))) { _ in }
-                    XCTAssertEqual(restored.menuSymbol, menu)
-                    XCTAssertEqual(restored.dockAssetName, prefs.dockAssetName)
-                }
+        for symbol in IconPreferences.symbols {
+            defaults.set(symbol, forKey: "iconSymbol")
+            for palette in IconPreferences.palettes {
+                defaults.set(palette, forKey: "dockPalette")
+                prefs.apply()
+                XCTAssertEqual(prefs.menuSymbol, symbol)
+                XCTAssertEqual(prefs.dockSymbol, symbol)
+                XCTAssertEqual(prefs.dockPalette, palette)
+                XCTAssertNotNil(applied)
+                XCTAssertTrue(applied === NSImage(named: prefs.dockAssetName))
+                XCTAssertTrue(prefs.menuBarImage.isTemplate)
+                XCTAssertEqual(prefs.menuBarImage.size, NSSize(width: 16, height: 16))
+                let restored = IconPreferences(defaults: try XCTUnwrap(UserDefaults(suiteName: suite))) { _ in }
+                XCTAssertEqual(restored.menuSymbol, symbol)
+                XCTAssertEqual(restored.dockAssetName, prefs.dockAssetName)
             }
         }
         XCTAssertEqual(NSApp.activationPolicy(), visibility, "Icon selection must not alter Dock visibility")
-        defaults.set("rejected", forKey: "menuBarIcon")
-        defaults.set("../../bad", forKey: "dockIcon")
+        defaults.set("../../bad", forKey: "iconSymbol")
         defaults.set("sunrise", forKey: "dockPalette")
         XCTAssertEqual(prefs.menuSymbol, "mask")
         XCTAssertEqual(prefs.dockAssetName, "Dock_mask_heritage")
+    }
+
+    func testSharedIconMigrationPreservesDockChoiceAndPalette() throws {
+        let cases: [(String?, String?, String)] = [
+            ("mask", "balloon", "balloon"), ("balloon", "mask", "mask"),
+            ("balloon", nil, "balloon"), ("balloon", "invalid", "balloon"),
+            (nil, nil, "mask")
+        ]
+        for (menu, dock, expected) in cases {
+            let suite = "gasmask-icon-migration-\(UUID().uuidString)"
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+            defer { defaults.removePersistentDomain(forName: suite) }
+            defaults.set(menu, forKey: "menuBarIcon")
+            defaults.set(dock, forKey: "dockIcon")
+            defaults.set("bandera", forKey: "dockPalette")
+            let prefs = IconPreferences(defaults: defaults) { _ in }
+            XCTAssertEqual(prefs.menuSymbol, expected)
+            XCTAssertEqual(prefs.dockSymbol, expected)
+            XCTAssertEqual(prefs.dockPalette, "bandera")
+            defaults.set("mask", forKey: "iconSymbol")
+            defaults.set("balloon", forKey: "dockIcon")
+            let restored = IconPreferences(defaults: defaults) { _ in }
+            XCTAssertEqual(restored.symbol, "mask", "Legacy keys cannot override an explicit shared choice")
+        }
     }
 
     func testMenuTemplatesLightDarkAtBothScalesWithAndWithoutNames() throws {
@@ -46,7 +66,7 @@ final class SecurityAndIconsTests: XCTestCase {
         let output = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("build/icon-qa")
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
         for symbol in IconPreferences.symbols {
-            defaults.set(symbol, forKey: "menuBarIcon")
+            defaults.set(symbol, forKey: "iconSymbol")
             for appearance in [NSAppearance.Name.aqua, .darkAqua] {
                 for scale in [1, 2] {
                     for title in ["", "Fixture List"] {
@@ -72,7 +92,7 @@ final class SecurityAndIconsTests: XCTestCase {
 
     func testMenuletRefreshPreservesTitleAndMenuAction() throws {
         XCTAssertEqual(Bundle.main.bundleIdentifier, "work.ww7.gasmask.tests")
-        let keys = ["menuBarIcon", "dockIcon", "dockPalette", "showNameInStatusBar"]
+        let keys = ["iconSymbol", "dockPalette", "showNameInStatusBar"]
         let defaults = UserDefaults.standard
         let old = keys.map { defaults.object(forKey: $0) }
         defer {
@@ -96,7 +116,7 @@ final class SecurityAndIconsTests: XCTestCase {
             defaults.set(named, forKey: "showNameInStatusBar")
             NotificationCenter.default.post(name: Notification.Name("activateFileNotification"), object: nil)
             for symbol in IconPreferences.symbols {
-                defaults.set(symbol, forKey: "menuBarIcon")
+                defaults.set(symbol, forKey: "iconSymbol")
                 IconPreferences.shared.apply()
                 XCTAssertTrue(button.image?.isTemplate == true)
                 XCTAssertEqual(button.title, named ? "Fixture List" : "")

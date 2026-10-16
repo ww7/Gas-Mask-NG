@@ -322,7 +322,7 @@ struct CombinedConflictsView: View {
             HStack(spacing: 5) {
                 if let conflicts {
                     if conflicts.isEmpty {
-                        Label("No domain conflicts", systemImage: "checkmark.circle")
+                        Label("No cross-file conflicts", systemImage: "checkmark.circle")
                             .foregroundStyle(.secondary)
                     } else {
                         Button { showingDetails = true } label: {
@@ -343,7 +343,7 @@ struct CombinedConflictsView: View {
             .font(.caption)
             .padding(8)
         }
-        .help("Compares current source contents, including unsaved edits. IPv4 and IPv6 are checked separately.")
+        .help("Compares address sets between included files, including unsaved edits. Repeats within one file and identical address sets are not flagged. IPv4 and IPv6 are checked separately.")
         .task(id: documents) {
             let snapshots = documents
             conflicts = nil
@@ -365,7 +365,7 @@ struct CombinedConflictsDetailView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Domain Conflicts").font(.headline)
-            Text("These source files assign different addresses to the same domain. IPv4 and IPv6 are checked separately.")
+            Text("Included files assign different address sets to the same domain. Repeats within a single file and identical sets across files are not conflicts here. IPv4 and IPv6 are checked separately.")
                 .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             List(conflicts) { conflict in
                 VStack(alignment: .leading, spacing: 6) {

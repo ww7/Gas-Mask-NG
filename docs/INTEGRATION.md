@@ -131,3 +131,27 @@ pending across an administrator dialog, and prevents Remote source refreshes
 from committing or applying unsaved Combined composition order. A fresh HTTP 200
 without Last-Modified clears stale conditional-request metadata even when its
 text equals the cache. These cases have temporary-fixture regression coverage.
+
+## ww7.22 shared icon settings and root acceptance
+
+The owner's revised preference replaces three independent controls with `Icon`
+(mask/balloon for both menu bar and Dock) and `Icon Color Scheme` (all seven Dock
+palettes). The `iconSymbol` key migrates once from a valid former Dock choice,
+then a valid former menu choice, then mask. An explicit shared choice takes
+precedence on later launches. Existing palette and Dock visibility are preserved.
+The settings block pairs an exact bundled preview with aligned popup controls.
+Menu-bar assets remain monochrome templates; no artwork has been regenerated.
+
+Combined conflict detection compares normalized domain address sets between
+included source files, separately for IPv4 and IPv6, using current contents
+including unsaved edits. Identical sets, commented records and repetitions within
+one file are not flagged. The UI now explicitly calls this cross-file detection;
+it does not claim to diagnose every ambiguous hosts record. Details remain beside
+the composition they explain; the global status bar describes the active list,
+which can differ from the displayed Combined. A shared active-list warning is a
+possible follow-up, rather than silently mixing those two contexts.
+
+The isolated-Mac acceptance harness lives in `Tests/IsolatedMac`; it compiles the
+production authorization implementation unchanged and is excluded from releases.
+The owner conditionally authorized GitHub publication after isolated root checks
+pass. Downloading a VM image or building this harness does not satisfy that gate.

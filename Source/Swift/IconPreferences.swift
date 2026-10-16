@@ -18,13 +18,20 @@ import SwiftUI
         self.defaults = defaults
         self.dockSink = dockSink
         super.init()
+        // Consolidate the former independent choices once. Preserve the Dock
+        // silhouette when they differ; palette and Dock visibility stay intact.
+        if defaults.object(forKey: "iconSymbol") == nil {
+            let previous = ["dockIcon", "menuBarIcon"].compactMap { defaults.string(forKey: $0) }
+            defaults.set(previous.first(where: Self.symbols.contains) ?? "mask", forKey: "iconSymbol")
+        }
         observer = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification,
             object: defaults, queue: .main) { [weak self] _ in self?.apply() }
     }
     deinit { if let observer { NotificationCenter.default.removeObserver(observer) } }
 
-    var menuSymbol: String { Self.symbols.contains(defaults.string(forKey: "menuBarIcon") ?? "") ? defaults.string(forKey: "menuBarIcon")! : "mask" }
-    var dockSymbol: String { Self.symbols.contains(defaults.string(forKey: "dockIcon") ?? "") ? defaults.string(forKey: "dockIcon")! : "mask" }
+    var symbol: String { Self.symbols.contains(defaults.string(forKey: "iconSymbol") ?? "") ? defaults.string(forKey: "iconSymbol")! : "mask" }
+    var menuSymbol: String { symbol }
+    var dockSymbol: String { symbol }
     var dockPalette: String { Self.palettes.contains(defaults.string(forKey: "dockPalette") ?? "") ? defaults.string(forKey: "dockPalette")! : "heritage" }
     var dockAssetName: String { "Dock_\(dockSymbol)_\(dockPalette.replacingOccurrences(of: "-", with: "_"))" }
 
@@ -56,38 +63,42 @@ import SwiftUI
 }
 
 struct IconSettingsView: View {
-    @AppStorage("menuBarIcon") private var menuBar = "mask"
-    @AppStorage("dockIcon") private var dock = "mask"
+    @AppStorage("iconSymbol") private var symbol = "mask"
     @AppStorage("dockPalette") private var palette = "heritage"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Picker("Menu Bar Icon", selection: $menuBar) {
-                Text("Mask").tag("mask")
-                Text("Balloon").tag("balloon")
-            }
-            .onChange(of: menuBar) { _ in IconPreferences.shared.apply() }
-            Picker("Dock Icon", selection: $dock) {
-                Text("Mask").tag("mask")
-                Text("Balloon").tag("balloon")
-            }
-            .onChange(of: dock) { _ in IconPreferences.shared.apply() }
-            HStack(spacing: 12) {
-                Picker("Dock Palette", selection: $palette) {
-                    Text("Heritage").tag("heritage")
-                    Text("Cobalt").tag("cobalt")
-                    Text("Slate").tag("slate")
-                    Text("Pine").tag("pine")
-                    Text("Sunset Sky").tag("sunset-sky")
-                    Text("Fire Sky").tag("fire-sky")
-                    Text("Bandera").tag("bandera")
+        HStack(alignment: .center, spacing: 16) {
+            Image("Dock_\(IconPreferences.symbols.contains(symbol) ? symbol : "mask")_\((IconPreferences.palettes.contains(palette) ? palette : "heritage").replacingOccurrences(of: "-", with: "_"))")
+                .resizable().interpolation(.high).frame(width: 48, height: 48)
+                .accessibilityHidden(true)
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                GridRow {
+                    Text("Icon").gridColumnAlignment(.trailing)
+                    Picker("Icon", selection: $symbol) {
+                        Text("Mask").tag("mask")
+                        Text("Balloon").tag("balloon")
+                    }
+                    .labelsHidden().frame(maxWidth: .infinity)
+                    .help("Use the same symbol in the menu bar and Dock")
                 }
-                Image("Dock_\(IconPreferences.symbols.contains(dock) ? dock : "mask")_\((IconPreferences.palettes.contains(palette) ? palette : "heritage").replacingOccurrences(of: "-", with: "_"))")
-                    .resizable().interpolation(.high).frame(width: 38, height: 38)
-                    .accessibilityHidden(true)
+                GridRow {
+                    Text("Icon Color Scheme")
+                    Picker("Icon Color Scheme", selection: $palette) {
+                        Text("Heritage").tag("heritage")
+                        Text("Cobalt").tag("cobalt")
+                        Text("Slate").tag("slate")
+                        Text("Pine").tag("pine")
+                        Text("Sunset Sky").tag("sunset-sky")
+                        Text("Fire Sky").tag("fire-sky")
+                        Text("Bandera").tag("bandera")
+                    }
+                    .labelsHidden().frame(maxWidth: .infinity)
+                    .help("Colors apply to the Dock; the menu bar follows macOS automatically")
+                }
             }
-            .onChange(of: palette) { _ in IconPreferences.shared.apply() }
         }
         .pickerStyle(.menu)
+        .onChange(of: symbol) { _ in IconPreferences.shared.apply() }
+        .onChange(of: palette) { _ in IconPreferences.shared.apply() }
     }
 }

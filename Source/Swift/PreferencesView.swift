@@ -29,7 +29,9 @@ struct GeneralTab: View {
             }
             .pickerStyle(.menu)
             .onChange(of: appAppearance) { _ in AppAppearance.applyPreference() }
+            Divider().padding(.vertical, 4)
             IconSettingsView()
+            Divider().padding(.vertical, 4)
             Toggle("Open at Login", isOn: $loginItemObserver.isEnabled)
             Toggle("Override external modifications", isOn: $overrideExternalModifications)
             Toggle("Show Host File Name in Menu Bar", isOn: $showNameInStatusBar)
