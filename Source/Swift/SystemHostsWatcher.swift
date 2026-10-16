@@ -42,7 +42,7 @@ import Darwin
         guard fd >= 0 else { return }
         let ownedFD = fd
         let watcher = DispatchSource.makeFileSystemObjectSource(fileDescriptor: fd,
-            eventMask: [.write, .delete, .rename, .revoke], queue: .main)
+            eventMask: [.write, .delete, .rename, .revoke, .attrib], queue: .main)
         watcher.setEventHandler { [weak self] in
             guard let self, !self.stopped, self.generation == current else { return }
             self.arm()

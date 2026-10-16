@@ -25,6 +25,8 @@
 @interface PrivilegedActions : NSObject
 + (BOOL)hasAuthorizedSession;
 + (NSString*)currentSystemContents;
++ (BOOL)systemFileNeedsPermissionRepair;
++ (BOOL)fileNeedsPermissionRepairAtPath:(NSString*)path owner:(uid_t)owner;
 + (NSString*)authorizationScriptSource;
 + (BOOL)trustedDirectoryAtPath:(NSString*)path owner:(uid_t)owner;
 + (void)endSession;

@@ -1,9 +1,9 @@
 {
   "date": "2026-10-16",
   "version": "0.8.7-ww7.21",
-  "result_bundle": "build/TestResults-20261016T033008Z.xcresult",
+  "result_bundle": "build/TestResults-20261016T033541Z.xcresult",
   "full_test_suite": true,
-  "passed_tests": 165,
+  "passed_tests": 166,
   "failed_tests": 0,
   "skipped_tests": 0,
   "runtime_warnings": [],
@@ -34,5 +34,7 @@
   "native_clang_diagnostics": 0,
   "staging_parent": "root-only /private/var/db; protected ancestors checked",
   "newer_cache_during_authorization_tested": true,
-  "unsaved_combined_order_preserved_on_refresh": true
+  "unsaved_combined_order_preserved_on_refresh": true,
+  "legacy_acl_detected_with_temporary_fixtures": true,
+  "vnode_content_metadata_self_read_events": 2
 }

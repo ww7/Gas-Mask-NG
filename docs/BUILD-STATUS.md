@@ -5,8 +5,8 @@
 16 October 2026. Source prepared for `0.8.7-ww7.21` / `20261016.21`; archive and
 installation evidence will be appended after packaging.
 
-- Full `scripts/test.sh`: **165 passed, 0 failed, 0 skipped, no runtime warnings**,
-  including the performance suite. Result: `build/TestResults-20261016T033008Z.xcresult`.
+- Full `scripts/test.sh`: **166 passed, 0 failed, 0 skipped, no runtime warnings**,
+  including the performance suite. Result: `build/TestResults-20261016T033541Z.xcresult`.
 - Storage: **28** assertions. Native security: **80** assertions in each of three
   signature configurations (**240** total), with AddressSanitizer/UBSan. Matching
   peers with get-task-allow or disabled library validation are refused.

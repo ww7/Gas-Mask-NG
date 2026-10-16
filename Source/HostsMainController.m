@@ -125,7 +125,7 @@ static HostsMainController *sharedInstance = nil;
         Hosts *active = [self activeHostsFile];
         NSString *desired = [[active systemContentsOnDisk] stringByAppendingString:@"\n\n"];
         NSString *actual = [PrivilegedActions currentSystemContents];
-        [active setSystemApplyPending:![actual isEqualToString:desired]];
+        [active setSystemApplyPending:![actual isEqualToString:desired] || [PrivilegedActions systemFileNeedsPermissionRepair]];
     }
     [[NSNotificationCenter defaultCenter] postNotificationName:AllHostsFilesLoadedFromDiskNotification object:nil];
 }
@@ -568,7 +568,7 @@ static HostsMainController *sharedInstance = nil;
     if (!activeHosts) return;
     NSString *desired = [[activeHosts systemContentsOnDisk] stringByAppendingString:@"\n\n"];
     NSString *actual = [PrivilegedActions currentSystemContents];
-    if ([actual isEqualToString:desired]) {
+    if ([actual isEqualToString:desired] && ![PrivilegedActions systemFileNeedsPermissionRepair]) {
         [activeHosts setSystemApplyPending:NO];
         return;
     }

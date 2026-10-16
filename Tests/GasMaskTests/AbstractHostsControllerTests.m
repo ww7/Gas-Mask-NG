@@ -5,6 +5,10 @@
 #import "CombinedHostsController.h"
 #import "HostsGroup.h"
 #import <objc/runtime.h>
+#import "PrivilegedActions.h"
+#import <sys/acl.h>
+#import <sys/stat.h>
+#import <membership.h>
 
 // Concrete subclass for testing (groupName would be nil on the abstract base)
 @interface TestHostsController : AbstractHostsController
@@ -257,6 +261,26 @@ static void recordTaskLaunch(NSTask *task, SEL selector) {
     NSString *applied = [NSString stringWithContentsOfFile:controller.fixtureSystemPath encoding:NSUTF8StringEncoding error:nil];
     XCTAssertLessThan([applied rangeOfString:@"refreshed.test"].location,[applied rangeOfString:@"second.test"].location);
     XCTAssertFalse(combined.systemApplyPending);
+}
+
+- (void)testLegacyWriteACLRequiresExplicitPermissionRepair
+{
+    NSString *path = self.controller.fixtureSystemPath;
+    XCTAssertEqual(chmod(path.fileSystemRepresentation,0644),0);
+    XCTAssertFalse([PrivilegedActions fileNeedsPermissionRepairAtPath:path owner:getuid()]);
+    acl_t acl=acl_init(1);acl_entry_t entry;uuid_t user;acl_permset_t permissions;
+    XCTAssertEqual(acl_create_entry(&acl,&entry),0);
+    XCTAssertEqual(mbr_uid_to_uuid(getuid(),user),0);
+    XCTAssertEqual(acl_set_tag_type(entry,ACL_EXTENDED_ALLOW),0);
+    XCTAssertEqual(acl_set_qualifier(entry,user),0);
+    XCTAssertEqual(acl_get_permset(entry,&permissions),0);
+    XCTAssertEqual(acl_add_perm(permissions,ACL_WRITE_DATA),0);
+    XCTAssertEqual(acl_set_file(path.fileSystemRepresentation,ACL_TYPE_EXTENDED,acl),0);acl_free(acl);
+    XCTAssertTrue([PrivilegedActions fileNeedsPermissionRepairAtPath:path owner:getuid()]);
+    acl=acl_init(0);XCTAssertEqual(acl_set_file(path.fileSystemRepresentation,ACL_TYPE_EXTENDED,acl),0);acl_free(acl);
+    XCTAssertFalse([PrivilegedActions fileNeedsPermissionRepairAtPath:path owner:getuid()]);
+    XCTAssertEqual(chmod(path.fileSystemRepresentation,0666),0);
+    XCTAssertTrue([PrivilegedActions fileNeedsPermissionRepairAtPath:path owner:getuid()]);
 }
 
 @end

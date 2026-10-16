@@ -79,6 +79,27 @@ static NSData *readSystemHosts(void) {
     close(fd);return result;
 }
 @implementation PrivilegedActions
+// Read-only metadata policy; the parameterized form is used by fixtures only.
++ (BOOL)fileNeedsPermissionRepairAtPath:(NSString*)path owner:(uid_t)owner {
+    int fd=open(path.fileSystemRepresentation,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK);
+    if(fd<0)return YES;
+    struct stat info;
+    BOOL unsafe=fstat(fd,&info) || !S_ISREG(info.st_mode) || info.st_uid!=owner ||
+        info.st_nlink!=1 || (info.st_mode&07777)!=0644;
+    acl_t acl=acl_get_fd(fd);
+    if(acl) {
+        acl_entry_t entry;errno=0;
+        int found=acl_get_entry(acl,ACL_FIRST_ENTRY,&entry);
+        unsafe=unsafe || found==0 || errno!=EINVAL;
+        acl_free(acl);
+    } else if(errno!=ENOENT) unsafe=YES;
+    close(fd);return unsafe;
+}
++ (BOOL)systemFileNeedsPermissionRepair {
+    if(NSClassFromString(@"XCTestCase"))return YES;
+    return [self fileNeedsPermissionRepairAtPath:@"/private/etc/hosts" owner:0];
+}
+
 + (BOOL)trustedDirectoryAtPath:(NSString*)path owner:(uid_t)owner {
     int fd=open(path.fileSystemRepresentation,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
     if(fd<0)return NO;

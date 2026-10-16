@@ -123,3 +123,9 @@ checks `/private`, `/private/var` and `/private/var/db` for root ownership, no
 symlink, no group/other write mode and no ACL. This prevents a non-root group
 from renaming/replacing a stage between the verified copy and root execution.
 A separate fixture covers group-writable parents, wrong owner and symlinks.
+
+An already active list is marked Pending when system-file permissions/ACLs are
+unsafe, even if its text matches. This enables Activate to repair a legacy write
+ACL without switching lists. Attribute-change events are monitored too. Startup
+and installation do not repair permissions or request administrator approval;
+the first explicit approved activation performs the atomic permission cleanup.
