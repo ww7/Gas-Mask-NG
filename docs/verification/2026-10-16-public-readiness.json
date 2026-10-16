@@ -25,7 +25,8 @@
     "current_source_findings": 0,
     "history_findings": 8,
     "history_triage": "Upstream XIB Interface Builder serialized object keys; false positives, no credential values",
-    "nonempty_commits_scanned": 166
+    "nonempty_commits_scanned": 166,
+    "final_nonempty_commits_scanned": 167
   },
   "dependency_scan": [
     {
@@ -95,5 +96,22 @@
       "Tests/GasMaskTests/AbstractHostsControllerTests.m:145:16: warning: Potential leak of an object stored into 'expressionValue2' [osx.cocoa.RetainCount]"
     ],
     "triage": "Legacy dead stores and retained objects in non-ARC test fixtures; no zero-warning claim. Static analysis is not an exhaustive security review."
+  },
+  "package": {
+    "source_revision": "761f199a6fdcaf572e39add51a66962a821fb5ab",
+    "archive_sha256": "485bd7e7fae90f1ae5df6b64097c4ead168de7476a7e49d300a6b8751470ae88",
+    "universal_binaries_verified": 7,
+    "signature": "ad-hoc",
+    "notarized": false
+  },
+  "installation": {
+    "version": "0.8.7-ww7.20",
+    "build": "20261016.20",
+    "installed_bundle_matches_release": true,
+    "profiles_and_settings_unchanged": true,
+    "effective_defaults_unchanged": true,
+    "system_hosts_unchanged": true,
+    "launched": false,
+    "backup": "~/Library/Application Support/ww7/Gas Mask Backups/2026-10-16T000220Z-ww7.20/"
   }
 }

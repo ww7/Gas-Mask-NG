@@ -1,6 +1,6 @@
 # Build status
 
-16 October 2026. Candidate `0.8.7-ww7.20`, internal build `20261016.20`.
+16 October 2026. Installed local build `0.8.7-ww7.20`, internal build `20261016.20`.
 
 The editor default/reset size is 11 pt; explicit user font preferences are retained.
 Unsaved list names use italics, with the active checkmark unchanged. Remote update
@@ -26,5 +26,16 @@ fixtures. See [evidence](verification/2026-10-16-public-readiness.json) and
 [stable-release gates](PUBLIC-RELEASE.md). No live profile or system-hosts activation
 was used for acceptance.
 
-Universal packaging and installation evidence will be appended after verification.
+Universal Release passed. Extracted ZIP signature verified; all seven Mach-O
+binaries contain arm64 and x86_64. Packaged source:
+`761f199a6fdcaf572e39add51a66962a821fb5ab`.
+Archive SHA256: `485bd7e7fae90f1ae5df6b64097c4ead168de7476a7e49d300a6b8751470ae88`.
+
+Installed ww7.20 over ww7.19 in `/Applications/Gas Mask.app`, matching the archive.
+Profile/settings file hashes, effective preferences and `/etc/hosts` were unchanged.
+Previous app and data backup:
+`~/Library/Application Support/ww7/Gas Mask Backups/2026-10-16T000220Z-ww7.20/`.
+Receipt: `build/install-ww7.20-receipt.json`. The app was not launched after install.
+Public source and preserved PR ancestry are now on GitHub; Forgejo remains a mirror
+remote, with no new release upload in this pass.
 No stable public release or Homebrew cask has been published.
