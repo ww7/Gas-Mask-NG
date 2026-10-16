@@ -1,5 +1,49 @@
 # Build status
 
+## ww7.23 installed local UI build
+
+16 October 2026. Built and installed `0.8.7-ww7.23` / `20261016.23`.
+Exact application source: `51fd0e340b0d0fbad52e72ee65b9c08d853db85a`.
+
+- Functional suite: **151 passed, 0 failed, 0 skipped, no runtime warnings**.
+  Performance cases excluded (`GASMASK_SKIP_PERFORMANCE=1`), not rerun for this UI
+  pass. Result: `build/TestResults-20261016T060844Z.xcresult`. Storage: 28 assertions;
+  native sanitizer/peer fixtures: 240 assertions.
+- Conflicts include within-list and cross-file differences, canonical IPv6, aliases,
+  comments, identical repeats and repeated Combined references. A domain counts
+  once; IPv4/IPv6 are separate. Fixture checks keep active and displayed lists
+  distinct. Native UI click opened Active Fixture details for its two IPs/lines
+  while another list remained selected; the fixture assertion passed afterward.
+- General's horizontal rows were visually reviewed on isolated test defaults.
+  Mask/Heritage → Balloon/Bandera changed only preview before Apply; defaults
+  remained Mask/Heritage. Apply persisted Balloon/Bandera and the confirmation
+  appeared. Explicit Dock redraw and post-activation override restoration added.
+- Search rendering places the source name directly next to text, with no visible
+  line-number column. Existing native Return/search navigation and regex tests
+  passed. Cached search over 100,001 lines took about 0.067 seconds.
+- The primary app/Finder icon now exactly matches approved Mask/Heritage. All
+  **28** primary/menu/Dock renditions match frozen source bytes. Dynamic Finder
+  custom-icon mutation is deliberately absent: the temporary signed-bundle
+  experiment failed strict signature verification with FinderInfo/resource forks.
+  No helper signature check or bundle integrity rule was weakened.
+- Gitleaks on the new commit: no findings. Local code graph refreshed.
+
+Verified archive: `dist/0.8.7-ww7.23-51fd0e340b0d/gas_mask_0.8.7-ww7.23_51fd0e340b0d_universal.zip`.
+SHA-256: `927e423ffff4bec79433952543d590138b653c52f386678e2ce0ac9dc892ccbd`. Three executables each contain arm64+x86_64,
+strict local signatures pass, only system dynamic dependencies remain, and the
+exact helper hash still matches both its main-executable pin and the writer
+previously tested on disposable macOS. Factory defaults only: no owner profiles,
+settings, backups, receipts or credentials in the app/ZIP.
+
+Installation matched the verified bundle. Profiles/settings and effective defaults
+were preserved; system hosts bytes, inode, ownership, mode, ACL and flags were
+unchanged. The previous app/data remain under
+`~/Library/Application Support/ww7/Gas Mask Backups/2026-10-16T061253Z-ww7.23/`.
+Private receipt: `build/install-ww7.23-receipt.json`. The app remains closed after
+installation. No profile activation or live system-file write was used for QA.
+This pass does not push source or upload a new release; the latest public release
+remains ww7.22. Local ad-hoc signatures only, without Developer ID/notarization.
+
 ## ww7.22 public prerelease candidate
 
 16 October 2026. Version `0.8.7-ww7.22` / `20261016.22`.
