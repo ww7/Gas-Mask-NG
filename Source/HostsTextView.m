@@ -171,7 +171,7 @@
 // Display-only zoom: keep the monospaced face, syntax colors and typing font.
 - (void)setEditorFontSize:(CGFloat)pointSize
 {
-    CGFloat size = isfinite(pointSize) ? MIN(40, MAX(8, pointSize)) : 12;
+    CGFloat size = isfinite(pointSize) ? MIN(40, MAX(8, pointSize)) : 11;
     NSFont *font = [NSFont monospacedSystemFontOfSize:size weight:NSFontWeightMedium];
     [self setFont:font];
     NSMutableDictionary *attributes = [[self typingAttributes] mutableCopy];
@@ -193,8 +193,8 @@
         return;
     }
     NSNumber *savedSize = [[NSUserDefaults standardUserDefaults] objectForKey:EditorFontSizePrefKey];
-    CGFloat size = savedSize ? savedSize.doubleValue : 12;
-    size = isfinite(size) ? MIN(40, MAX(8, size)) : 12;
+    CGFloat size = savedSize ? savedSize.doubleValue : 11;
+    size = isfinite(size) ? MIN(40, MAX(8, size)) : 11;
     NSFont *expectedFont = [NSFont monospacedSystemFontOfSize:size weight:NSFontWeightMedium];
     if (![self.font isEqual:expectedFont]) { [self setEditorFontSize:size]; }
 }

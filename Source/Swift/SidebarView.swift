@@ -114,7 +114,6 @@ struct SidebarView: View {
                 renameFieldFocused = true
             }
         }
-        .font(.system(size: NSFont.smallSystemFontSize))
         .onChange(of: renameFieldFocused) { focused in
             if !focused { commitRename(hosts) }
         }

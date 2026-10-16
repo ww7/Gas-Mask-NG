@@ -66,3 +66,13 @@ separate owner-authorized action.
 Release archives are ad-hoc signed locally; they are not Developer ID signed or
 Apple notarized. A successful build/test run does not establish real privileged
 hosts switching, DNS behavior, notification delivery or UI acceptance.
+
+## Public development home (16 October 2026)
+
+The owner selected `ww7/gas-mask-ng` as the public development home. `origin` now
+points to GitHub; the old private remote is retained as `forgejo`. Original authors
+and PR merge ancestry are retained. Report Issue, Home Page and manual application
+update links point at the new repository. There is no public binary release yet;
+see [public release gates](PUBLIC-RELEASE.md). Profiles and preferences retain
+the original application identifier and storage paths. Future stable donation
+routing and an umbrella brand for additional revived apps are not configured yet.

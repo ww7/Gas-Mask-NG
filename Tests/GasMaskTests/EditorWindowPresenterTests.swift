@@ -217,11 +217,11 @@ final class EditorWindowPresenterTests: XCTestCase {
         try command("-", size: 12)
         XCTAssertTrue(preview.makeFirstResponder(table))
         try command("=", size: 13)
-        try command("0", size: 12)
+        try command("0", size: 11)
         XCTAssertEqual(editor.string, beforeText)
         XCTAssertEqual(hosts.saved(), beforeSaved, "Zoom must not dirty the profile")
         XCTAssertEqual(try Data(contentsOf: URL(fileURLWithPath: try XCTUnwrap(hosts.path))), beforeBytes)
-        XCTAssertEqual((editor.typingAttributes[.font] as? NSFont)?.pointSize, 12)
+        XCTAssertEqual((editor.typingAttributes[.font] as? NSFont)?.pointSize, 11)
         let update = try XCTUnwrap(NSApp.mainMenu?.item(withTitle: "File")?.submenu?.item(withTitle: "Update Remote Files"))
         XCTAssertEqual(update.action, #selector(ApplicationController.updateAndSynchronize(_:)))
         XCTAssertNotNil(update.image)
@@ -465,7 +465,7 @@ final class EditorWindowPresenterTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: remotePath, encoding: .utf8), remoteContents)
         let findMenu = NSApp.mainMenu?.item(withTitle: "Edit")?.submenu?.item(withTitle: "Find")?.submenu
         XCTAssertEqual(findMenu?.item(withTitle: "Find…")?.action, NSSelectorFromString("findInEditor:"))
-        XCTAssertEqual(findMenu?.item(withTitle: "Find in All Profiles…")?.keyEquivalentModifierMask, [.command, .shift])
+        XCTAssertEqual(findMenu?.item(withTitle: "Find in All Lists…")?.keyEquivalentModifierMask, [.command, .shift])
         func snapshot(_ sheet: NSWindow, name: String) throws {
             let view = try XCTUnwrap(sheet.contentView)
             view.layoutSubtreeIfNeeded()

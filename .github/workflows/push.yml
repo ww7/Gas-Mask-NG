@@ -1,111 +1,27 @@
-name: "on-push"
-on:
-  - push
+name: Build and test
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  build:
-    name: Build (${{ matrix.runner }}, Xcode ${{ matrix.xcode }})
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            xcode: "16.4"
-          - runner: macos-15-intel
-            xcode: "16.4"
-          - runner: macos-26
-            xcode: "26.2"
-          - runner: macos-26-intel
-            xcode: "26.2"
-          - runner: macos-14
-            xcode: "15.4"
-          - runner: macos-15
-            xcode: "16.0"
-          - runner: macos-15
-            xcode: "26.0.1"
-          - runner: macos-26
-            xcode: "26.3"
+  functional:
+    runs-on: macos-15
+    timeout-minutes: 25
     steps:
-    - uses: actions/checkout@v4
-
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: ${{ matrix.xcode }}
-
-    - name: Resolve package dependencies
-      run: xcodebuild -resolvePackageDependencies -project "Gas Mask.xcodeproj" -scheme "Gas Mask"
-
-    - name: Build
-      run: ./build.sh
-
-  test:
-    name: Test (${{ matrix.runner }}, Xcode ${{ matrix.xcode }})
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            xcode: "16.4"
-          - runner: macos-15-intel
-            xcode: "16.4"
-          - runner: macos-26
-            xcode: "26.2"
-          - runner: macos-26-intel
-            xcode: "26.5"
-          - runner: macos-14
-            xcode: "15.4"
-          - runner: macos-15
-            xcode: "16.0"
-          - runner: macos-15
-            xcode: "26.0.1"
-          - runner: macos-26
-            xcode: "26.3"
-    steps:
-    - uses: actions/checkout@v4
-
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: ${{ matrix.xcode }}
-
-    - name: Resolve package dependencies
-      run: xcodebuild -resolvePackageDependencies -project "Gas Mask.xcodeproj" -scheme "Gas Mask"
-
-    - name: Build for testing
-      run: xcodebuild build-for-testing -project "Gas Mask.xcodeproj" -scheme "Gas Mask" -destination "platform=macOS" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
-
-    # Performance tests use wall-clock thresholds and are unreliable on shared
-    # CI runners, so they run in the separate non-blocking perf job below.
-    - name: Test
-      run: xcodebuild test-without-building -project "Gas Mask.xcodeproj" -scheme "Gas Mask" -destination "platform=macOS" -resultBundlePath TestResults.xcresult -skip-testing:"Gas Mask Tests/HostsTextViewPerformanceTests" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
-
-    - name: Upload test results
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: TestResults-${{ matrix.runner }}-xcode-${{ matrix.xcode }}
-        path: TestResults.xcresult
-
-  perf:
-    name: Performance tests (macos-26, Xcode 26.3)
-    runs-on: macos-26
-    continue-on-error: true
-    steps:
-    - uses: actions/checkout@v4
-
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: "26.3"
-
-    - name: Resolve package dependencies
-      run: xcodebuild -resolvePackageDependencies -project "Gas Mask.xcodeproj" -scheme "Gas Mask"
-
-    - name: Test
-      run: xcodebuild test -project "Gas Mask.xcodeproj" -scheme "Gas Mask" -destination "platform=macOS" -resultBundlePath PerfResults.xcresult -only-testing:"Gas Mask Tests/HostsTextViewPerformanceTests" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
-
-    - name: Upload test results
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: PerfResults
-        path: PerfResults.xcresult
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Functional tests with temporary fixtures
+        env:
+          GASMASK_SKIP_PERFORMANCE: '1'
+        run: scripts/test.sh
+      - name: Universal release build (local signature only)
+        run: scripts/build-release.sh
+      - name: Preserve test diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-diagnostics
+          path: build/TestResults-*.xcresult

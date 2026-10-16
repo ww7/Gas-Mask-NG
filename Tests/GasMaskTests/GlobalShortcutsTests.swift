@@ -40,6 +40,35 @@ final class GlobalShortcutsTests: XCTestCase {
         assertShortcutRegistered(forDefaultsKey: UpdateAndSynchronizePrefKey)
     }
 
+    func testRemoteShortcut_isRegisteredAndShownInMenus() throws {
+        let defaults = UserDefaults.standard
+        let previous = defaults.object(forKey: UpdateAndSynchronizePrefKey)
+        defer { defaults.set(previous, forKey: UpdateAndSynchronizePrefKey) }
+        _ = GlobalShortcuts.shared
+        let shortcut = MASShortcut(keyCode: Int(kVK_F5), modifierFlags: [.control, .shift, .command])
+        let transformer = try XCTUnwrap(ValueTransformer(forName: .init(rawValue: MASDictionaryTransformerName)))
+        let item = NSMenuItem(title: "Update Remote Files", action: NSSelectorFromString("updateAndSynchronize:"), keyEquivalent: "")
+        let menu = NSMenu(title: "Test")
+        menu.addItem(item)
+        let root = NSMenuItem(title: "Test", action: nil, keyEquivalent: "")
+        root.submenu = menu
+        NSApp.mainMenu?.addItem(root)
+        defer { NSApp.mainMenu?.removeItem(root) }
+        defaults.set(transformer.reverseTransformedValue(shortcut), forKey: UpdateAndSynchronizePrefKey)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+        XCTAssertTrue(MASShortcutBinder.shared()!.shortcutMonitor.isShortcutRegistered(shortcut))
+        XCTAssertEqual(item.keyEquivalent, shortcut.keyCodeStringForKeyEquivalent?.lowercased())
+        XCTAssertEqual(item.keyEquivalentModifierMask, shortcut.modifierFlags)
+        let statusMenuItem = NSMenuItem()
+        GlobalShortcuts.configureUpdateMenuItem(statusMenuItem)
+        XCTAssertEqual(statusMenuItem.keyEquivalent, item.keyEquivalent)
+        defaults.set([String: Int](), forKey: UpdateAndSynchronizePrefKey)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+        XCTAssertEqual(item.keyEquivalent, "", "Clearing a shortcut must clear the displayed equivalent")
+        XCTAssertEqual(item.keyEquivalentModifierMask, [])
+        XCTAssertFalse(MASShortcutBinder.shared()!.shortcutMonitor.isShortcutRegistered(shortcut))
+    }
+
     // MARK: - Helpers
 
     /// Writes a shortcut to UserDefaults, waits for MASShortcutBinder to pick

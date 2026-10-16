@@ -96,12 +96,15 @@ struct EditorHelpView: View {
             Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 7) {
                 shortcut("Find in the displayed profile", "⌘F")
                 shortcut("Find next / previous", "⌘G / ⇧⌘G")
-                shortcut("Find in all local and remote profiles", "⇧⌘F")
+                shortcut("Find in all local and remote lists", "⇧⌘F")
                 shortcut("Comment / uncomment line or selection", "⌘/")
                 shortcut("Save the selected profile", "⌘S")
                 shortcut("Undo / redo", "⌘Z / ⇧⌘Z")
                 shortcut("Larger / smaller / actual text size", "⌘+ / ⌘− / ⌘0")
             }
+            Text("Configure global window-toggle, profile-switching and update shortcuts in Settings.")
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
@@ -109,13 +112,11 @@ struct EditorHelpView: View {
                     Text("Remote files and Combined previews are read-only. Move a Remote file to Local to edit it; it will stop updating from its URL. Edit the source files or drag the Included Files rows to change a Combined profile.")
                     Text("Update in the toolbar refreshes all Remote files. Update Remote File in a profile’s context menu refreshes only that file.")
                     Text("The bottom counter shows unique hostnames in the active profile, including aliases, excluding comments and duplicate names. It uses the current profile contents; save changes to an active profile to apply edits.")
-                    Text("Configure global window-toggle, profile-switching and update shortcuts in Settings.")
-                        .foregroundStyle(.secondary)
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(height: 220)
+            .frame(height: 190)
             HStack { Spacer(); Button("Close") { dismiss() }.keyboardShortcut(.cancelAction) }
         }
         .font(.system(size: NSFont.smallSystemFontSize))

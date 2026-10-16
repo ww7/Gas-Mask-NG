@@ -120,8 +120,8 @@ struct UpdateTab: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if Bundle.main.object(forInfoDictionaryKey: "WW7ForkBuild") as? Bool == true {
-                Text("Updates for this fork are available on Forgejo.")
-                Link("Open Releases", destination: URL(string: "https://git.ww7.work/ww7-forks/gasmask/releases")!)
+                Text("Updates for Gas Mask NG are available on GitHub.")
+                Link("Open Releases", destination: URL(string: "https://github.com/ww7/gas-mask-ng/releases")!)
             } else {
                 Toggle("Automatically check for updates", isOn: Binding(
                     get: { sparkleObserver.automaticChecksEnabled },

@@ -216,6 +216,8 @@
 
 - (void)startTimer
 {	
+    if ([self numberOfDownloaders] > 0 || [[hostsController hostsFiles] count] == 0 ||
+        ![[Network defaultInstance] online]) { return; }
 	if(timer != nil && [timer isValid]) {
 		return;
 	}
@@ -223,11 +225,13 @@
 	int interval = [Preferences remoteHostsUpdateInterval];
 	logDebug(@"Starting timer for remote hosts files. Interval: %d minutes", interval);
 	
-	timer = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)60.0*interval target:self selector:@selector(update) userInfo:nil repeats:NO];
+    timer = [NSTimer timerWithTimeInterval:60.0 * MAX(1, interval) target:self selector:@selector(update) userInfo:nil repeats:NO];
+    [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
 }
 
 - (void)update
 {
+    [timer invalidate];
 	timer = nil;
 	
 	if (![[Network defaultInstance] online]) {
@@ -295,12 +299,9 @@
 
 - (void)changeTimerInterval
 {
-	if (timer != nil && [timer isValid]) {
-		logDebug(@"Stopping timer");
-		[timer invalidate];
-		timer = nil;
-		[self startTimer];
-	}
+    [timer invalidate];
+    timer = nil;
+    [self startTimer];
 }
 
 - (BOOL)haveNonExistingHostsFiles

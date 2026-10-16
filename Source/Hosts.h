@@ -40,6 +40,8 @@
 
 - (id)initWithPath:(NSString*)pathValue;
 - (NSString*)contents;
+/* Immutable snapshot of current edits, without synchronous disk access. */
+- (NSString*)cachedContents;
 /* Returns hosts file from the disk */
 - (NSString*)contentsOnDisk;
 - (void) setContents:(NSString*)newContentsValue;

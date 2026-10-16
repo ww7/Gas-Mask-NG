@@ -113,6 +113,26 @@ final class HostsDataStoreTests: XCTestCase {
         let foreign = try XCTUnwrap(RemoteHosts(path: directory.appendingPathComponent("Foreign.hst").path))
         foreign.url = files[1].url
         XCTAssertFalse(controller.update(foreign))
+
+        // Exercise the actual one-shot timer entry point, including failure and
+        // preference changes. No owner's URL or hosts file is involved.
+        let scheduled = try XCTUnwrap(manager.value(forKey: "timer") as? Timer)
+        XCTAssertTrue(scheduled.isValid)
+        RefreshFixtureProtocol.statusCode = 200
+        RefreshFixtureProtocol.paths = []
+        scheduled.fire(); waitForCompletion()
+        XCTAssertEqual(Set(RefreshFixtureProtocol.paths), ["/First", "/Second"])
+        XCTAssertFalse(scheduled.isValid, "A manual fire must retire the previous timer")
+        let next = try XCTUnwrap(manager.value(forKey: "timer") as? Timer)
+        XCTAssertTrue(next.isValid, "Periodic updates must re-arm after unchanged success")
+        RefreshFixtureProtocol.fail = true
+        next.fire(); waitForCompletion()
+        XCTAssertTrue((manager.value(forKey: "timer") as? Timer)?.isValid == true, "A failed batch must retry on schedule")
+        RefreshFixtureProtocol.fail = false
+        let beforeIntervalChange = manager.value(forKey: "timer") as? Timer
+        manager.perform(NSSelectorFromString("changeTimerInterval"))
+        XCTAssertFalse(beforeIntervalChange?.isValid ?? true)
+        XCTAssertTrue((manager.value(forKey: "timer") as? Timer)?.isValid == true)
     }
 
     func testProfileSearchAndActiveStatistics_excludeCommentsAndCombinedDuplicates() throws {
@@ -143,6 +163,40 @@ final class HostsDataStoreTests: XCTestCase {
         let big = ProfileSearchDocument(path: "fixture", name: "Big", remote: false,
             contents: Array(repeating: "127.0.0.1 found.test", count: 1000).joined(separator: "\n"))
         XCTAssertEqual(ProfileSearchIndex.matches("found", documents: [big]).count, ProfileSearchIndex.resultLimit)
+    }
+
+    func testSearchRegexAndSnapshot_keepsEditsAndScalesToLargeLists() throws {
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent("search-\(UUID().uuidString).hst")
+        defer { try? FileManager.default.removeItem(at: path) }
+        try "127.0.0.1 disk.test".write(to: path, atomically: true, encoding: .utf8)
+        let hosts = try XCTUnwrap(Hosts(path: path.path))
+        XCTAssertNil(hosts.cachedContents(), "Cold files must not load on the main thread")
+        let source = ProfileSearchSource(path: path.path, name: "Disk", remote: true, cachedContents: nil)
+        let prepared = ProfileSearchIndex.prepare([source])
+        XCTAssertEqual(ProfileSearchIndex.matches("disk", prepared: prepared).count, 1)
+        XCTAssertNil(hosts.cachedContents())
+        hosts.setContents("# 😀\r\n127.0.0.1 edited.test alias.test\r\n::1 EDITED.test\n")
+        let edited = ProfileSearchIndex.prepare([ProfileSearchSource(path: path.path, name: "Edits",
+            remote: false, cachedContents: hosts.cachedContents())])
+        let regex = try NSRegularExpression(pattern: #"^127\.0\.0\.1\s+(edited\.test)"#, options: .caseInsensitive)
+        let matches = ProfileSearchIndex.matches(regex.pattern, prepared: edited, regex: regex)
+        XCTAssertEqual(matches.map(\.line), [2])
+        XCTAssertEqual(matches.first?.matchedText, "127.0.0.1 edited.test")
+        XCTAssertEqual(ProfileSearchIndex.matches("disk", prepared: edited).count, 0)
+        XCTAssertThrowsError(try NSRegularExpression(pattern: "["))
+        let big = ProfileSearchDocument(path: "fixture", name: "Large", remote: true,
+            contents: Array(repeating: "0.0.0.0 example.test", count: 100_000).joined(separator: "\n") + "\n127.0.0.1 final.test")
+        let index = PreparedSearchDocument(big)
+        let start = Date()
+        for query in ["missing", "final", "nomatch"] {
+            _ = ProfileSearchIndex.matches(query, prepared: [index])
+        }
+        let elapsed = Date().timeIntervalSince(start)
+        print("SEARCH_BENCHMARK: 100001 lines, three cached literal queries: \(elapsed) seconds")
+        XCTAssertLessThan(elapsed, 3, "Cached scans should finish without multi-second lag")
+        let final = try XCTUnwrap(ProfileSearchIndex.matches("final", prepared: [index]).first)
+        XCTAssertEqual(final.line, 100_001)
+        XCTAssertEqual((big.contents as NSString).substring(with: final.range), "final")
     }
 
     func testCombinedConflicts_compareAddressSetsPerFamilyWithoutChangingSources() {

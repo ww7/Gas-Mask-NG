@@ -1,63 +1,57 @@
-# Gas Mask
+# Gas Mask NG
 
-This is the private **ww7 all-open-PR fork**, based on upstream `master` plus the
-seven PRs open on 15 October 2026. See [integration decisions](docs/INTEGRATION.md)
-and [build status](docs/BUILD-STATUS.md). Obsolete PR implementations are resolved
-against the current SwiftUI/MASShortcut code; their original heads remain in history.
+A modern continuation of [Gas Mask](https://github.com/2ndalpha/gasmask), the macOS
+hosts-file manager originally created by Siim Raud / Clockwise.
 
-Build a universal Release with `scripts/build-release.sh` and run tests with
-`scripts/test.sh` after installing full Xcode. Download the universal **arm64 + Intel**
-build from [release 0.8.7-ww7.2](https://git.ww7.work/ww7-forks/gasmask/releases/tag/v0.8.7-ww7.2).
-The app is locally signed, without Apple notarization.
+**Development preview.** The public repository is the new home of this fork.
+A signed, notarized public release and Homebrew cask are not available yet.
+See the [release readiness review](docs/PUBLIC-RELEASE.md) and
+[verification evidence](docs/BUILD-STATUS.md). The installed application is still
+named **Gas Mask**, and retains its original preferences identifier and profile
+locations to preserve existing installations.
 
-The upstream documentation follows. Its download link is the original release,
-not this integrated fork.
+## Features
 
-[![Build Status](https://github.com/2ndalpha/gasmask/actions/workflows/push.yml/badge.svg)](https://github.com/2ndalpha/gasmask/actions/workflows/push.yml)
+- Local, downloaded Remote and ordered Combined lists.
+- Compact sidebars, inline renaming, drag-to-reorder Combined sources and domain
+  conflict inspection without silently changing source precedence.
+- Remote updates on a configurable interval, manual per-file/all-file updates and
+  the last successful update time. Failed downloads retain the last good content.
+- Native document search, global search across Local and downloaded Remote lists
+  without Combined duplicates, optional regular expressions and direct navigation.
+- Syntax highlighting, line commenting, font zoom and customizable global shortcuts.
+- System, light and dark appearance.
 
-Gas Mask is a simple hosts file manager for macOS.
-It allows editing of host files and switching between them.
+## Build and test
 
-## System requirements
-Requires macOS 13 (Ventura) or later.
+Requires macOS 13 or newer and full Xcode. Package versions are pinned in
+`Gas Mask.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`.
 
-## Download
-[Download latest version (0.8.6)](https://github.com/2ndalpha/gasmask/releases/download/0.8.6/gas_mask_0.8.6.zip)
+```sh
+scripts/build-release.sh  # Universal arm64 + x86_64 ZIP; local ad-hoc signature
+scripts/test.sh           # XCTest suite and temporary storage-migration fixtures
+scripts/test-storage.sh   # Standalone migration tests
+```
 
-## Installation
-Drag the application from Downloads into the Applications folder. The first time you launch it, it will ask for your password, because it needs escalated privileges to modify your `/etc/hosts` file.
+Build artifacts stay in ignored `dist/` and `build/` directories. Local builds are
+not Developer ID signed or notarized. The old upstream Sparkle feed is disabled;
+application updates are currently manual. Remote-list auto-update is separate.
 
-## How it works
-Gas Mask monitors `/etc/hosts` system file and updates it with your activated hosts file.
+## Data and permissions
 
-This fork stores custom hosts files in `~/Library/Application Support/Gas Mask`.
-It copies legacy profiles from `~/Library/Gas Mask` while retaining the originals;
-see the [migration rules](docs/INTEGRATION.md#storage-and-runtime-boundaries).
+Lists live in `~/Library/Application Support/Gas Mask`. Legacy data in
+`~/Library/Gas Mask` is preserved during migration. Existing preferences use
+`ee.clockwise.gmask`; renaming the project must not silently create a new store.
+Activating a list changes `/etc/hosts`; selecting a list does not. The inherited
+write-permission mechanism is under review before stable public distribution.
 
-Application log can be found in `~/Library/Logs/Gas Mask.log`. It's worth having a look for errors in there when posting an issue.
+## Contributing and security
 
-## User Guide
-Gas Mask usually operates in the background. It adds a menu bar icon, where you can access the main editor window and quickly switch between hosts files.
+Use [Issues](https://github.com/ww7/gas-mask-ng/issues) for bugs and feature requests.
+Do not post real hosts files, private domains, credentials or sensitive logs.
+See [SECURITY.md](SECURITY.md) for vulnerability reports.
 
-The main editor consists of three parts: Toolbar, a list of your hosts files on the left, and file editor on the right. Initially you will have a single file called `Original file` under `Local`, which is a copy of your original /etc/hosts file.
-
-To add new files, click `Create(+)` button in the toolbar and select the type of file (Local, Remote or Combined).
-
-To remove a file, select it and press the `Remove` button in toolbar.
-
-To activate a file, select it and press `Activate` button in toolbar, or select it from the menu bar icon when the editor is hidden. Gas Mask will update the `/etc/hosts` file with the currently activated file. The active file is marked with a check in the editor list, and can also be displayed next to the Gas Mask menu bar icon (Preferences > Show Host File Name in Menu Bar)
-
-#### Local files
-These are ordinary local files that you can edit.
-
-#### Remote files
-These are files that Gas Mask downloads and synchronizes from remote URLs. You can adjust how often they should update in Preferences, or force an update from the menu bar icon. You cannot edit these files, as they are overwritten by updates.
-
-#### Combined files
-This is where Gas Mask shines compared to other hosts managers for macOS. A combined file doesn't contain hosts entries, but a list of local and remote files.
-
-## Where to find hosts files
-A great source of curated hosts files can be found at https://github.com/StevenBlack/hosts
-
-## Building Gas Mask
-Gas Mask can be built with Xcode 15 or later.
+The fork preserves the ancestry and authorship of seven upstream PRs open on
+15 October 2026; see [integration decisions](docs/INTEGRATION.md). GPL-2.0-or-later
+applies to the original application code; bundled third-party notices remain in
+place. See [LICENSE](LICENSE).

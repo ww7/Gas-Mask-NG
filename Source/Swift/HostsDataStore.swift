@@ -164,6 +164,14 @@ final class HostsDataStore: ObservableObject {
         hostsGroups.flatMap { ($0.children as? [Hosts]) ?? [] }.first { $0.active() }
     }
 
+    var searchSources: [ProfileSearchSource] {
+        combinableHosts.compactMap { hosts in
+            guard let path = hosts.path else { return nil }
+            return ProfileSearchSource(path: path, name: hosts.name() ?? "", remote: hosts is RemoteHosts,
+                                       cachedContents: hosts.cachedContents())
+        }
+    }
+
     var searchDocuments: [ProfileSearchDocument] {
         combinableHosts.compactMap { hosts in
             guard let path = hosts.path else { return nil }

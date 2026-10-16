@@ -26,10 +26,13 @@ int main(int argc, char *argv[])
 	path = [path stringByDeletingLastPathComponent];
 	path = [path stringByDeletingLastPathComponent];
 	
-	NSArray *arguments = [NSArray arrayWithObjects:@"-c",
-						  [NSString stringWithFormat:@"sleep 1 ; /usr/bin/open '%@' --args openatlogin", path],
-						  nil];
-	[NSTask launchedTaskWithLaunchPath:@"/bin/sh" arguments:arguments];
+    // Pass the application path as an argument, never interpolate it into a
+    // shell command: installation paths can legitimately contain apostrophes.
+    [NSThread sleepForTimeInterval:1];
+    NSTask *task = [[NSTask alloc] init];
+    task.executableURL = [NSURL fileURLWithPath:@"/usr/bin/open"];
+    task.arguments = @[path, @"--args", @"openatlogin"];
+    [task launchAndReturnError:nil];
 
 	return 0;
 }

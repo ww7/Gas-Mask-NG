@@ -105,17 +105,12 @@ struct HostsFileRow<Name: View>: View {
                 .accessibilityHidden(true)
             fileIcon.frame(width: 16, height: 16)
             name
-                .font(.system(size: NSFont.smallSystemFontSize, weight: .regular))
+                .font(hosts.saved() ? .system(size: NSFont.smallSystemFontSize) : .system(size: NSFont.smallSystemFontSize).italic())
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let error = hosts.error() {
                 HostsErrorBadge(error: error)
             }
-            if !hosts.saved() {
-                Circle()
-                    .fill(.blue)
-                    .frame(width: 6, height: 6)
-                    .accessibilityLabel("Unsaved")
-            }
+
         }
         .accessibilityElement(children: isEditing ? .contain : .combine)
         .accessibilityLabel(HostsRowView.accessibilityDescription(for: hosts))

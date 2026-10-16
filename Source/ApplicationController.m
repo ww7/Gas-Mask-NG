@@ -151,9 +151,9 @@ static ApplicationController *sharedInstance = nil;
             item.action = @selector(findInEditor:);
         }
     }
-    if (findMenu && ![findMenu itemWithTitle:@"Find in All Profiles…"]) {
+    if (findMenu && ![findMenu itemWithTitle:@"Find in All Lists…"]) {
         [findMenu addItem:[NSMenuItem separatorItem]];
-        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"Find in All Profiles…" action:@selector(findInAllProfiles:) keyEquivalent:@"f"];
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"Find in All Lists…" action:@selector(findInAllProfiles:) keyEquivalent:@"f"];
         item.target = self;
         item.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagShift;
         [findMenu addItem:item];
@@ -195,6 +195,7 @@ static ApplicationController *sharedInstance = nil;
         NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"Update Remote Files" action:@selector(updateAndSynchronize:) keyEquivalent:@""];
         item.target = self;
         item.image = [NSImage imageWithSystemSymbolName:@"icloud.and.arrow.down" accessibilityDescription:@"Update Remote Files"];
+        [GlobalShortcuts configureUpdateMenuItem:item];
         [fileMenu addItem:item];
     }
 }
@@ -215,14 +216,14 @@ static ApplicationController *sharedInstance = nil;
 - (IBAction)increaseEditorTextSize:(id)sender { [self adjustEditorTextSize:1]; }
 - (IBAction)decreaseEditorTextSize:(id)sender { [self adjustEditorTextSize:-1]; }
 - (IBAction)resetEditorTextSize:(id)sender {
-    [[NSUserDefaults standardUserDefaults] setDouble:12 forKey:EditorFontSizePrefKey];
+    [[NSUserDefaults standardUserDefaults] setDouble:11 forKey:EditorFontSizePrefKey];
 }
 
 - (void)adjustEditorTextSize:(CGFloat)delta
 {
     NSNumber *saved = [[NSUserDefaults standardUserDefaults] objectForKey:EditorFontSizePrefKey];
-    CGFloat size = saved ? saved.doubleValue : 12;
-    size = isfinite(size) ? MIN(40, MAX(8, size)) : 12;
+    CGFloat size = saved ? saved.doubleValue : 11;
+    size = isfinite(size) ? MIN(40, MAX(8, size)) : 11;
     [[NSUserDefaults standardUserDefaults] setDouble:MIN(40, MAX(8, size + delta)) forKey:EditorFontSizePrefKey];
 }
 

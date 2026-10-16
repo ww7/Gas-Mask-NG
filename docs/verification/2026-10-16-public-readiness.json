@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-16",
+  "version": "0.8.7-ww7.20",
+  "functional_test_result_bundle": "build/ww7.20-public-readiness.xcresult",
+  "passed_tests": 136,
+  "failed_tests": 0,
+  "runtime_warnings": [],
+  "excluded_suite": "HostsTextViewPerformanceTests",
+  "storage_assertions_passed": 28,
+  "focused_first_pass_passed": 6,
+  "search_benchmark": {
+    "lines": 100001,
+    "cached_literal_queries": 3,
+    "seconds": 0.07757008075714111
+  },
+  "native_ui_review": [
+    "Help: global-shortcut note before divider and no clipping",
+    "Find in All Lists: one-line compact row",
+    "Regex enabled: anchored pattern returns the expected source",
+    "Invalid regex: inline error, no crash",
+    "Return navigates to the expected UTF-16 source range"
+  ],
+  "secrets": {
+    "scanner": "Gitleaks 8.30.1",
+    "current_source_findings": 0,
+    "history_findings": 8,
+    "history_triage": "Upstream XIB Interface Builder serialized object keys; false positives, no credential values",
+    "nonempty_commits_scanned": 166
+  },
+  "dependency_scan": [
+    {
+      "identity": "masshortcut",
+      "revision": "6f2603c6b6cc18f64a799e5d2c9d3bbc467c413a",
+      "advisories": [],
+      "query": "completed"
+    },
+    {
+      "identity": "sparkle",
+      "revision": "eef1a539a373c1f1a320624b1130fc5de7b2e100",
+      "advisories": [],
+      "query": "completed"
+    }
+  ],
+  "limitations": [
+    "Not a complete security audit",
+    "No live system-hosts activation",
+    "No physical Intel execution",
+    "No Developer ID signature or notarization"
+  ],
+  "static_analysis": {
+    "tool": "Xcode clang static analyzer",
+    "exit_status": 0,
+    "issue_count": 41,
+    "issues": [
+      "Source/3rd Party/RegexKitLite.m:1550:249: warning: Value stored to 'stackSize' is never read [deadcode.DeadStores]",
+      "Source/LocalHostsController.m:150:23: warning: Although the value stored to 'contents' is used in the enclosing expression, the value is never actually read from 'contents' [deadcode.DeadStores]",
+      "Tests/GasMaskTests/HostsGroupTests.m:11:25: warning: Potential leak of an object stored into 'group' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsGroupTests.m:18:25: warning: Potential leak of an object stored into 'group' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsGroupTests.m:28:25: warning: Potential leak of an object stored into 'group' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsGroupTests.m:74:25: warning: Potential leak of an object stored into 'group' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsGroupTests.m:102:25: warning: Potential leak of an object stored into 'group' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:30:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:37:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:48:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:55:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:61:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:68:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:77:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:84:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:97:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:107:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:115:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:123:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/HostsTests.m:129:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/NodeTests.m:11:18: warning: Potential leak of an object stored into 'node' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/NodeTests.m:22:18: warning: Potential leak of an object stored into 'node' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/NodeTests.m:23:20: warning: Potential leak of an object stored into 'expressionValue2' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/NodeTests.m:24:20: warning: Potential leak of an object stored into 'expressionValue2' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/NodeTests.m:33:18: warning: Potential leak of an object stored into 'node' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/NodeTests.m:42:18: warning: Potential leak of an object stored into 'node' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/NodeTests.m:49:18: warning: Potential leak of an object stored into 'node' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:12:1: warning: 'TestHostsController' lacks a 'dealloc' instance method but must release '_fixtureSystemPath' [osx.cocoa.Dealloc]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:32:23: warning: Potential leak of an object of type 'TestHostsController *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:54:20: warning: Potential leak of an object stored into 'hosts' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:76:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:82:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:96:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:103:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:104:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:121:20: warning: Potential leak of an object stored into 'expressionValue2' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:128:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:137:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:138:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:144:5: warning: Potential leak of an object of type 'Hosts *' [osx.cocoa.RetainCount]",
+      "Tests/GasMaskTests/AbstractHostsControllerTests.m:145:16: warning: Potential leak of an object stored into 'expressionValue2' [osx.cocoa.RetainCount]"
+    ],
+    "triage": "Legacy dead stores and retained objects in non-ARC test fixtures; no zero-warning claim. Static analysis is not an exhaustive security review."
+  }
+}

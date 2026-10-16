@@ -24,7 +24,7 @@ struct AboutBoxView: View {
                     Spacer()
                         .frame(height: 2)
 
-                    Text("Author: Siim Raud")
+                    Text("Original author: Siim Raud · Maintained by ww7")
                         .font(.system(size: 11))
 
                     LabeledLink(
@@ -35,13 +35,13 @@ struct AboutBoxView: View {
 
                     LabeledLink(
                         label: "Home Page:",
-                        text: "github.com/2ndalpha/gasmask",
-                        destination: URL(string: "https://github.com/2ndalpha/gasmask")!
+                        text: "github.com/ww7/gas-mask-ng",
+                        destination: URL(string: "https://github.com/ww7/gas-mask-ng")!
                     )
                 }
             }
 
-            Text("Copyright © 2009–2026 Clockwise.\nAll rights reserved.")
+            Text("Copyright © 2009–2026 Clockwise.\nGPL-2.0-or-later.")
                 .font(.system(size: 10))
                 .multilineTextAlignment(.center)
                 .padding(.top, 4)

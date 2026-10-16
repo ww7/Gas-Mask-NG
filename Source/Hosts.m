@@ -43,6 +43,8 @@
 	return self;
 }
 
+- (NSString *)cachedContents { return [contents copy]; }
+
 -(NSString *)contents
 {
 	if (contents == nil) {

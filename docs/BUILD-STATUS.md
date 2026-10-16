@@ -1,37 +1,30 @@
 # Build status
 
-16 October 2026. Installed local build `0.8.7-ww7.19`, internal build `20261016.19`.
+16 October 2026. Candidate `0.8.7-ww7.20`, internal build `20261016.20`.
 
-Combined now displays conflicting domains, source files/line numbers and addresses
-in a review sheet. IPv4 and IPv6 are compared separately, with normalized domain
-names and address sets. Source content/order is never changed by analysis.
-Remote files show the last successful check time above the editor and in Included
-Files icon tooltips. Successful unchanged checks update the timestamp; failures
-preserve it. Existing persisted update history remains compatible.
+The editor default/reset size is 11 pt; explicit user font preferences are retained.
+Unsaved list names use italics, with the active checkmark unchanged. Remote update
+shortcuts are customizable, migrated from the legacy format when necessary, and
+shown in all-Remote menu actions. The scheduler retires old timers and re-arms
+after successful or failed downloads and interval changes.
 
-Three focused tests passed without runtime warnings. Checks cover conflict edge
-cases and source locations; changed/unchanged/304 Remote success, network/HTTP/text
-failures and timestamp persistence; and existing layout modes. Native conflict
-review and Remote timestamp UI were inspected on synthetic fixtures. Full suites
-and privileged system-hosts activation were not repeated.
-See [verification](verification/2026-10-16-conflicts-remote-time.json) and
-[UI-REFINEMENTS.md](UI-REFINEMENTS.md).
+Find in All Lists has optional regex, compact one-line results, debouncing and
+worker-side cached snapshots. Three cached queries over 100,001 lines took about
+0.08 seconds. Cold files are not read from the SwiftUI body. Help groups the global
+shortcut note with the shortcut list. Donate points to UNITED24.
 
-Universal Release build passed. Verified the extracted archive's strict signature
-and arm64 + x86_64 in all seven Mach-O binaries. Packaged source:
-`dc66fe9c8de37db52df857f7589adf01c3a99b1f`.
-Archive SHA256: `06a3f252c3c6e095e33227ea0dcabb4f6ad66cf18685c6688c002b17f60c67bc`.
+The app/About icon now derives from the actual menu-bar alpha silhouette, traced
+into a vector and rendered yellow on blue. No generated replacement mask is used.
+Report Issue, Home Page and manual update links point at `ww7/gas-mask-ng`.
+Sparkle was upgraded to 2.10.0 after advisory checks; application auto-updates
+remain disabled. The login helper launches `open` with arguments without a shell.
 
-Installed ww7.19 over ww7.18 in `/Applications/Gas Mask.app`, matching the archive.
-Profile/settings file hashes, effective preferences and `/etc/hosts` were unchanged.
-Previous app and data backup:
-`~/Library/Application Support/ww7/Gas Mask Backups/2026-10-15T233125Z-ww7.19/`.
-Receipt: `build/install-ww7.19-receipt.json`. The app was not launched after install.
-A first preparation pass stopped before replacement when macOS flushed preferences;
-the subsequent stable backup and installation passed all preservation checks.
+136 functional XCTest cases passed without failures or runtime warnings, plus 28
+standalone migration assertions. The wall-clock editor performance suite was
+excluded. Native Help and literal/regex search UI were reviewed using synthetic
+fixtures. See [evidence](verification/2026-10-16-public-readiness.json) and
+[stable-release gates](PUBLIC-RELEASE.md). No live profile or system-hosts activation
+was used for acceptance.
 
-The last published release remains
-[ww7.13](https://git.ww7.work/ww7-forks/gasmask/releases/tag/v0.8.7-ww7.13).
-The owner authorizes installation of verified new versions with profiles/settings
-preserved. Publication is separate. Archives are locally ad-hoc signed without
-Developer ID signing or notarization.
+Universal packaging and installation evidence will be appended after verification.
+No stable public release or Homebrew cask has been published.

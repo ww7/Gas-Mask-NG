@@ -24,6 +24,7 @@
 #import "RemoteHostsController.h"
 #import "Pair.h"
 #import "CombinedHosts.h"
+#import "Gas_Mask-Swift.h"
 
 @interface HostsMenu (Private)
 - (void)createItems;
@@ -150,6 +151,7 @@
         item = [[NSMenuItem alloc] initWithTitle:@"Update Remote Files" action:@selector(updateAndSynchronize:) keyEquivalent:@""];
         [item setTarget:controller];
         item.image = [NSImage imageWithSystemSymbolName:@"icloud.and.arrow.down" accessibilityDescription:@"Update Remote Files"];
+        [GlobalShortcuts configureUpdateMenuItem:item];
         [self addItem:item];
     }
 
