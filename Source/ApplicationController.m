@@ -297,9 +297,12 @@ static ApplicationController *sharedInstance = nil;
     // Changing LSUIElement/accessory activation policy before AppKit finishes
     // launching can display an inert menu/window until a second open event.
     // Keep model loading early, but present/activate the UI after launch.
-    if (!openedAtLogin() && [Preferences showEditorWindow]) {
-        [self openEditorWindow:nil];
-    }
+    // Finish the launch notification before requesting foreground activation.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (!openedAtLogin() && [Preferences showEditorWindow]) {
+            [self openEditorWindow:nil];
+        }
+    });
 }
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
@@ -417,13 +420,21 @@ static ApplicationController *sharedInstance = nil;
 
 - (void)showApplicationInDock
 {
-	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+    BOOL promoting = NSApp.activationPolicy != NSApplicationActivationPolicyRegular;
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
     [[IconPreferences shared] applyDockIcon];
-	if (@available(macOS 14.0, *)) {
-		[NSApp activate];
-	} else {
-		[NSApp activateIgnoringOtherApps:YES];
-	}
+    void (^activate)(void) = ^{
+        if (NSApp.activationPolicy != NSApplicationActivationPolicyRegular) return;
+        if (@available(macOS 14.0, *)) {
+            [NSApp activate];
+        } else {
+            [NSApp activateIgnoringOtherApps:YES];
+        }
+    };
+    // Let AppKit register the accessory-to-regular policy change before
+    // activation. Reopening an already regular app can activate immediately.
+    if (promoting) dispatch_async(dispatch_get_main_queue(), activate);
+    else activate();
 }
 
 - (void)hideApplicationFromDock
