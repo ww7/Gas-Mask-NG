@@ -39,3 +39,8 @@ Receipt: `build/install-ww7.20-receipt.json`. The app was not launched after ins
 Public source and preserved PR ancestry are now on GitHub; Forgejo remains a mirror
 remote, with no new release upload in this pass.
 No stable public release or Homebrew cask has been published.
+
+The first GitHub CI run selected the macOS 15 image's default Xcode 16 and failed
+at compile time because `ToolbarSpacer` requires the macOS 26 SDK. The workflow
+now uses `macos-26` (Xcode 26), while the app deployment target remains macOS 13.
+CI results are tracked separately from the verified local installation.

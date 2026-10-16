@@ -24,7 +24,7 @@ locations to preserve existing installations.
 
 ## Build and test
 
-Requires macOS 13 or newer and full Xcode. Package versions are pinned in
+Requires macOS 13 or newer to run, and full Xcode 26 or newer to build. Package versions are pinned in
 `Gas Mask.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`.
 
 ```sh
