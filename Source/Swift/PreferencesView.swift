@@ -21,21 +21,29 @@ struct GeneralTab: View {
     @AppStorage("appAppearance") private var appAppearance = "system"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Picker("Appearance", selection: $appAppearance) {
-                Text("System").tag("system")
-                Text("Light").tag("light")
-                Text("Dark").tag("dark")
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 20) {
+                Picker("Appearance", selection: $appAppearance) {
+                    Text("System").tag("system")
+                    Text("Light").tag("light")
+                    Text("Dark").tag("dark")
+                }
+                .pickerStyle(.menu).fixedSize()
+                .onChange(of: appAppearance) { _ in AppAppearance.applyPreference() }
+                Spacer(minLength: 0)
+                Toggle("Show Name in Menu Bar", isOn: $showNameInStatusBar)
+                    .fixedSize()
             }
-            .pickerStyle(.menu)
-            .onChange(of: appAppearance) { _ in AppAppearance.applyPreference() }
-            Divider().padding(.vertical, 4)
+            Divider()
+            VStack(alignment: .leading, spacing: 12) {
+                Toggle("Open at Login", isOn: $loginItemObserver.isEnabled)
+                Toggle("Override external modifications", isOn: $overrideExternalModifications)
+                    .help("Restore the active list when another app changes the system hosts file; authorization is never requested in the background")
+            }
+            Divider()
             IconSettingsView()
-            Divider().padding(.vertical, 4)
-            Toggle("Open at Login", isOn: $loginItemObserver.isEnabled)
-            Toggle("Override external modifications", isOn: $overrideExternalModifications)
-            Toggle("Show Host File Name in Menu Bar", isOn: $showNameInStatusBar)
         }
+        .controlSize(.small)
     }
 }
 

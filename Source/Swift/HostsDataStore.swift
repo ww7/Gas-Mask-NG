@@ -164,6 +164,18 @@ final class HostsDataStore: ObservableObject {
         hostsGroups.flatMap { ($0.children as? [Hosts]) ?? [] }.first { $0.active() }
     }
 
+    // Both the selected Combined panel and the active-list footer analyze the
+    // same value snapshots, never the owner's system hosts file.
+    func conflictDocuments(for hosts: Hosts?) -> [ProfileSearchDocument] {
+        guard let hosts else { return [] }
+        let sources = (hosts as? CombinedHosts).map { ($0.hostsFiles() as? [Hosts]) ?? [] } ?? [hosts]
+        return sources.compactMap { source in
+            guard let path = source.path else { return nil }
+            return ProfileSearchDocument(path: path, name: source.name() ?? "", remote: source is RemoteHosts,
+                                         contents: source.contents() ?? "")
+        }
+    }
+
     var searchSources: [ProfileSearchSource] {
         combinableHosts.compactMap { hosts in
             guard let path = hosts.path else { return nil }

@@ -167,23 +167,27 @@ struct ProfileSearchView: View {
             if let patternError { Text(patternError).font(.caption).foregroundStyle(.red).lineLimit(2) }
             List(results) { result in
                 Button { store.openSearchResult(result) } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: result.remote ? "globe" : "doc").frame(width: 14)
-                        Text(result.name).frame(width: 100, alignment: .leading).truncationMode(.middle)
-                        Text("\(result.line)").monospacedDigit().foregroundStyle(.secondary)
-                            .frame(width: 44, alignment: .trailing)
-                        Text(result.text).font(.system(size: NSFont.smallSystemFontSize, design: .monospaced))
+                    HStack(spacing: 7) {
+                        Image(systemName: result.remote ? "globe" : "doc")
+                            .font(.system(size: 11)).foregroundStyle(.secondary).frame(width: 14)
+                        // Flow the list name straight into its matching text,
+                        // without fixed-width name/line-number columns.
+                        (Text(result.name + "  ·  ").font(.system(size: NSFont.smallSystemFontSize, weight: .medium))
+                            .foregroundColor(.secondary)
+                         + Text(result.text.trimmingCharacters(in: .whitespaces))
+                            .font(.system(size: NSFont.smallSystemFontSize, design: .monospaced)))
+                            .lineLimit(1).truncationMode(.tail)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .font(.system(size: NSFont.smallSystemFontSize))
-                    .lineLimit(1).contentShape(Rectangle())
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .listRowInsets(EdgeInsets(top: 1, leading: 6, bottom: 1, trailing: 6))
+                .listRowInsets(EdgeInsets(top: 0, leading: 7, bottom: 0, trailing: 7))
                 .help("\(result.name), line \(result.line): \(result.text)")
+                .accessibilityLabel("\(result.name), line \(result.line): \(result.text)")
             }
             .listStyle(.plain)
-            .environment(\.defaultMinListRowHeight, 22)
+            .environment(\.defaultMinListRowHeight, 23)
             .overlay {
                 if !searching && !preparing && results.isEmpty && patternError == nil {
                     Text(query.isEmpty ? "Combined previews are excluded to avoid duplicate results." : "No matches")

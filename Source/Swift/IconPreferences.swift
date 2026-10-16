@@ -14,7 +14,10 @@ import SwiftUI
     private var lastMenu: String?
     private var lastDock: String?
 
-    init(defaults: UserDefaults, dockSink: @escaping (NSImage) -> Void = { NSApp.applicationIconImage = $0 }) {
+    init(defaults: UserDefaults, dockSink: @escaping (NSImage) -> Void = {
+        NSApp.applicationIconImage = $0
+        NSApp.dockTile.display()
+    }) {
         self.defaults = defaults
         self.dockSink = dockSink
         super.init()
@@ -25,7 +28,7 @@ import SwiftUI
             defaults.set(previous.first(where: Self.symbols.contains) ?? "mask", forKey: "iconSymbol")
         }
         observer = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification,
-            object: defaults, queue: .main) { [weak self] _ in self?.apply() }
+            object: nil, queue: .main) { [weak self] _ in self?.apply() }
     }
     deinit { if let observer { NotificationCenter.default.removeObserver(observer) } }
 
@@ -54,6 +57,16 @@ import SwiftUI
         }
     }
 
+    func applySelection(symbol: String, palette: String) {
+        guard Self.symbols.contains(symbol), Self.palettes.contains(palette) else { return }
+        defaults.set(symbol, forKey: "iconSymbol")
+        defaults.set(palette, forKey: "dockPalette")
+        // Apply is explicit: refresh even if a Dock/activation-policy transition
+        // replaced the image after our last preference notification.
+        applyDockIcon()
+        apply()
+    }
+
     @objc func applyDockIcon() {
         precondition(Thread.isMainThread)
         guard let image = NSImage(named: dockAssetName) ?? NSImage(named: "Dock_mask_heritage") else { return }
@@ -63,42 +76,43 @@ import SwiftUI
 }
 
 struct IconSettingsView: View {
-    @AppStorage("iconSymbol") private var symbol = "mask"
-    @AppStorage("dockPalette") private var palette = "heritage"
+    @State private var symbol = IconPreferences.shared.symbol
+    @State private var palette = IconPreferences.shared.dockPalette
+    @State private var applied = false
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            Image("Dock_\(IconPreferences.symbols.contains(symbol) ? symbol : "mask")_\((IconPreferences.palettes.contains(palette) ? palette : "heritage").replacingOccurrences(of: "-", with: "_"))")
-                .resizable().interpolation(.high).frame(width: 48, height: 48)
-                .accessibilityHidden(true)
-            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
-                GridRow {
-                    Text("Icon").gridColumnAlignment(.trailing)
-                    Picker("Icon", selection: $symbol) {
-                        Text("Mask").tag("mask")
-                        Text("Balloon").tag("balloon")
-                    }
-                    .labelsHidden().frame(maxWidth: .infinity)
-                    .help("Use the same symbol in the menu bar and Dock")
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Picker("Icon", selection: $symbol) {
+                    Text("Mask").tag("mask")
+                    Text("Balloon").tag("balloon")
                 }
-                GridRow {
-                    Text("Icon Color Scheme")
-                    Picker("Icon Color Scheme", selection: $palette) {
-                        Text("Heritage").tag("heritage")
-                        Text("Cobalt").tag("cobalt")
-                        Text("Slate").tag("slate")
-                        Text("Pine").tag("pine")
-                        Text("Sunset Sky").tag("sunset-sky")
-                        Text("Fire Sky").tag("fire-sky")
-                        Text("Bandera").tag("bandera")
+                .fixedSize()
+                .accessibilityIdentifier("icon-symbol-picker")
+                Picker("Color", selection: $palette) {
+                    ForEach(IconPreferences.palettes, id: \.self) { value in
+                        Text(value.split(separator: "-").map { $0.capitalized }.joined(separator: " ")).tag(value)
                     }
-                    .labelsHidden().frame(maxWidth: .infinity)
-                    .help("Colors apply to the Dock; the menu bar follows macOS automatically")
                 }
+                .fixedSize()
+                .accessibilityIdentifier("icon-color-picker")
+                Spacer(minLength: 0)
+                Image("Dock_\(symbol)_\(palette.replacingOccurrences(of: "-", with: "_"))")
+                    .resizable().interpolation(.high).frame(width: 32, height: 32)
+                    .accessibilityLabel("Selected icon preview")
+                Button("Apply") {
+                    IconPreferences.shared.applySelection(symbol: symbol, palette: palette)
+                    applied = true
+                }
+                .accessibilityIdentifier("apply-icon")
+                .help("Apply the icon to the menu bar and Dock and save this choice")
             }
+            Text(applied ? "Applied to the menu bar and Dock. Finder uses the installed app icon."
+                         : "Menu bar and Dock icon. Finder uses the installed app icon.")
+                .font(.caption).foregroundStyle(.secondary)
         }
         .pickerStyle(.menu)
-        .onChange(of: symbol) { _ in IconPreferences.shared.apply() }
-        .onChange(of: palette) { _ in IconPreferences.shared.apply() }
+        .onChange(of: symbol) { _ in applied = false }
+        .onChange(of: palette) { _ in applied = false }
     }
 }

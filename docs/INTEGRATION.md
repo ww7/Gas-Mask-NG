@@ -155,3 +155,25 @@ The isolated-Mac acceptance harness lives in `Tests/IsolatedMac`; it compiles th
 production authorization implementation unchanged and is excluded from releases.
 The owner conditionally authorized GitHub publication after isolated root checks
 pass. Downloading a VM image or building this harness does not satisfy that gate.
+
+## ww7.23 active-list diagnostics and compact settings
+
+Conflict analysis now reports a domain when it has more than one distinct
+canonical IP in an address family, within any individual list or across Combined
+sources. Identical repeats and an IPv4/IPv6 pair are ignored. A domain counts once
+even if both families conflict. Diagnostics are warnings: multiple IPs may be
+intentional; nothing is rewritten. The footer analyzes the active list's current
+contents (including unsaved/Pending state), independently of the selected editor
+list, and opens source/line/address details on click. Combined keeps its selected
+composition diagnostics too. All analysis uses value snapshots on workers.
+
+General groups Appearance with Show Name in Menu Bar, then login/restore options,
+and ends with Icon/Color/Preview/Apply. Only Apply commits icon choices; Dock
+redraws and accessory/regular transitions restore the selected override. Finder
+uses the installed bundle icon. A custom-icon fixture changed FinderInfo/resource
+forks and failed codesign --verify --deep --strict, so the product does not mutate
+its sealed bundle or weaken helper code validation.
+
+Global-search rows flow list names directly into matching text without fixed
+name/line-number columns. Navigation still uses precise UTF-16 match ranges;
+source line numbers remain in tooltips/accessibility, not a visible extra column.

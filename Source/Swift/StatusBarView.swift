@@ -43,6 +43,10 @@ enum HostsStatistics {
 struct StatusBarView: View {
     @ObservedObject var store: HostsDataStore
     @State private var count: Int?
+    @State private var conflicts: [CombinedDomainConflict]?
+    @State private var showingConflicts = false
+
+    private var documents: [ProfileSearchDocument] { store.conflictDocuments(for: store.activeHosts) }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -59,6 +63,16 @@ struct StatusBarView: View {
                         Text("· \(count) \(count == 1 ? "host" : "hosts")")
                             .fixedSize()
                             .help("Unique hostnames in the active profile, including aliases; comments are excluded")
+                    }
+                    if let conflicts {
+                        Button { showingConflicts = true } label: {
+                            Label("\(conflicts.count) \(conflicts.count == 1 ? "conflict" : "conflicts")",
+                                  systemImage: conflicts.isEmpty ? "checkmark.circle" : "exclamationmark.triangle")
+                                .foregroundStyle(conflicts.isEmpty ? Color.secondary : Color.orange)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Show conflicts in the active list, including unsaved or pending changes")
+                        .accessibilityIdentifier("show-active-conflicts")
                     }
                 } else {
                     Text("No active profile")
@@ -80,13 +94,21 @@ struct StatusBarView: View {
             .frame(height: 24)
         }
         .background(Color(nsColor: .windowBackgroundColor))
-        .task(id: store.activeHosts?.contents() ?? "") {
-            let contents = store.activeHosts?.contents() ?? ""
+        .task(id: documents) {
+            let snapshots = documents
             count = nil
-            let worker = Task.detached(priority: .utility) { HostsStatistics.uniqueHostCount(contents) }
+            conflicts = nil
+            let worker = Task.detached(priority: .utility) {
+                (HostsStatistics.uniqueHostCount(snapshots.map(\.contents).joined(separator: "\n")),
+                 CombinedConflictIndex.conflicts(in: snapshots))
+            }
             let result = await withTaskCancellationHandler(operation: { await worker.value }, onCancel: { worker.cancel() })
             guard !Task.isCancelled else { return }
-            count = result
+            count = result.0
+            conflicts = result.1
+        }
+        .sheet(isPresented: $showingConflicts) {
+            CombinedConflictsDetailView(conflicts: conflicts ?? [], listName: store.activeHosts?.name())
         }
     }
 }
@@ -116,7 +138,7 @@ struct EditorHelpView: View {
                     Text("Remote files and Combined previews are read-only. Move a Remote file to Local to edit it; it will stop updating from its URL. Edit the source files or drag the Included Files rows to change a Combined profile.")
                     Text("System changes require administrator approval once per app session. Background updates never prompt; Pending means the cached list needs Activate before it affects the system. No permanent system-file write permission is granted.")
                     Text("Update in the toolbar refreshes all Remote files. Update Remote File in a profile’s context menu refreshes only that file.")
-                    Text("The bottom counter shows unique hostnames in the active profile, including aliases, excluding comments and duplicate names. It uses the current profile contents; save changes to an active profile to apply edits.")
+                    Text("The footer shows unique hostnames and conflicting domains in the active list. Click the conflict count for addresses, source lists and line numbers. Comments and identical repeats are ignored, and IPv4/IPv6 are separate. Counts include unsaved or Pending contents; save or Activate to apply them.")
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)

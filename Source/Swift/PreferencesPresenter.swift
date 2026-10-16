@@ -16,12 +16,12 @@ import SwiftUI
         func makeTab<V: View>(label: String, symbolName: String, rootView: V) -> NSTabViewItem {
             let hc = NSHostingController(rootView: rootView
                 // Center the content block; controls retain their own alignment.
-                .frame(width: 400, alignment: .leading)
-                .padding(.horizontal, 50)
-                .padding(.vertical, 26)
+                .frame(width: 480, alignment: .leading)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 24)
                 .fixedSize(horizontal: false, vertical: true))
             hc.view.layoutSubtreeIfNeeded()
-            hc.preferredContentSize = NSSize(width: 500, height: ceil(hc.view.fittingSize.height))
+            hc.preferredContentSize = NSSize(width: 536, height: ceil(hc.view.fittingSize.height))
             let item = NSTabViewItem(viewController: hc)
             item.label = label
             item.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: label)

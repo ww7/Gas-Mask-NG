@@ -59,7 +59,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>20261016.22</string>
+	<string>20261016.23</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
 	<key>LSUIElement</key>
@@ -113,6 +113,6 @@
 	<key>WW7ForkBuild</key>
 	<true/>
 	<key>WW7BuildLabel</key>
-	<string>0.8.7-ww7.22</string>
+	<string>0.8.7-ww7.23</string>
 </dict>
 </plist>

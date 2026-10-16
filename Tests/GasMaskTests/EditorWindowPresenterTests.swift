@@ -526,6 +526,46 @@ final class EditorWindowPresenterTests: XCTestCase {
         XCTAssertEqual(editor.selectedRange(), result.range)
     }
 
+    func testActiveConflictFooter_usesActiveListWhileAnotherListIsDisplayed() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-conflict-footer-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        func make(_ name: String, _ content: String) throws -> Hosts {
+            let path = directory.appendingPathComponent(name + ".hst")
+            try content.write(to: path, atomically: true, encoding: .utf8)
+            return try XCTUnwrap(Hosts(path: path.path))
+        }
+        let active = try make("Active Fixture", "127.0.0.1 active.test\n127.0.0.2 active.test\n")
+        let selected = try make("Displayed Fixture", "127.0.0.3 displayed.test\n")
+        active.setActive(true)
+        let group = try XCTUnwrap(HostsGroup(name: "LOCAL"))
+        group.children = [active, selected]
+        let store = HostsDataStore()
+        store.hostsGroups = [group]
+        store.selectedHosts = selected
+        let snapshots = store.conflictDocuments(for: store.activeHosts)
+        XCTAssertEqual(snapshots.map(\.name), ["Active Fixture"])
+        XCTAssertEqual(CombinedConflictIndex.conflicts(in: snapshots).map(\.domain), ["active.test"])
+        let preview = NSWindow(contentViewController: NSHostingController(rootView: StatusBarView(store: store)))
+        preview.isReleasedWhenClosed = false
+        preview.setContentSize(NSSize(width: 600, height: 25))
+        preview.makeKeyAndOrderFront(nil)
+        defer { preview.close() }
+        preview.title = "Active Conflicts Fixture"
+        let hold = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("build/ui-qa/hold-active-conflicts")
+        let inspecting = FileManager.default.fileExists(atPath: hold.path)
+        let deadline = Date(timeIntervalSinceNow: 90)
+        while FileManager.default.fileExists(atPath: hold.path), Date() < deadline {
+            while let event = NSApp.nextEvent(matching: .any, until: Date(), inMode: .default, dequeue: true) { NSApp.sendEvent(event) }
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.02))
+        }
+        if inspecting { XCTAssertNotNil(preview.attachedSheet, "Native click must open active-list details") }
+        if let sheet = preview.attachedSheet { preview.endSheet(sheet) }
+        XCTAssertTrue(store.selectedHosts === selected, "Showing active conflicts must not change the displayed list")
+        XCTAssertFalse(PrivilegedActions.hasAuthorizedSession())
+    }
+
     func testToolbarDisplayMode_survivesFocusRefreshAndWindowRecreation() throws {
         let suite = "GasMaskToolbarTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))

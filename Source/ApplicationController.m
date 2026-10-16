@@ -422,7 +422,6 @@ static ApplicationController *sharedInstance = nil;
 {
     BOOL promoting = NSApp.activationPolicy != NSApplicationActivationPolicyRegular;
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-    [[IconPreferences shared] applyDockIcon];
     void (^activate)(void) = ^{
         if (NSApp.activationPolicy != NSApplicationActivationPolicyRegular) return;
         if (@available(macOS 14.0, *)) {
@@ -430,6 +429,9 @@ static ApplicationController *sharedInstance = nil;
         } else {
             [NSApp activateIgnoringOtherApps:YES];
         }
+        // Dock registration can restore the bundle's default image. Apply the
+        // saved override after promotion/activation has completed.
+        [[IconPreferences shared] applyDockIcon];
     };
     // Let AppKit register the accessory-to-regular policy change before
     // activation. Reopening an already regular app can activate immediately.

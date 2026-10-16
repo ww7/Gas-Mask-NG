@@ -32,4 +32,12 @@ for symbol in manifest['sets']:
         target = root / 'Assets.xcassets' / f"Dock_{symbol['id']}_{dock['palette'].replace('-', '_')}.imageset/icon.png"
         assert hashlib.sha256(source.read_bytes()).digest() == hashlib.sha256(target.read_bytes()).digest()
         checks += 1
-print(f'Approved icon resources: {checks} exact-byte renditions verified (14 Dock, 4 menu-bar).')
+# Finder and the initial Dock tile use a build-time primary icon. Freeze it to
+# the same approved Mask/Heritage set instead of retaining the older silhouette.
+source = art / 'mask/dock/heritage/AppIcon.appiconset'
+target = root / 'Assets.xcassets/AppIcon.appiconset'
+assert json.loads((source / 'Contents.json').read_text()) == json.loads((target / 'Contents.json').read_text())
+for file in source.glob('*.png'):
+    assert file.read_bytes() == (target / file.name).read_bytes()
+    checks += 1
+print(f'Approved icon resources: {checks} exact-byte renditions verified (14 Dock, 4 menu-bar, 10 primary app).')

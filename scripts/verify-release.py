@@ -13,6 +13,7 @@ root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser()
 parser.add_argument('archive', type=Path)
 parser.add_argument('--test-result', required=True, type=Path)
+parser.add_argument('--performance-excluded', action='store_true', help='The functional suite was run without the wall-clock performance suite')
 parser.add_argument('--root-acceptance', type=Path, help='Recorded disposable-Mac evidence for these exact writer bytes')
 args = parser.parse_args()
 archive = args.archive.resolve()
@@ -86,7 +87,7 @@ with tempfile.TemporaryDirectory(prefix='gasmask-release-check-') as temporary:
         'compiled_writer_hash_matches': True, 'only_system_dynamic_dependencies': True,
         'passed_tests': summary['passedTests'], 'failed_tests': summary['failedTests'],
         'skipped_tests': summary['skippedTests'], 'runtime_warnings': summary.get('runtimeWarnings', []),
-        'full_test_suite_run': True, 'storage_assertions': 28, 'native_security_assertions': 240, 'signature_test_configurations': 3,
+        'full_test_suite_run': not args.performance_excluded, 'functional_suite_run': True, 'performance_suite_run': not args.performance_excluded, 'storage_assertions': 28, 'native_security_assertions': 240, 'signature_test_configurations': 3,
         'owner_profiles_or_preferences_included': False, 'bundled_hosts_file': 'Resources/default.hst (repository default only)',
         'isolated_root_acceptance': root_evidence,
         'remaining_acceptance': ([] if root_evidence else ['administrator approval/cancellation and teardown on disposable macOS']) + ['physical Intel, sleep/wake, login-item and uninstall lifecycle'],

@@ -221,22 +221,36 @@ final class HostsDataStoreTests: XCTestCase {
             "127.0.0.2 mixed.TEST. alias.test # ignored.test\n127.0.0.1 dual.test same.test\n2001:0db8:0:0:0:0:0:1 ipv6.test\n127.0.0.2 multi.test\n127.0.0.1 multi.test\ninvalid ignored.test\n")
         let documents = [first, second]
         let conflicts = CombinedConflictIndex.conflicts(in: documents)
-        XCTAssertEqual(conflicts.map(\.domain), ["alias.test", "mixed.test"])
+        XCTAssertEqual(conflicts.map(\.domain), ["alias.test", "local-only.test", "mixed.test", "multi.test"])
         XCTAssertEqual(conflicts[0].sources.map(\.name), ["First", "Second"])
         XCTAssertEqual(conflicts[0].sources.map(\.line), [3, 1], "CRLF and blank lines retain accurate source line numbers")
         XCTAssertEqual(conflicts[0].sources.map(\.address), ["127.0.0.1", "127.0.0.2"])
         XCTAssertTrue(conflicts[0].sources[1].remote)
-        XCTAssertTrue(CombinedConflictIndex.conflicts(in: [first]).isEmpty)
+        XCTAssertEqual(CombinedConflictIndex.conflicts(in: [first]).map(\.domain), ["local-only.test", "multi.test"])
         let repeated = CombinedConflictIndex.conflicts(in: [first, first, second])
         XCTAssertEqual(repeated.map { $0.sources.count }, conflicts.map { $0.sources.count })
         let ipv6 = ProfileSearchDocument(path: "ipv6", name: "IPv6", remote: false,
             contents: "2001:db8::2 ipv6.test\n")
-        XCTAssertEqual(CombinedConflictIndex.conflicts(in: [first, ipv6]).map(\.domain), ["ipv6.test"])
+        XCTAssertEqual(CombinedConflictIndex.conflicts(in: [first, ipv6]).map(\.domain), ["ipv6.test", "local-only.test", "multi.test"])
         XCTAssertEqual(CombinedConflictIndex.conflicts(in: [second, first]).map(\.domain), conflicts.map(\.domain))
         XCTAssertEqual(documents, [first, second], "Analysis must not rewrite or reorder sources")
         let changed = ProfileSearchDocument(path: "second", name: "Second", remote: true,
             contents: "127.0.0.1 mixed.test alias.test\n")
-        XCTAssertTrue(CombinedConflictIndex.conflicts(in: [first, changed]).isEmpty)
+        XCTAssertEqual(CombinedConflictIndex.conflicts(in: [first, changed]).map(\.domain), ["local-only.test", "multi.test"])
+    }
+
+    func testConflictsWithinRemoteList_normalizeAddressesAndIgnoreIdenticalRepeats() {
+        let remote = ProfileSearchDocument(path: "remote-fixture", name: "Remote Fixture", remote: true, contents:
+            "127.0.0.1 SAME.test alias.test\n127.0.0.1 same.TEST.\n::1 same.test\n" +
+            "127.0.0.2 alias.test # same.test\n# 127.0.0.9 same.test\n" +
+            "2001:db8::1 v6.test\n2001:0db8:0:0:0:0:0:1 v6.test\n2001:db8::2 v6.test\n")
+        let conflicts = CombinedConflictIndex.conflicts(in: [remote])
+        XCTAssertEqual(conflicts.map(\.domain), ["alias.test", "v6.test"])
+        XCTAssertEqual(conflicts[0].sources.map(\.line), [1, 4])
+        XCTAssertTrue(conflicts.flatMap(\.sources).allSatisfy(\.remote))
+        XCTAssertEqual(conflicts[1].sources.map(\.address), ["2001:db8::1", "2001:db8::1", "2001:db8::2"])
+        XCTAssertEqual(CombinedConflictIndex.conflicts(in: [remote, remote]).map { $0.sources.count },
+                       conflicts.map { $0.sources.count }, "Repeated source references cannot inflate results")
     }
 
     // MARK: - Notification Name Constants

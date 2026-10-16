@@ -34,6 +34,27 @@ final class SecurityAndIconsTests: XCTestCase {
         XCTAssertEqual(prefs.dockAssetName, "Dock_mask_heritage")
     }
 
+    func testApplyIconSelection_reappliesDockEvenWhenUnchangedAndPersistsBothChoices() throws {
+        let suite = "gasmask-icon-apply-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var images: [NSImage] = []
+        let policy = NSApp.activationPolicy()
+        let prefs = IconPreferences(defaults: defaults) { images.append($0) }
+        prefs.applySelection(symbol: "balloon", palette: "bandera")
+        XCTAssertEqual(prefs.symbol, "balloon")
+        XCTAssertEqual(prefs.dockPalette, "bandera")
+        XCTAssertTrue(images.last === NSImage(named: "Dock_balloon_bandera"))
+        let before = images.count
+        prefs.applySelection(symbol: "balloon", palette: "bandera")
+        XCTAssertGreaterThan(images.count, before, "Apply must restore an image reset by the Dock")
+        let restored = IconPreferences(defaults: try XCTUnwrap(UserDefaults(suiteName: suite))) { _ in }
+        XCTAssertEqual(restored.dockAssetName, "Dock_balloon_bandera")
+        prefs.applySelection(symbol: "invalid", palette: "invalid")
+        XCTAssertEqual(prefs.dockAssetName, "Dock_balloon_bandera")
+        XCTAssertEqual(NSApp.activationPolicy(), policy)
+    }
+
     func testSharedIconMigrationPreservesDockChoiceAndPalette() throws {
         let cases: [(String?, String?, String)] = [
             ("mask", "balloon", "balloon"), ("balloon", "mask", "mask"),

@@ -285,9 +285,11 @@ enum CombinedConflictIndex {
         var conflicting: [String: [CombinedConflictSource]] = [:]
         for (key, sources) in records {
             if Task<Never, Never>.isCancelled { return [] }
-            guard sources.count > 1 else { continue }
-            let addressSets = Set(sources.values.map { Set($0.map(\.address)) })
-            guard addressSets.count > 1 else { continue }
+            // A domain is ambiguous whenever one address family has more than
+            // one distinct IP, whether those entries share a file or not.
+            // Identical repeated mappings and IPv4 + IPv6 remain harmless.
+            let addresses = Set(sources.values.flatMap { $0.map(\.address) })
+            guard addresses.count > 1 else { continue }
             conflicting[key.domain, default: []].append(contentsOf: sources.values.flatMap { $0 })
         }
         let order = Dictionary(documents.enumerated().map { ($1.path, $0) }, uniquingKeysWith: { first, _ in first })
@@ -309,11 +311,7 @@ struct CombinedConflictsView: View {
     @State private var showingDetails = false
 
     private var documents: [ProfileSearchDocument] {
-        ((combined.hostsFiles() as? [Hosts]) ?? []).compactMap { hosts in
-            guard let path = hosts.path else { return nil }
-            return ProfileSearchDocument(path: path, name: hosts.name() ?? "", remote: hosts is RemoteHosts,
-                                         contents: hosts.contents() ?? "")
-        }
+        store.conflictDocuments(for: combined)
     }
 
     var body: some View {
@@ -322,7 +320,7 @@ struct CombinedConflictsView: View {
             HStack(spacing: 5) {
                 if let conflicts {
                     if conflicts.isEmpty {
-                        Label("No cross-file conflicts", systemImage: "checkmark.circle")
+                        Label("No conflicts", systemImage: "checkmark.circle")
                             .foregroundStyle(.secondary)
                     } else {
                         Button { showingDetails = true } label: {
@@ -343,7 +341,7 @@ struct CombinedConflictsView: View {
             .font(.caption)
             .padding(8)
         }
-        .help("Compares address sets between included files, including unsaved edits. Repeats within one file and identical address sets are not flagged. IPv4 and IPv6 are checked separately.")
+        .help("Checks within and between included files, including unsaved edits. Different IPs for the same domain and address family are flagged; identical repeats and IPv4/IPv6 pairs are not.")
         .task(id: documents) {
             let snapshots = documents
             conflicts = nil
@@ -360,12 +358,13 @@ struct CombinedConflictsView: View {
 
 struct CombinedConflictsDetailView: View {
     let conflicts: [CombinedDomainConflict]
+    var listName: String? = nil
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Domain Conflicts").font(.headline)
-            Text("Included files assign different address sets to the same domain. Repeats within a single file and identical sets across files are not conflicts here. IPv4 and IPv6 are checked separately.")
+            Text(listName.map { "Conflicts in \($0)" } ?? "Domain Conflicts").font(.headline)
+            Text("The same domain has different IPs within one list or between Combined sources. IPv4 and IPv6 are checked separately; identical repeated mappings are ignored. Multiple IPs can be intentional — review the entries before changing them.")
                 .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             List(conflicts) { conflict in
                 VStack(alignment: .leading, spacing: 6) {
@@ -380,7 +379,10 @@ struct CombinedConflictsDetailView: View {
                     }
                 }.padding(.vertical, 5)
             }
-            Text("Edit the source profiles to resolve conflicts. No addresses are changed automatically.")
+            if conflicts.isEmpty {
+                Text("No domain conflicts found.").foregroundStyle(.secondary)
+            }
+            Text("Edit the source lists to resolve conflicts. No addresses are changed automatically.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             HStack { Spacer(); Button("Close") { dismiss() }.keyboardShortcut(.cancelAction) }
         }

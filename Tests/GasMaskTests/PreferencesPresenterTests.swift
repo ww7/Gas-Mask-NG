@@ -79,6 +79,15 @@ final class PreferencesPresenterTests: XCTestCase {
         tabVC.selectedTabViewItemIndex = index
         RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.3))
 
+        // Optional local visual inspection, confined to this synthetic window.
+        let hold = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("build/preferences-qa/hold-" + name)
+        let deadline = Date(timeIntervalSinceNow: 90)
+        while FileManager.default.fileExists(atPath: hold.path), Date() < deadline {
+            while let event = NSApp.nextEvent(matching: .any, until: Date(), inMode: .default, dequeue: true) { NSApp.sendEvent(event) }
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.02))
+        }
+
         // Capture this fixture window only; never capture desktop rectangles
         // which might contain an overlapping owner window.
         let windowID = CGWindowID(w.windowNumber)

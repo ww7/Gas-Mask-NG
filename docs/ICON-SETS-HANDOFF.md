@@ -5,6 +5,14 @@ one shared **Icon** choice for menu bar and Dock, plus **Icon Color Scheme** for
 the Dock. This supersedes the three independent controls described in the original
 handoff below. The approved artwork, palettes and template requirements are unchanged.
 
+ww7.23: General ends with one horizontal **Icon · Color · Preview · Apply** row.
+Selections are staged until Apply, then persisted for menu bar and Dock. Dock
+redraw is explicit and the override is restored after accessory-to-regular
+activation. Finder retains the build-time app icon: applying a native Finder
+custom icon to a disposable signed bundle failed strict signature verification
+(resource fork/FinderInfo). No installed-bundle mutation is used. The primary Finder/default app icon is
+now the exact approved Mask/Heritage appiconset, replacing the older silhouette.
+
 16 October 2026. The owner approved exactly two sets, `mask` and `balloon`, and
 all seven palettes listed below. This pass packages their artwork, including
 a monochrome menu-bar balloon and matching Dock palettes. **Icon selection in
