@@ -1,5 +1,49 @@
 # Build status
 
+## ww7.24 installed local UI build
+
+16 October 2026. Built and installed `0.8.7-ww7.24` / `20261016.24`.
+Exact application source: `4819e5371e6f20215773b34a12fbfdcff61bbd23`.
+
+- Functional suite: **152 passed, 0 failed, 0 skipped, no runtime warnings**.
+  Performance cases excluded (`GASMASK_SKIP_PERFORMANCE=1`). Result:
+  `build/TestResults-20261016T070425Z.xcresult`. Storage: 28 assertions;
+  native sanitizer/peer fixtures: 240 assertions.
+- A displayed Combined has one conflict counter, in Included Files, scoped to its
+  own sources. Native fixture interaction opened the detail sheet while a different
+  Local list was active: Combined had two conflicting domains, the active Local
+  list had one, and no second conflict counter appeared in the footer. Details
+  visibly retained Local/Remote source names, line numbers and within-file versus
+  between-file labels. The native sheet assertion passed after inspection.
+- A conflict inherited from one source still counts once in Combined. Identical
+  repeated mappings, comments and separate IPv4/IPv6 mappings remain excluded.
+- General's captured fixture window fits all three checkboxes horizontally.
+  Icon/Color/Preview:/Apply flow directly without a right-alignment spacer; the
+  caption and preview help say `Finder uses default icon.`. Frozen artwork
+  verification passed for all 28 renditions.
+- Editor and Included Files explicitly use small overlay scrollers with autohide.
+  On this workstation the native default already preferred overlay; its regular
+  width was 17 pt and small width 15 pt. No global scroll preference was changed.
+- Gitleaks on the new application commit: no findings. Local code graph refreshed.
+
+Verified archive:
+`dist/0.8.7-ww7.24-4819e5371e6f/gas_mask_0.8.7-ww7.24_4819e5371e6f_universal.zip`.
+SHA-256: `b759eeb53a0f8eaf5dd65a7adbb40341ce1a2a066ca855595516645221910d2e`.
+All three executables contain arm64+x86_64, pass strict local signatures and use
+only system dynamic dependencies. The unchanged writer bytes match the compiled
+pin and the isolated root acceptance evidence from ww7.22; root tests were not
+repeated for this UI-only pass. App/ZIP include only factory profiles/defaults,
+without owner profiles, settings, backups, receipts or credentials.
+
+The installed bundle matches the verified archive. Profiles, preference files and
+effective defaults were preserved. System hosts bytes, inode, ownership, mode,
+ACL and flags were unchanged. Previous app/data backup:
+`~/Library/Application Support/ww7/Gas Mask Backups/2026-10-16T070951Z-ww7.24/`.
+Private receipt: `build/install-ww7.24-receipt.json`. The installed app remains
+closed. Installation did not activate profiles or write the system hosts file.
+No source push or release upload was performed in this pass; local ad-hoc
+signatures only, without Developer ID/notarization.
+
 ## ww7.23 installed local UI build
 
 16 October 2026. Built and installed `0.8.7-ww7.23` / `20261016.23`.
