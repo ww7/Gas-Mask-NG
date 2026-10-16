@@ -107,6 +107,20 @@ final class HostsDataStoreTests: XCTestCase {
         let manager = try XCTUnwrap(controller.value(forKey: "manager") as? NSObject)
         manager.perform(NSSelectorFromString("loadRemoteHostsProperties"))
         XCTAssertEqual(files[1].updated, retained, "Timestamp survives persisted metadata reload")
+        RefreshFixtureProtocol.includeLastModified = false
+        RefreshFixtureProtocol.statusCode = 200
+        store.update(files[1]); waitForCompletion()
+        XCTAssertNil(files[1].lastModified, "A fresh 200 without a validator must clear the old one even if text is unchanged")
+        let beforeUnconditional304 = files[1].updated
+        RefreshFixtureProtocol.statusCode = 304
+        store.update(files[1]); waitForCompletion()
+        XCTAssertNotNil(files[1].error())
+        XCTAssertEqual(files[1].updated, beforeUnconditional304)
+        RefreshFixtureProtocol.includeLastModified = true
+        RefreshFixtureProtocol.statusCode = 200
+        store.update(files[1]); waitForCompletion()
+        XCTAssertNotNil(files[1].lastModified)
+        XCTAssertNil(files[1].error())
         XCTAssertEqual(RemoteUpdateStatus.summary(nil), "No successful update recorded")
         network.online = false
         XCTAssertFalse(controller.update(files[1]))
@@ -434,6 +448,7 @@ private final class RefreshFixtureProtocol: URLProtocol {
     static var fail = false
     static var statusCode = 200
     static var invalidUTF8 = false
+    static var includeLastModified = true
     static let body = "127.0.0.1 updated.example.test"
     override class func canInit(with request: URLRequest) -> Bool {
         request.url?.host == "gasmask-refresh.example.test"
@@ -446,7 +461,7 @@ private final class RefreshFixtureProtocol: URLProtocol {
                 self.client?.urlProtocol(self, didFailWithError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCannotConnectToHost))
             } else {
                 let response = HTTPURLResponse(url: self.request.url!, statusCode: Self.statusCode, httpVersion: nil,
-                    headerFields: ["Content-Type": "text/plain", "Last-Modified": "Thu, 15 Oct 2026 12:00:00 GMT"])!
+                    headerFields: Self.includeLastModified ? ["Content-Type": "text/plain", "Last-Modified": "Thu, 15 Oct 2026 12:00:00 GMT"] : ["Content-Type": "text/plain"])!
                 self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
                 if Self.statusCode != 304 { self.client?.urlProtocol(self, didLoad: Self.invalidUTF8 ? Data([0xff]) : Data(Self.body.utf8)) }
                 self.client?.urlProtocolDidFinishLoading(self)

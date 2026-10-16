@@ -26,6 +26,7 @@
 + (BOOL)hasAuthorizedSession;
 + (NSString*)currentSystemContents;
 + (NSString*)authorizationScriptSource;
++ (BOOL)trustedDirectoryAtPath:(NSString*)path owner:(uid_t)owner;
 + (void)endSession;
 + (BOOL)writeHostsContents:(NSString*)contents allowAuthorization:(BOOL)interactive error:(NSError**)error;
 // Pure construction/validation helpers are exposed for fixture-based tests.

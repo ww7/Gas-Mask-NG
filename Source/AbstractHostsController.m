@@ -95,11 +95,9 @@
     if (![hosts saved]) return;
     [hosts setExists:YES];
     if ([hosts active]) {
-        BOOL applied = [self saveHostsFileToOriginalLocation:hosts allowAuthorization:interactive];
-        [hosts setSystemApplyPending:!applied];
-        // Background downloads must keep their validated cache even without an
-        // authorized system-write session. A user save remains unsaved on failure.
-        if (!applied && interactive) [hosts setSaved:NO];
+        // The cache is saved independently of system authorization. Pending
+        // describes system state; it must not pretend the cache is unsaved.
+        [self saveHostsFileToOriginalLocation:hosts allowAuthorization:interactive];
     }
     if ([hosts saved]) [[NSNotificationCenter defaultCenter] postNotificationName:HostsFileSavedNotification object:hosts];
 }
@@ -171,7 +169,6 @@
 		 return NO;
 	 }
 	 
-	[hosts setSystemApplyPending:NO];
 	[hosts setActive:YES];
 	[Preferences setActiveHostsFile:[hosts path]];
 
@@ -317,8 +314,11 @@
 
 - (BOOL)saveHostsFileToOriginalLocation:(Hosts*)hosts allowAuthorization:(BOOL)interactive
 {
-    BOOL result = [self writeSystemContents:[hosts contents] allowAuthorization:interactive];
-    if ([hosts active]) [hosts setSystemApplyPending:!result];
+    NSString *requested = [[hosts contents] copy];
+    BOOL result = [self writeSystemContents:requested allowAuthorization:interactive];
+    // Administrator approval may run a nested event loop. A background download
+    // can save a newer cache while this older snapshot is being authorized.
+    [hosts setSystemApplyPending:!result || ![requested isEqualToString:[hosts contents]]];
     return result;
 }
 

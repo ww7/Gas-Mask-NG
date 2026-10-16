@@ -54,7 +54,7 @@ int GMApplyHosts(int dir, uid_t owner, const void *bytes, size_t length,
     acl_t directoryACL = acl_get_fd(dir);
     acl_entry_t directoryEntry;
     if (!directoryACL && errno != ENOENT) return GM_UNSAFE_TARGET;
-    int hasDirectoryACL = directoryACL && acl_get_entry(directoryACL, ACL_FIRST_ENTRY, &directoryEntry) == 1;
+    int hasDirectoryACL = directoryACL && acl_get_entry(directoryACL, ACL_FIRST_ENTRY, &directoryEntry) == 0;
     if (directoryACL) acl_free(directoryACL);
     if (hasDirectoryACL) return GM_UNSAFE_TARGET;
     uint8_t current[32];

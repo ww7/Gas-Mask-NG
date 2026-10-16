@@ -164,7 +164,7 @@
     // existing persisted key so older profiles retain their update history.
     RemoteHosts *hosts = (RemoteHosts*)[downloader hosts];
     [hosts setUpdated:[NSDate date]];
-    if ([downloader lastModified]) { [hosts setLastModified:[downloader lastModified]]; }
+    [hosts setLastModified:[downloader lastModified]];
     [self saveRemoteHostsProperties];
     [super hostsUpToDate:downloader];
 }

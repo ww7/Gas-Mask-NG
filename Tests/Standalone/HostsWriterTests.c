@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     struct stat info; CHECK(fstatat(dir,"hosts",&info,AT_SYMLINK_NOFOLLOW)==0);
     CHECK(info.st_uid==getuid() && (info.st_mode&0777)==0644 && info.st_nlink==1);
     int target=openat(dir,"hosts",O_RDONLY); acl_t acl=acl_get_fd(target); CHECK(acl!=NULL || errno==ENOENT);
-    acl_entry_t entry; CHECK(acl==NULL || acl_get_entry(acl,ACL_FIRST_ENTRY,&entry)!=1); if(acl)acl_free(acl);close(target);
+    acl_entry_t entry; CHECK(acl==NULL || (acl_get_entry(acl,ACL_FIRST_ENTRY,&entry)==-1 && errno==EINVAL)); if(acl)acl_free(acl);close(target);
     CHECK(GMApplyHosts(dir,getuid(),old,strlen(old),expected,result)==GM_CONFLICT);
     CHECK(GMApplyHosts(dir,getuid(),"\xff",1,hash,result)==GM_INVALID);
     CHECK(GMApplyHosts(dir,getuid(),"x\0y",3,hash,result)==GM_INVALID);
@@ -69,6 +69,14 @@ int main(int argc, char **argv) {
     CHECK(GMHostsDigest(dir,getuid(),result)==GM_UNSAFE_TARGET);
     CHECK(unlinkat(dir,"hosts",0)==0);writeAt(dir,"hosts",old);
     CHECK(GMHostsDigest(dir,getuid()+1,result)==GM_UNSAFE_TARGET);
+    // Darwin returns 0 for a found ACL entry (not POSIX's 1). Refuse
+    // even an owner-only directory ACE: a mode-bit check alone is insufficient.
+    granted=acl_init(1);CHECK(acl_create_entry(&granted,&added)==0);
+    CHECK(acl_set_tag_type(added,ACL_EXTENDED_ALLOW)==0 && acl_set_qualifier(added,user)==0);
+    CHECK(acl_get_permset(added,&permissions)==0 && acl_add_perm(permissions,ACL_WRITE_DATA)==0);
+    CHECK(acl_set_fd(dir,granted)==0);acl_free(granted);
+    CHECK(GMApplyHosts(dir,getuid(),next,strlen(next),expected,result)==GM_UNSAFE_TARGET);
+    granted=acl_init(0);CHECK(acl_set_fd(dir,granted)==0);acl_free(granted);
     CHECK(fchmod(dir,0777)==0);
     CHECK(GMApplyHosts(dir,getuid(),next,strlen(next),expected,result)==GM_UNSAFE_TARGET);
     CHECK(fchmod(dir,0700)==0);

@@ -77,7 +77,7 @@ with tempfile.TemporaryDirectory(prefix='gasmask-release-check-') as temporary:
         'compiled_writer_hash_matches': True, 'only_system_dynamic_dependencies': True,
         'passed_tests': summary['passedTests'], 'failed_tests': summary['failedTests'],
         'skipped_tests': summary['skippedTests'], 'runtime_warnings': summary.get('runtimeWarnings', []),
-        'full_test_suite_run': True, 'storage_assertions': 28, 'native_security_assertions': 74,
+        'full_test_suite_run': True, 'storage_assertions': 28, 'native_security_assertions': 240, 'signature_test_configurations': 3,
         'owner_profiles_or_preferences_included': False, 'bundled_hosts_file': 'Resources/default.hst (repository default only)',
         'remaining_acceptance': ['administrator approval/cancellation and teardown on disposable macOS', 'physical Intel, sleep/wake and login-item lifecycle'],
     }

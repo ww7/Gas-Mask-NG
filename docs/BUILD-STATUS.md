@@ -5,11 +5,13 @@
 16 October 2026. Source prepared for `0.8.7-ww7.21` / `20261016.21`; archive and
 installation evidence will be appended after packaging.
 
-- Full `scripts/test.sh`: **162 passed, 0 failed, 0 skipped, no runtime warnings**,
-  including the performance suite. Result: `build/TestResults-20261016T031511Z.xcresult`.
-- Storage: **28** assertions. Native security: **74** assertions in each of three
-  signature configurations (**222** total), with AddressSanitizer/UBSan. Matching
+- Full `scripts/test.sh`: **165 passed, 0 failed, 0 skipped, no runtime warnings**,
+  including the performance suite. Result: `build/TestResults-20261016T033008Z.xcresult`.
+- Storage: **28** assertions. Native security: **80** assertions in each of three
+  signature configurations (**240** total), with AddressSanitizer/UBSan. Matching
   peers with get-task-allow or disabled library validation are refused.
+- Final ACL/stage-parent, nested authorization/cache updates and saved Combined
+  order regressions passed; native Clang analysis emitted no diagnostics.
 - Remote fixtures cover HTTPS, same-origin/five-hop redirects, oversized header/
   streaming responses, bad UTF-8/hosts/NUL/HTML/empty content, TLS failure,
   conditional 304, last-good caches/timestamps and retry/rearm scheduling.
@@ -20,7 +22,7 @@ installation evidence will be appended after packaging.
 - Rename tests require the actual native field editor. The desktop declined
   programmatic activation in this run (printed in diagnostics); actual rename,
   blur/submit/cancel and editor-focus assertions passed.
-- Xcode analyze completed (`build/security-analyze-candidate.log`); legacy non-ARC
+- Xcode analyze completed (`build/security-approved-analysis.log`); legacy non-ARC
   test-fixture retention diagnostics remain. Release scheme analysis requires
   ENABLE_TESTABILITY=YES for its XCTest targets. This is not a zero-warning claim.
 - Current-source Gitleaks: no findings. OSV: no advisories for pinned MASShortcut.

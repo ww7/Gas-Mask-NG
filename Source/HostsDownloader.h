@@ -38,7 +38,6 @@
 	NSURL *url;
 	NSMutableString *response;
 	NSString *lastModified;
-	NSString *contentType;
 	Error *error;
 	NSObject<HostsDownloaderDelegate>* delegate;
     BOOL upToDate;

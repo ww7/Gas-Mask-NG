@@ -4,7 +4,7 @@
 This is a development preview, not a claim of a completed security audit or a
 stable public binary release. The original authors and merged PR ancestry remain.
 
-## Verified in this pass
+## Previous ww7.20 public baseline
 
 | Boundary | Evidence | Limit |
 | --- | --- | --- |

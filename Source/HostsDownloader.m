@@ -72,6 +72,7 @@ static const NSUInteger GMMaximumDownloadBytes = 32 * 1024 * 1024;
         [[NSFileManager defaultManager] fileExistsAtPath:hosts.path]) {
         [request setValue:modified forHTTPHeaderField:@"If-Modified-Since"];
         sentConditional = YES;
+        lastModified = modified;
     }
     configuration.URLCache = nil;
     configuration.HTTPCookieStorage = nil;
@@ -152,7 +153,7 @@ static const NSUInteger GMMaximumDownloadBytes = 32 * 1024 * 1024;
     __block BOOL valid = YES;
     [text enumerateSubstringsInRange:NSMakeRange(0, text.length) options:NSStringEnumerationByLines
         usingBlock:^(NSString *line, NSRange range, NSRange enclosingRange, BOOL *stop) {
-            if (range.length > 65536) { valid = NO; *stop = YES; return; }
+            if ([line lengthOfBytesUsingEncoding:NSUTF8StringEncoding] > 65536) { valid = NO; *stop = YES; return; }
             NSString *body = [[line componentsSeparatedByString:@"#"] firstObject];
             NSArray *words = [[body componentsSeparatedByCharactersInSet:NSCharacterSet.whitespaceCharacterSet]
                 filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSString *word, NSDictionary *bindings) { return word.length > 0; }]];
@@ -178,7 +179,7 @@ static const NSUInteger GMMaximumDownloadBytes = 32 * 1024 * 1024;
 {
     if (finished) { return; }
     if (failure || !httpResponse) { [self fail:@"The HTTPS download failed. The previous successful file was retained."]; return; }
-    lastModified = [httpResponse valueForHTTPHeaderField:@"Last-Modified"];
+    lastModified = [httpResponse valueForHTTPHeaderField:@"Last-Modified"] ?: (upToDate ? lastModified : nil);
     NSString *text = upToDate ? nil : [[NSString alloc] initWithData:receivedData encoding:NSUTF8StringEncoding];
     if ([text hasPrefix:@"\uFEFF"]) { text = [text substringFromIndex:1]; }
     if (!upToDate && ![[self class] isHostsText:text]) {

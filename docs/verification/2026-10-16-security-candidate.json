@@ -1,17 +1,17 @@
 {
   "date": "2026-10-16",
   "version": "0.8.7-ww7.21",
-  "result_bundle": "build/TestResults-20261016T031511Z.xcresult",
+  "result_bundle": "build/TestResults-20261016T033008Z.xcresult",
   "full_test_suite": true,
-  "passed_tests": 162,
+  "passed_tests": 165,
   "failed_tests": 0,
   "skipped_tests": 0,
   "runtime_warnings": [],
   "storage_assertions": 28,
   "native_security_assertions": {
-    "per_configuration": 74,
+    "per_configuration": 80,
     "configurations": 3,
-    "total": 222,
+    "total": 240,
     "sanitizers": [
       "AddressSanitizer",
       "UndefinedBehaviorSanitizer"
@@ -30,5 +30,9 @@
     "physical Intel, sleep/wake and login-item lifecycle"
   ],
   "owner_profiles_used_for_tests": false,
-  "system_hosts_used_for_tests": false
+  "system_hosts_used_for_tests": false,
+  "native_clang_diagnostics": 0,
+  "staging_parent": "root-only /private/var/db; protected ancestors checked",
+  "newer_cache_during_authorization_tested": true,
+  "unsaved_combined_order_preserved_on_refresh": true
 }

@@ -105,3 +105,21 @@ The app retains manual GitHub release links instead of disabling library
 validation. Remote-list updates use the separate first-party downloader. The
 writer rejects callers with entitlements that allow library/DYLD/page-protection
 bypasses as well as get-task-allow.
+
+The final candidate also covers nested authorization event loops: if a validated
+Remote cache changes during administrator approval, a successful write of the
+older snapshot does not clear Pending for the newer cache. Cache saved/unsaved
+state remains distinct from system-apply state. A source refresh regenerates a
+Combined preview without saving or applying an in-progress unsaved composition;
+background system restoration expands the last saved source order only.
+
+Darwin ACL enumeration is tested explicitly: acl_get_entry returns zero when
+an entry is found. Parent-directory ACLs are refused even when mode bits alone
+look safe. Empty replacement-file ACLs and root ownership/mode are verified.
+
+The ephemeral execution stage lives below `/private/var/db`, not `/var/run`:
+macOS may make the latter group-writable by daemon. Before authorization the app
+checks `/private`, `/private/var` and `/private/var/db` for root ownership, no
+symlink, no group/other write mode and no ACL. This prevents a non-root group
+from renaming/replacing a stage between the verified copy and root execution.
+A separate fixture covers group-writable parents, wrong owner and symlinks.

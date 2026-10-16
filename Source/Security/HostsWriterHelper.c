@@ -47,8 +47,10 @@ int main(int argc, char **argv) {
     unsigned long appPID, appUID; uint8_t hash[20];
     if (!parseID(argv[2],&appPID) || !parseID(argv[3],&appUID) || !parseHex(argv[4],hash,sizeof hash)) return 64;
     const char *stage=argv[5];
-    if (strncmp(stage,"/private/var/run/gas-mask-ng.",27) || strlen(stage)<35 || strlen(stage)>75 ||
-        strspn(stage+27,"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")!=strlen(stage+27)) return 64;
+    const char *prefix="/private/var/db/gas-mask-ng.";
+    size_t prefixLength=strlen(prefix);
+    if (strncmp(stage,prefix,prefixLength) || strlen(stage)!=prefixLength+8 ||
+        strspn(stage+prefixLength,"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")!=8) return 64;
     int stageFD=open(stage,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
     struct stat metadata;
     if (stageFD<0 || fstat(stageFD,&metadata) || metadata.st_uid!=0 || (metadata.st_mode&0022)) return 65;

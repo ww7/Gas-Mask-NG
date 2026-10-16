@@ -28,6 +28,7 @@
 #import <sys/socket.h>
 #import <sys/un.h>
 #import <sys/stat.h>
+#import <sys/acl.h>
 #import <arpa/inet.h>
 #import <fcntl.h>
 #import <unistd.h>
@@ -78,6 +79,20 @@ static NSData *readSystemHosts(void) {
     close(fd);return result;
 }
 @implementation PrivilegedActions
++ (BOOL)trustedDirectoryAtPath:(NSString*)path owner:(uid_t)owner {
+    int fd=open(path.fileSystemRepresentation,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    if(fd<0)return NO;
+    struct stat info;
+    BOOL safe=!fstat(fd,&info) && S_ISDIR(info.st_mode) && info.st_uid==owner && !(info.st_mode&0022);
+    acl_t acl=acl_get_fd(fd);
+    if(acl) {
+        acl_entry_t entry;errno=0;
+        int found=acl_get_entry(acl,ACL_FIRST_ENTRY,&entry);
+        safe=safe && found==-1 && errno==EINVAL; // Darwin: 0 means an entry exists
+        acl_free(acl);
+    } else if(errno!=ENOENT) safe=NO;
+    close(fd);return safe;
+}
 + (NSString*)quotedShellArgument:(NSString*)value {
     return [NSString stringWithFormat:@"'%@'",[value stringByReplacingOccurrencesOfString:@"'" withString:@"'\"'\"'"]];
 }
@@ -88,7 +103,7 @@ static NSData *readSystemHosts(void) {
         [codeHash rangeOfCharacterFromSet:nonHex].location!=NSNotFound || pid<=0 || uid==0)return nil;
     NSString *script=[NSString stringWithFormat:
         @"set -eu\numask 077\n"
-         "stage=$(/usr/bin/mktemp -d /private/var/run/gas-mask-ng.XXXXXXXX)\n"
+         "stage=$(/usr/bin/mktemp -d /private/var/db/gas-mask-ng.XXXXXXXX)\n"
          "trap '/bin/rm -f \"$stage/writer\" \"$stage/control.sock\"; /bin/rmdir \"$stage\" 2>/dev/null || true' EXIT\n"
          "/bin/cp -X %@ \"$stage/writer\"\n/bin/chmod 700 \"$stage/writer\"\n/usr/sbin/chown 0:0 \"$stage/writer\"\n"
          "actual=$(/usr/bin/shasum -a 256 \"$stage/writer\")\n[ \"${actual%%%% *}\" = %@ ]\n"
@@ -114,6 +129,10 @@ static NSData *readSystemHosts(void) {
     NSAssert(NSThread.isMainThread,@"Authorization is a foreground app action");
     if(authorizing)return fail(output,GM_UNAUTHORIZED,@"Administrator approval is already in progress.");
     if(NSClassFromString(@"XCTestCase"))return fail(output,GM_UNAUTHORIZED,@"Live system authorization is disabled in the test host.");
+    // The execution stage must not be renameable by a non-root user/group.
+    // /var/run can be group-writable (daemon) on macOS; use root-only parents.
+    for(NSString *parent in @[@"/private",@"/private/var",@"/private/var/db"])
+        if(![self trustedDirectoryAtPath:parent owner:0])return fail(output,GM_UNSAFE_TARGET,@"A secure root-owned staging directory is unavailable. System changes were refused.");
     SecCodeRef ownCode=NULL; CFDictionaryRef signing=NULL;
     OSStatus result=SecCodeCopySelf(kSecCSDefaultFlags,&ownCode);
     if(result==errSecSuccess)result=SecCodeCheckValidity(ownCode,kSecCSStrictValidate,NULL);
@@ -150,7 +169,7 @@ static NSData *readSystemHosts(void) {
     NSString *socketPath=reply.stringValue;
     NSString *parent=socketPath.stringByDeletingLastPathComponent;
     struct stat stageInfo;
-    if(![socketPath hasPrefix:@"/private/var/run/gas-mask-ng."] || ![socketPath.lastPathComponent isEqualToString:@"control.sock"] ||
+    if(![socketPath hasPrefix:@"/private/var/db/gas-mask-ng."] || ![socketPath.lastPathComponent isEqualToString:@"control.sock"] ||
         socketPath.length>=sizeof(((struct sockaddr_un*)0)->sun_path) || lstat(parent.fileSystemRepresentation,&stageInfo) ||
         !S_ISDIR(stageInfo.st_mode) || stageInfo.st_uid!=0 || (stageInfo.st_mode&0022))
         return fail(output,GM_UNAUTHORIZED,@"The hosts writer did not return a safe session endpoint.");

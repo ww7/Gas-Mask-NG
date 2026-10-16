@@ -147,12 +147,12 @@
     Hosts *savedHosts = [notification object];
     for (CombinedHosts *hosts in [self hostsFilesContaining:savedHosts]) {
         logDebug(@"Hosts file \"%@\" saved in combined hosts file \"%@\"", [savedHosts name], [hosts name]);
+        BOOL compositionWasSaved = [hosts saved];
         [hosts hostsFileSaved:savedHosts];
-        [hosts save];
-        
-        if ([hosts active]) {
-            [self saveHostsFileToOriginalLocation:hosts];
-        }
+        // Source text changed, not the saved composition. Do not commit an
+        // in-progress drag/reorder, or apply that unsaved order from a timer.
+        [hosts setSaved:compositionWasSaved];
+        if ([hosts active]) [self restoreHostsToOriginalLocation:hosts];
     }
 }
 

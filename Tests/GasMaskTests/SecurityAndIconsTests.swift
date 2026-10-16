@@ -141,11 +141,25 @@ final class SecurityAndIconsTests: XCTestCase {
         XCTAssertEqual(changes, before)
     }
 
+    func testBootstrapParentRejectsGroupWritableAndSymbolicDirectories() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("gasmask-stage-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager.default.removeItem(at: directory) }
+        XCTAssertTrue(PrivilegedActions.trustedDirectory(atPath: directory.path, owner: getuid()))
+        try FileManager.default.setAttributes([.posixPermissions: 0o775], ofItemAtPath: directory.path)
+        XCTAssertFalse(PrivilegedActions.trustedDirectory(atPath: directory.path, owner: getuid()))
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+        let link = directory.appendingPathComponent("link")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: directory)
+        XCTAssertFalse(PrivilegedActions.trustedDirectory(atPath: link.path, owner: getuid()))
+        XCTAssertFalse(PrivilegedActions.trustedDirectory(atPath: directory.path, owner: getuid()+1))
+    }
+
     func testRemoteURLAndTextValidation() {
         for url in ["http://a.test/hosts", "https://user:pass@a.test/hosts", "https://a.test/hosts#part", "file:///tmp/hosts", "https://a.test:0/hosts", "https://a.test:65536/hosts"] {
             XCTAssertFalse(URLValidator.isValid(url), url)
         }
-        for text in ["<html>failure</html>", "127.0.0.1", "hello world", "127.0.0.1 a\0b", "127.0.0.1 <bad>", "127.0.0.1 a..b", "#" + String(repeating: "x", count: 65537)] {
+        for text in ["<html>failure</html>", "127.0.0.1", "hello world", "127.0.0.1 a\0b", "127.0.0.1 <bad>", "127.0.0.1 a..b", "#" + String(repeating: "x", count: 65537), "#" + String(repeating: "ї", count: 40000)] {
             XCTAssertFalse(HostsDownloader.isHostsText(text), text.prefix(40).description)
         }
         XCTAssertTrue(HostsDownloader.isHostsText("# comment\n127.0.0.1 localhost alias.test # note\n::1 ipv6.test\n"))

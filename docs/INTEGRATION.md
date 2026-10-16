@@ -125,3 +125,9 @@ The app retains manual GitHub release links instead of disabling library
 validation. Remote-list updates use the separate first-party downloader. The
 writer rejects callers with entitlements that allow library/DYLD/page-protection
 bypasses as well as get-task-allow.
+
+Final ww7.21 hardening verifies Darwin ACL return semantics, keeps newer caches
+pending across an administrator dialog, and prevents Remote source refreshes
+from committing or applying unsaved Combined composition order. A fresh HTTP 200
+without Last-Modified clears stale conditional-request metadata even when its
+text equals the cache. These cases have temporary-fixture regression coverage.

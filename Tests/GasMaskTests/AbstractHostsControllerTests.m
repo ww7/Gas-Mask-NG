@@ -2,17 +2,32 @@
 #import "AbstractHostsController.h"
 #import "Hosts.h"
 #import "CombinedHosts.h"
+#import "CombinedHostsController.h"
 #import "HostsGroup.h"
 #import <objc/runtime.h>
 
 // Concrete subclass for testing (groupName would be nil on the abstract base)
 @interface TestHostsController : AbstractHostsController
 @property (nonatomic, copy) NSString *fixtureSystemPath;
+@property (nonatomic, copy) void (^afterWrite)(void);
 @end
 
 @implementation TestHostsController
 - (NSString *)groupName { return @"TestGroup"; }
 - (NSString *)systemHostsFilePath { return self.fixtureSystemPath; }
+- (BOOL)writeSystemContents:(NSString*)contents allowAuthorization:(BOOL)interactive
+{
+    BOOL result = [super writeSystemContents:contents allowAuthorization:interactive];
+    if (self.afterWrite) self.afterWrite();
+    return result;
+}
+@end
+
+@interface TestCombinedController : CombinedHostsController
+@property (nonatomic, copy) NSString *fixtureSystemPath;
+@end
+@implementation TestCombinedController
+- (NSString*)systemHostsFilePath { return self.fixtureSystemPath; }
 @end
 
 static NSMutableArray<NSArray<NSString *> *> *launchedCommands;
@@ -196,6 +211,52 @@ static void recordTaskLaunch(NSTask *task, SEL selector) {
     XCTAssertTrue([actual containsString:@"saved.test"]);
     XCTAssertFalse([actual containsString:@"unsaved.test"]);
     XCTAssertFalse([actual containsString:@"Local/source"]);
+}
+
+- (void)testNewerCacheDuringApprovalRemainsPending
+{
+    Hosts *hosts = [self addHostsWithName:@"approval-race"];
+    [hosts setContents:@"127.0.0.1 approved-snapshot.test"];
+    [hosts save];
+    self.controller.afterWrite = ^{
+        [hosts setContents:@"127.0.0.1 newer-cache.test"];
+        [hosts save];
+    };
+    XCTAssertTrue([self.controller activateHostsFile:hosts]);
+    XCTAssertTrue(hosts.active);
+    XCTAssertTrue(hosts.saved);
+    XCTAssertTrue(hosts.systemApplyPending);
+    NSString *actual = [NSString stringWithContentsOfFile:self.controller.fixtureSystemPath encoding:NSUTF8StringEncoding error:nil];
+    XCTAssertTrue([actual containsString:@"approved-snapshot.test"]);
+    XCTAssertFalse([actual containsString:@"newer-cache.test"]);
+    XCTAssertTrue([[hosts contentsOnDisk] containsString:@"newer-cache.test"]);
+    self.controller.afterWrite = nil;
+    [self.controller saveHosts:hosts allowAuthorization:YES];
+    XCTAssertTrue(hosts.saved);
+    XCTAssertFalse(hosts.systemApplyPending);
+}
+
+- (void)testSourceRefreshNeverCommitsOrAppliesUnsavedCombinedOrder
+{
+    Hosts *first = [self addHostsWithName:@"first"];
+    Hosts *second = [self addHostsWithName:@"second"];
+    [first setContents:@"127.0.0.1 first.test"];[first save];
+    [second setContents:@"127.0.0.1 second.test"];[second save];
+    CombinedHosts *combined = [[CombinedHosts alloc] initWithPath:[self.tempDir stringByAppendingPathComponent:@"combined.hst"] allHostsFiles:@[first,second]];
+    [combined setHostsFiles:@[first,second]];[combined save];[combined setActive:YES];
+    NSString *savedIndex = [NSString stringWithContentsOfFile:combined.path encoding:NSUTF8StringEncoding error:nil];
+    [combined setHostsFiles:@[second,first]];
+    TestCombinedController *controller = [[TestCombinedController alloc] init];
+    controller.fixtureSystemPath = self.controller.fixtureSystemPath;
+    [controller.hostsFiles addObject:combined];
+    [first setContents:@"127.0.0.2 refreshed.test"];[first save];
+    [[NSNotificationCenter defaultCenter] postNotificationName:HostsFileSavedNotification object:first];
+    XCTAssertFalse(combined.saved);
+    XCTAssertEqualObjects([NSString stringWithContentsOfFile:combined.path encoding:NSUTF8StringEncoding error:nil],savedIndex);
+    XCTAssertEqualObjects([[combined hostsFiles] firstObject],second);
+    NSString *applied = [NSString stringWithContentsOfFile:controller.fixtureSystemPath encoding:NSUTF8StringEncoding error:nil];
+    XCTAssertLessThan([applied rangeOfString:@"refreshed.test"].location,[applied rangeOfString:@"second.test"].location);
+    XCTAssertFalse(combined.systemApplyPending);
 }
 
 @end
