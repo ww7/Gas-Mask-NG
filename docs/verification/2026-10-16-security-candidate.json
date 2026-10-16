@@ -36,5 +36,15 @@
   "newer_cache_during_authorization_tested": true,
   "unsaved_combined_order_preserved_on_refresh": true,
   "legacy_acl_detected_with_temporary_fixtures": true,
-  "vnode_content_metadata_self_read_events": 2
+  "vnode_content_metadata_self_read_events": 2,
+  "source_revision": "1814a9f1a9c670592556f83a813b9e9f630d3d84",
+  "archive_sha256": "16a1f2b8dd40a5f9aa1f301f719b9c3f6b72b12a99f26839c151061d5b5666d0",
+  "universal_mach_o_count": 3,
+  "compiled_writer_hash_matches": true,
+  "only_system_dynamic_dependencies": true,
+  "archive_owner_data_included": false,
+  "installed": true,
+  "profiles_and_preferences_preserved": true,
+  "system_hosts_contents_and_permissions_unchanged": true,
+  "launched_after_installation": false
 }

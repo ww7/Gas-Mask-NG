@@ -2,8 +2,8 @@
 
 ## ww7.21 local security candidate
 
-16 October 2026. Source prepared for `0.8.7-ww7.21` / `20261016.21`; archive and
-installation evidence will be appended after packaging.
+16 October 2026. Built and installed `0.8.7-ww7.21` / `20261016.21`.
+Exact application source: `1814a9f1a9c670592556f83a813b9e9f630d3d84`.
 
 - Full `scripts/test.sh`: **166 passed, 0 failed, 0 skipped, no runtime warnings**,
   including the performance suite. Result: `build/TestResults-20261016T033541Z.xcresult`.
@@ -22,7 +22,7 @@ installation evidence will be appended after packaging.
 - Rename tests require the actual native field editor. The desktop declined
   programmatic activation in this run (printed in diagnostics); actual rename,
   blur/submit/cancel and editor-focus assertions passed.
-- Xcode analyze completed (`build/security-approved-analysis.log`); legacy non-ARC
+- Xcode analyze completed (`build/security-delivery-analysis.log`); legacy non-ARC
   test-fixture retention diagnostics remain. Release scheme analysis requires
   ENABLE_TESTABILITY=YES for its XCTest targets. This is not a zero-warning claim.
 - Current-source Gitleaks: no findings. OSV: no advisories for pinned MASShortcut.
@@ -34,6 +34,26 @@ admin approval/cancellation, crash teardown, old root ACL conversion, physical
 Intel and sleep/wake/login-item acceptance remain before a stable public release.
 No owner profile or live hosts file was used by fixtures. See
 [SECURITY-BOUNDARIES.md](SECURITY-BOUNDARIES.md). Publication needs separate approval.
+
+Verified release archive:
+`dist/0.8.7-ww7.21-1814a9f1a9c6/gas_mask_0.8.7-ww7.21_1814a9f1a9c6_universal.zip`.
+SHA-256: `16a1f2b8dd40a5f9aa1f301f719b9c3f6b72b12a99f26839c151061d5b5666d0`.
+Three Mach-O executables (app, session writer, login launcher) each contain arm64
+and x86_64, carry local hardened-runtime signatures, and depend only on system
+dynamic libraries. The exact packaged writer hash matches the executable's pin.
+Archive inspection found only the repository default.hst and default preferences;
+no owner lists, preferences, receipts or backups. Legal notices and GPL source
+reference are included. BUILD-INFO.json and SHA256SUMS accompany the ZIP.
+
+Installed bundle is byte-identical to the verified extracted archive. Profiles,
+effective defaults, preference files, and system hosts contents/permissions were
+unchanged. The app remains closed; no profile was activated. Original ww7.20 and
+its data backup remain under `~/Library/Application Support/ww7/Gas Mask Backups/2026-10-16T032102Z-ww7.21/`;
+the final replacement backup/receipt is under the `2026-10-16T034037Z-ww7.21/`
+sibling. Local receipt: `build/install-ww7.21-receipt.json`. Earlier intermediate
+ZIPs in dist are marked superseded. These backups/receipts are never release assets.
+No source push or release upload was performed. Later documentation-only commits
+may follow the packaged source revision; they do not change the installed code.
 
 ## Previous ww7.20 baseline
 
