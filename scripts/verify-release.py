@@ -13,6 +13,7 @@ root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser()
 parser.add_argument('archive', type=Path)
 parser.add_argument('--test-result', required=True, type=Path)
+parser.add_argument('--root-acceptance', type=Path, help='Recorded disposable-Mac evidence for these exact writer bytes')
 args = parser.parse_args()
 archive = args.archive.resolve()
 
@@ -66,9 +67,17 @@ with tempfile.TemporaryDirectory(prefix='gasmask-release-check-') as temporary:
     snapshot = json.loads((root / 'docs/upstream-open-prs.json').read_text())
     for pr in snapshot['pull_requests']:
         subprocess.run(['git', 'merge-base', '--is-ancestor', pr['head_sha'], revision], cwd=root, check=True)
+    root_evidence = None
+    if args.root_acceptance:
+        root_evidence = json.loads(args.root_acceptance.read_text())
+        assert root_evidence['root_acceptance_passed'] is True
+        assert root_evidence['hosts_writer_sha256'] == helper_hash
+        assert root_evidence['cases'] and all(value is True for value in root_evidence['cases'].values())
+        assert root_evidence['owner_profiles_or_preferences_used'] is False
+        assert root_evidence['host_system_hosts_written'] is False
     metadata = {
         'version': info['WW7BuildLabel'], 'internal_build': info['CFBundleVersion'],
-        'source_revision': revision, 'public_release': False, 'stable_acceptance_complete': False,
+        'source_revision': revision, 'distribution_channel': 'public prerelease candidate', 'stable_acceptance_complete': False,
         'built_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         'bundle_identifier': info['CFBundleIdentifier'], 'minimum_macos': info['LSMinimumSystemVersion'],
         'archive': archive.name, 'archive_sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
@@ -79,7 +88,8 @@ with tempfile.TemporaryDirectory(prefix='gasmask-release-check-') as temporary:
         'skipped_tests': summary['skippedTests'], 'runtime_warnings': summary.get('runtimeWarnings', []),
         'full_test_suite_run': True, 'storage_assertions': 28, 'native_security_assertions': 240, 'signature_test_configurations': 3,
         'owner_profiles_or_preferences_included': False, 'bundled_hosts_file': 'Resources/default.hst (repository default only)',
-        'remaining_acceptance': ['administrator approval/cancellation and teardown on disposable macOS', 'physical Intel, sleep/wake and login-item lifecycle'],
+        'isolated_root_acceptance': root_evidence,
+        'remaining_acceptance': ([] if root_evidence else ['administrator approval/cancellation and teardown on disposable macOS']) + ['physical Intel, sleep/wake, login-item and uninstall lifecycle'],
     }
     output = archive.parent / 'BUILD-INFO.json'
     output.write_text(json.dumps(metadata, indent=2) + '\n')

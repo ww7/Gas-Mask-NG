@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-16",
+  "scope": "Disposable macOS root-writer acceptance; synthetic data only",
+  "environment": {
+    "tool": "Tart 2.41.1",
+    "image": "ghcr.io/cirruslabs/macos-tahoe-base@sha256:4aaa751fa7538902d73c767f27a066fc87e83f183069da4e4b5022863abd4c77",
+    "macos": "26.6.2 (25G83)",
+    "hardware_model": "VirtualMac2,1",
+    "architecture": "arm64",
+    "gatekeeper_assessments_enabled": true,
+    "network": "host-only",
+    "host_directory_shares": false,
+    "clipboard_sharing": false
+  },
+  "hosts_writer_sha256": "8b5548d6915dca982277dfccce7b9dc9b605b2a420c2e29787e4c33697c385ee",
+  "production_client_implementation": "Source/PrivilegedActions.m (unchanged, linked into guarded test GUI)",
+  "root_acceptance_passed": true,
+  "cases": {
+    "background_refused_without_prompt": true,
+    "native_admin_cancel_preserves_target_and_acl": true,
+    "native_admin_approve_atomic_write": true,
+    "second_write_without_new_authorization": true,
+    "legacy_user_write_acl_removed": true,
+    "root_wheel_0644_empty_acl": true,
+    "normal_session_end_removes_helper_and_stage": true,
+    "client_sigkill_eof_cleanup": true,
+    "fresh_client_session": true,
+    "intervening_edit_during_approval_preserved": true,
+    "wrong_pid_then_valid_peer": true,
+    "wrong_cdhash_refused": true,
+    "malformed_protocol_refused": true,
+    "initial_connection_deadline_cleanup": true,
+    "symlink_target_refused": true,
+    "hardlink_target_refused": true,
+    "release_app_native_authorized_activation": true
+  },
+  "guest_native_core_assertions": {
+    "ordinary_user": 80,
+    "root": 80
+  },
+  "owner_profiles_or_preferences_used": false,
+  "host_system_hosts_written": false,
+  "limits": [
+    "Physical Intel execution, sleep/wake, login-item and uninstall lifecycle remain unverified.",
+    "A scoped security review and these checks do not prove the absence of every vulnerability."
+  ]
+}

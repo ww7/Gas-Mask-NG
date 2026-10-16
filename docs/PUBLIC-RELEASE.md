@@ -50,19 +50,30 @@ for Apple Silicon integrity and helper identity; they do not authenticate a
 publisher. Apple Developer Program enrollment is deferred, not a prerequisite we
 will silently reintroduce. No self-update appcast is enabled.
 
+## ww7.22 isolated acceptance and publication
+
+The owner authorized GitHub publication after isolated root checks on 16 October
+2026. Those checks passed on a disposable macOS 26.6.2 arm64 guest with Gatekeeper
+enabled, host-only networking, no shared host directories and synthetic lists.
+The exact production writer was exercised through native administrator approval
+and cancellation, a second write without a new dialog, legacy ACL conversion,
+normal and crash teardown, fresh sessions and an intervening edit during approval.
+Incorrect PID/CDHash peers, malformed messages, connection timeout, symlink and
+hard-link targets were refused. The release app also activated the synthetic list
+through the native administrator dialog. See
+[recorded evidence](verification/2026-10-16-isolated-root-acceptance.json).
+
 Remaining public-stability acceptance gates:
 
-1. Complete the administrator-approval/cancellation and helper teardown lifecycle
-   on a disposable macOS installation; verify the original root ownership, old
-   ACL conversion, crash/restart and a second app session. Local native tests
-   use temporary ordinary files, not a real root hosts target.
-2. Exercise reconnect/sleep/wake, login item and uninstall on disposable profiles.
+1. Exercise reconnect/sleep/wake, login item and uninstall on disposable profiles.
    Universal architecture inspection does not replace execution on physical Intel.
-3. Review exact archive/source checksums and the clean data boundary before
-   publication. Only bundled defaults may be included, never the owner's lists,
-   preferences, backups or local verification receipts.
-4. Obtain the owner's separate publication authorization. Preparing and installing
-   a local candidate does not authorize pushing changes or uploading releases.
+2. Continue user acceptance on supported macOS versions. These scoped checks do
+   not establish the absence of every defect or vulnerability.
+
+The exact archive is inspected for source identity, helper pin, both architectures,
+local signatures and bundled defaults. Owner profiles, preferences, backups, local
+receipts and VM credentials must never be publication assets. The GitHub binary is
+published as a **prerelease candidate** while the lifecycle gates above remain.
 
 The absence of Developer ID means this is an explicitly unsigned-distribution
 candidate, not a notarized download. Do not label it stable until the outstanding

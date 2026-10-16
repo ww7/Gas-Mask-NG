@@ -1,6 +1,6 @@
 # Security boundaries for the unsigned release candidate
 
-16 October 2026. Applies to the ww7.21 implementation. This document describes
+16 October 2026. Applies to the ww7.21–ww7.22 implementation. This document describes
 reviewed boundaries and fixture evidence; it is not an assertion of zero bugs.
 
 ## System hosts writer
@@ -92,9 +92,9 @@ root-service trust relationship.
 
 Native core sanitizer fixtures cover success, metadata/ACL cleanup, bad targets,
 CAS conflicts, write/sync/exchange failures, rollback and peer rejection. Real
-administrator approval/cancellation, staging cleanup after app crash/restart,
-legacy ACL conversion under root, sleep/wake and physical Intel execution still
-need disposable-Mac acceptance. No root acceptance test used the owner's hosts.
+Administrator approval/cancellation, crash cleanup and legacy ACL conversion
+now have disposable-Mac evidence below. Sleep/wake and physical Intel execution
+still need acceptance. No root acceptance test used the owner's hosts.
 Source review and automated scanning cannot establish the absence of all defects
 or malicious behavior in every dependency. See BUILD-STATUS.md for exact results.
 
@@ -129,3 +129,15 @@ unsafe, even if its text matches. This enables Activate to repair a legacy write
 ACL without switching lists. Attribute-change events are monitored too. Startup
 and installation do not repair permissions or request administrator approval;
 the first explicit approved activation performs the atomic permission cleanup.
+
+## Disposable macOS acceptance (ww7.22)
+
+The real root path was exercised on macOS 26.6.2 in an isolated VirtualMac arm64
+guest, with no owner data or host system-file changes. Native authorization
+approval/cancellation, same-session reuse, ACL removal, root ownership and 0644
+mode, CAS conflicts, crash EOF cleanup and fresh sessions passed. Real helper
+protocol checks refused wrong PID/CDHash, malformed messages, symlink/hard-link
+targets and expired initial connections. The exact release writer hash is in
+[the sanitized evidence](verification/2026-10-16-isolated-root-acceptance.json).
+The guarded clients and reproduction procedure live in Tests/IsolatedMac.
+Physical Intel and sleep/wake/login/uninstall acceptance remain open.

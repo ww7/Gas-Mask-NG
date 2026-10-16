@@ -1,5 +1,55 @@
 # Build status
 
+## ww7.22 public prerelease candidate
+
+16 October 2026. Version `0.8.7-ww7.22` / `20261016.22`.
+Exact packaged application source: `219c16baaaf982795dc356808e9674aea3621039`.
+
+- Final `scripts/test.sh`: **167 passed, 0 failed, 0 skipped, no runtime warnings**.
+  Result: `build/TestResults-20261016T044510Z.xcresult`. Storage: **28** assertions;
+  native sanitizer/peer checks: **80 × 3 = 240** assertions.
+- Actual root acceptance **passed** on a disposable macOS 26.6.2 arm64 VM.
+  Native approval/cancel, same-session reuse, legacy ACL conversion, root:wheel
+  0644/empty ACL, crash EOF cleanup, fresh sessions and intervening-edit CAS
+  conflict all passed. Wrong PID/CDHash, malformed requests, initial timeout,
+  symlink and hard-link targets were refused. The release app also activated
+  a synthetic list through the native administrator dialog. No owner data was
+  copied into the guest; host hosts content and permissions were never changed.
+  Reproduction: `Tests/IsolatedMac/README.md`;
+  [sanitized evidence](verification/2026-10-16-isolated-root-acceptance.json).
+- **14** shared Icon × Dock palette combinations, persistence/migration/fallback,
+  template light/dark/1x/2x renderings and unchanged Dock visibility policy passed.
+  Native guest UI confirmed the two aligned controls, exact preview, and immediate
+  Mask → Balloon changes in both Dock and menu bar.
+- Combined diagnostic text now explicitly describes cross-file address-set
+  differences; identical repeats and IPv4/IPv6 pairs are not conflicts.
+- The initial editor is presented after AppKit finishes launching, with activation
+  deferred across an accessory-to-regular registration change. Guest UI actions
+  through remote display required observing completion before the next action;
+  no claim that remote-display latency itself is an application defect.
+
+Verified universal ZIP:
+`dist/0.8.7-ww7.22-219c16baaaf9/gas_mask_0.8.7-ww7.22_219c16baaaf9_universal.zip`.
+SHA-256: `1ab5e613c9f479ee1591b96324cfd6d2fcf62e409f9a55f04d4c90fff51a04ab`.
+All three executables are arm64+x86_64 with local hardened-runtime ad-hoc
+signatures and only system dynamic dependencies. The packaged writer hash
+exactly matches both the main executable pin and the writer tested as root.
+ZIP inspection permits only repository default.hst/default preferences; no owner
+lists/settings, backups, VM credentials or installation receipts are included.
+BUILD-INFO.json includes the isolated evidence; SHA256SUMS covers both assets.
+
+The owner authorized GitHub push and release publication after the isolated root
+checks. Distribution remains a **prerelease**, without Developer ID/notarization;
+physical Intel and sleep/wake/login/uninstall lifecycle checks remain open.
+Earlier candidate statements below describe their historical state only.
+
+Installed ww7.22 in `/Applications/Gas Mask.app`, byte-identical to the verified
+archive. Profiles/settings files and effective defaults match the pre-install
+backup. Host `/etc/hosts` contents, inode, ownership, mode and ACL are unchanged.
+The app remains closed after installation. Previous app/data are backed up under
+`~/Library/Application Support/ww7/Gas Mask Backups/2026-10-16T044842Z-ww7.22/`.
+Private receipt: `build/install-ww7.22-receipt.json` (not a public asset).
+
 ## ww7.21 local security candidate
 
 16 October 2026. Built and installed `0.8.7-ww7.21` / `20261016.21`.
