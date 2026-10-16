@@ -23,12 +23,13 @@
 #import "HostsMainController.h"
 #import "HostsMenu.h"
 #import "Preferences.h"
+#import "Gas_Mask-Swift.h"
 
 @implementation Menulet
 
 - (void)awakeFromNib
 {
-    NSImage *icon = [NSImage imageNamed:@"menuIcon"];
+    NSImage *icon = [[IconPreferences shared] menuBarImage];
 
     statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
     [[statusItem button] setEnabled:true];
@@ -38,6 +39,8 @@
     [[statusItem button] setTitle:@""];
     [[statusItem button] setToolTip:@"Gas Mask"];
 
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateIcon)
+        name:@"GasMaskMenuBarIconChanged" object:[IconPreferences shared]];
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults addObserver:self
                forKeyPath:ShowNameInStatusBarKey
@@ -54,6 +57,10 @@
     if ([Preferences showNameInStatusBar]) {
         [self initTitleInBar];
     }
+}
+
+- (void)updateIcon {
+    [[statusItem button] setImage:[[IconPreferences shared] menuBarImage]];
 }
 
 -(void) initTitleInBar {
@@ -93,6 +100,8 @@
 }
 
 -(void)dealloc {
+    [[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults removeObserver:self forKeyPath:ActiveHostsFilePrefKey];
     [defaults removeObserver:self forKeyPath:ShowNameInStatusBarKey];

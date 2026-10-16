@@ -42,6 +42,8 @@
 
 - (NSString*)systemHostsFilePath;
 - (BOOL)saveHostsFileToOriginalLocation:(Hosts*)hosts;
+- (BOOL)saveHostsFileToOriginalLocation:(Hosts*)hosts allowAuthorization:(BOOL)interactive;
+- (BOOL)writeSystemContents:(NSString*)contents allowAuthorization:(BOOL)interactive;
 
 // Should be overridden
 - (NSString*)groupName;

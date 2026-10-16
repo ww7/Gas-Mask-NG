@@ -147,7 +147,7 @@
 	NSString *name = [self generateName:baseName];
 	
 	Hosts *hosts = [[Hosts alloc] initWithPath: [self constructPath:name]];
-	NSString *contents = contents = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:NULL];
+	NSString *contents = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:NULL];
 	[hosts setContents:contents];
 	[hosts save];
 	

@@ -20,8 +20,6 @@
 
 #import "HostsMainController.h"
 
-@class SPUStandardUpdaterController;
-@class SPUUpdater;
 
 
 @interface ApplicationController : NSObject {
@@ -30,17 +28,16 @@
 	IBOutlet NSMenuItem *checkForUpdatesMenuItem;
 	BOOL shouldQuit;
 	BOOL editorWindowOpened;
-	SPUStandardUpdaterController *_updaterController;
 }
 
 + (ApplicationController*)defaultInstance;
 
-@property (nonatomic, readonly) SPUUpdater *updater;
 
 - (IBAction)openPreferencesWindow:(id)sender;
 - (IBAction)displayAboutBox:(id)sender;
 - (IBAction)reportBugs:(id)sender;
 - (IBAction)donate:(id)sender;
+- (IBAction)openReleases:(id)sender;
 - (IBAction)quit:(id)sender;
 - (IBAction)openEditorWindow:(id)sender;
 - (IBAction)closeEditorWindow:(id)sender;
@@ -54,5 +51,6 @@
 - (IBAction)findInAllProfiles:(id)sender;
 - (IBAction)showEditorHelp:(id)sender;
 - (BOOL)editorWindowOpened;
+- (NSMenu*)applicationDockMenu:(NSApplication*)sender;
 
 @end

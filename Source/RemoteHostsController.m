@@ -89,6 +89,7 @@
 
 - (Hosts*)createHostsFromURL:(NSURL*)url
 {
+    if (![HostsDownloader isAllowedURL:url]) return nil;
 	if ([self hostsFileWithURLExists:url]) {
 		return nil;
 	}
@@ -116,6 +117,7 @@
 
 - (BOOL)canCreateHostsFromURL:(NSURL*)url
 {
+    if (![HostsDownloader isAllowedURL:url]) return NO;
 	for (int i=0; i<[[self hostsFiles] count]; i++) {
 		RemoteHosts *hosts = [[self hostsFiles] objectAtIndex:i];
 		if ([[hosts url] isEqual:url]) {

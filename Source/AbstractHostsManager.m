@@ -35,6 +35,11 @@
 	return self;
 }
 
+- (HostsDownloader*)makeDownloaderForHosts:(Hosts*)hosts url:(NSURL*)url
+{
+    return [[HostsDownloader alloc] initWithHosts:hosts url:url];
+}
+
 - (void)initializeHosts:(Hosts*)hosts url:(NSURL*)url
 {
 	logDebug(@"Initializing hosts: \"%@\"", [hosts name]);
@@ -48,7 +53,7 @@
 		return;
 	}
 	
-	HostsDownloader *downloader = [[HostsDownloader alloc] initWithHosts:hosts url:url];
+	HostsDownloader *downloader = [self makeDownloaderForHosts:hosts url:url];
     [self addDownloader:downloader];
     
 	[downloader setInitialLoad:YES];

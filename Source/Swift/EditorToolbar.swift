@@ -93,7 +93,7 @@ struct EditorToolbar: ToolbarContent {
             .help("Activate the selected hosts file")
             .disabled(
                 store.selectedHosts == nil
-                || store.selectedHosts?.active() == true
+                || (store.selectedHosts?.active() == true && store.selectedHosts?.systemApplyPending != true)
                 || store.selectedHosts?.exists != true
             )
         }

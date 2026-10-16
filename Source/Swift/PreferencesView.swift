@@ -29,6 +29,7 @@ struct GeneralTab: View {
             }
             .pickerStyle(.menu)
             .onChange(of: appAppearance) { _ in AppAppearance.applyPreference() }
+            IconSettingsView()
             Toggle("Open at Login", isOn: $loginItemObserver.isEnabled)
             Toggle("Override external modifications", isOn: $overrideExternalModifications)
             Toggle("Show Host File Name in Menu Bar", isOn: $showNameInStatusBar)
@@ -115,27 +116,10 @@ struct HotkeysTab: View {
 // MARK: - Update Tab
 
 struct UpdateTab: View {
-    @StateObject private var sparkleObserver = SparkleObserver()
-
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if Bundle.main.object(forInfoDictionaryKey: "WW7ForkBuild") as? Bool == true {
-                Text("Updates for Gas Mask NG are available on GitHub.")
-                Link("Open Releases", destination: URL(string: "https://github.com/ww7/gas-mask-ng/releases")!)
-            } else {
-                Toggle("Automatically check for updates", isOn: Binding(
-                    get: { sparkleObserver.automaticChecksEnabled },
-                    set: { sparkleObserver.setAutomaticChecks($0) }
-                ))
-
-                Text(sparkleObserver.lastCheckDateFormatted)
-                    .font(.caption)
-
-                Button("Check Now") {
-                    sparkleObserver.checkForUpdates()
-                }
-                .disabled(!sparkleObserver.canCheckForUpdates)
-            }
+            Text("Updates for Gas Mask NG are available on GitHub.")
+            Link("Open Releases", destination: URL(string: "https://github.com/ww7/gas-mask-ng/releases")!)
         }
     }
 }

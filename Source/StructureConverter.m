@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #import "StructureConverter.h"
+#import <sys/stat.h>
 #import "PrivilegedActions.h"
 #import "FileUtil.h"
 #import "Preferences.h"
@@ -29,8 +30,6 @@
 @interface StructureConverter(Private)
 - (BOOL)isVersion04Structure;
 - (BOOL)isOriginalStructure;
-- (void)restoreOriginalHostsFile;
-- (void)remove04DataDirectory;
 - (void)copy04FilesToDataDirectory;
 - (void)createDataFolders;
 - (void)createDataFolder:(NSString*)path;
@@ -54,22 +53,12 @@
 	if ([self isVersion04Structure]) {
 		logDebug(@"Has version 0.4 structure");
 		
-		[PrivilegedActions authorizeWithPrompt:@"Gas Mask needs to convert data from version 0.4.\n"];
-		
-		if (![PrivilegedActions authorized]) {
-			NSAlert *alert = [NSAlert
-				alertWithMessageText:@"Unable to Convert From Version 0.4"
-				defaultButton:nil
-				alternateButton:nil
-				otherButton:nil
-				informativeTextWithFormat:@"Gas Mask is unable to convert data from version 0.4 without root privileges. Gas Mask is closing."];
-			[alert runModal];
-			[[NSApplication sharedApplication] terminate:self];
-		}
-		
-		[self restoreOriginalHostsFile];
-		[self copy04FilesToDataDirectory];
-		[self remove04DataDirectory];
+        [self copy04FilesToDataDirectory];
+        if (originalStructure) [self copyOriginalHostsFileToDataDirectory];
+        // Legacy /etc/gasmask and any system symlink are left untouched.
+        // Activation requires a regular root-owned hosts file; repair an old
+        // system symlink manually instead of issuing generic root commands.
+
 	}
 	else if (originalStructure) {
 		logDebug(@"Original structure");
@@ -93,39 +82,17 @@
 	return ![manager fileExistsAtPath:[FileUtil dataDirectory]];
 }
 
-- (void)restoreOriginalHostsFile
-{
-	NSFileManager *manager = [NSFileManager defaultManager];
-	NSString *source = [manager destinationOfSymbolicLinkAtPath:HostsOriginalLocation error:nil];
-	
-	if (source == nil) {
-		[self copyOriginalHostsFileToDataDirectory];
-	}
-	else {
-		[PrivilegedActions removeFile:HostsOriginalLocation];
-		[PrivilegedActions copyFile:source to:HostsOriginalLocation];
-	}
-}
-
-- (void)remove04DataDirectory
-{
-	[PrivilegedActions removeFile:Version04DataDirectory];
-}
-
 - (void)copy04FilesToDataDirectory
 {
-	NSDirectoryEnumerator *enumerator  = [[NSFileManager defaultManager] enumeratorAtPath: Version04DataDirectory];
-	NSString *file;
-	NSFileManager *manager = [NSFileManager defaultManager];
-	
-	while (file = [enumerator nextObject]) {
-		logDebug(@"File: %@", file);
-		NSString *source = [Version04DataDirectory stringByAppendingString:file];
-		NSString *destination = [[FileUtil localHostFilesDirectory] stringByAppendingString:file];
-		destination = [destination stringByAppendingPathExtension:HostsFileExtension];
-
-		[manager copyItemAtPath:source toPath:destination error:nil];
-	}
+    NSFileManager *manager = NSFileManager.defaultManager;
+    for (NSString *file in [manager contentsOfDirectoryAtPath:Version04DataDirectory error:nil]) {
+        NSString *source = [Version04DataDirectory stringByAppendingPathComponent:file];
+        struct stat info;
+        if (lstat(source.fileSystemRepresentation, &info) || !S_ISREG(info.st_mode) || info.st_nlink != 1 || info.st_size > 32*1024*1024) continue;
+        NSString *destination = [[[FileUtil localHostFilesDirectory] stringByAppendingPathComponent:file] stringByAppendingPathExtension:HostsFileExtension];
+        // copyItem refuses to overwrite existing profiles on subsequent launches.
+        [manager copyItemAtPath:source toPath:destination error:nil];
+    }
 }
 
 - (void)createDataFolders
@@ -152,7 +119,9 @@
 	[destination appendString:HostsFileExtension];
 	
 	NSFileManager *manager = [NSFileManager defaultManager];
-	[manager copyItemAtPath:HostsOriginalLocation toPath:destination error:nil];
+	if ([manager fileExistsAtPath:destination]) return;
+    NSString *text = [PrivilegedActions currentSystemContents];
+    if (!text || ![text writeToFile:destination atomically:YES encoding:NSUTF8StringEncoding error:nil]) return;
 	
 	[Preferences setActiveHostsFile:destination];
 }

@@ -7,8 +7,8 @@ final class URLValidatorTests: XCTestCase {
         XCTAssertFalse(URLValidator.isValid(""))
     }
 
-    func testHTTPURL_isTrue() {
-        XCTAssertTrue(URLValidator.isValid("http://example.com/hosts"))
+    func testHTTPURL_isFalse() {
+        XCTAssertFalse(URLValidator.isValid("http://example.com/hosts"))
     }
 
     func testHTTPSURL_isTrue() {
@@ -23,8 +23,8 @@ final class URLValidatorTests: XCTestCase {
         XCTAssertFalse(URLValidator.isValid("example.com"))
     }
 
-    func testHTTPBareScheme_isTrue() {
-        // Matches ObjC parity: URL(string:) returns non-nil for "http://"
-        XCTAssertTrue(URLValidator.isValid("http://"))
+    func testHTTPBareScheme_isFalse() {
+        // A scheme alone is never a usable Remote source.
+        XCTAssertFalse(URLValidator.isValid("http://"))
     }
 }

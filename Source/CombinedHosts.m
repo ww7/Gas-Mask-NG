@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #import "CombinedHosts.h"
+#import "HostsMainController.h"
 
 @interface CombinedHosts (Private)
 
@@ -101,8 +102,29 @@
         [data appendFormat:@"%@/%@\n", [hosts type], [hosts name]];
     }
     
-	[data writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:NULL];
-	[self setSaved:YES];
+    BOOL success = [data writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:NULL];
+    [self setSaved:success];
+}
+
+- (NSString*)systemContentsOnDisk
+{
+    // The .hst file stores source references, not hosts mappings. Restore the
+    // saved composition and saved source text, never an unsaved editor buffer.
+    NSArray *candidates = [[[HostsMainController defaultInstance] allHostsFiles] arrayByAddingObjectsFromArray:files] ?: files;
+    NSMutableString *result = [NSMutableString new];
+    for (NSString *reference in [[super contentsOnDisk] componentsSeparatedByString:@"\n"]) {
+        if (!reference.length) continue;
+        NSArray *parts = [reference componentsSeparatedByString:@"/"];
+        if (parts.count != 2) return nil;
+        Hosts *found = nil;
+        for (Hosts *source in candidates) {
+            if (![source isKindOfClass:CombinedHosts.class] && [[source type] isEqual:parts[0]] && [[source name] isEqual:parts[1]]) { found = source; break; }
+        }
+        NSString *text = [found contentsOnDisk];
+        if (!text) return nil;
+        [result appendFormat:@"# Hosts File: %@\n\n%@\n\n", [found name], text];
+    }
+    return result;
 }
 
 - (NSString*)type

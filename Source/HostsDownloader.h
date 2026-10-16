@@ -31,7 +31,7 @@
 @end
 
 
-@interface HostsDownloader : NSObject {
+@interface HostsDownloader : NSObject <NSURLSessionDataDelegate> {
 	@private
 	BOOL initialLoad;
 	Hosts *hosts;
@@ -41,7 +41,14 @@
 	NSString *contentType;
 	Error *error;
 	NSObject<HostsDownloaderDelegate>* delegate;
-	BOOL upToDate;
+    BOOL upToDate;
+    NSURLSession *session;
+    NSMutableData *receivedData;
+    NSHTTPURLResponse *httpResponse;
+    BOOL finished;
+    BOOL sentConditional;
+    NSUInteger redirects;
+    NSURLSessionConfiguration *configuration;
 }
 
 @property (readonly) Hosts* hosts;
@@ -51,6 +58,10 @@
 @property BOOL initialLoad;
 
 - (id)initWithHosts:(Hosts*)hostsValue url:(NSURL*)urlValue;
++ (BOOL)isAllowedURL:(NSURL*)value;
++ (NSUInteger)maximumDownloadBytes;
++ (BOOL)isHostsText:(NSString*)text;
+- (id)initWithHosts:(Hosts*)hostsValue url:(NSURL*)urlValue sessionConfiguration:(NSURLSessionConfiguration*)config;
 - (void)setDelegate:(NSObject<HostsDownloaderDelegate>*)delegateValue;
 - (void)download;
 

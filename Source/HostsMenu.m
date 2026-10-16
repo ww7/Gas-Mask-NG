@@ -60,7 +60,7 @@
 -(IBAction)activateHostsFile:(id)sender
 {
     Hosts *hosts = (Hosts*)[sender representedObject];
-    if (![hosts active]) {
+    if (![hosts active] || hosts.systemApplyPending) {
         [[HostsMainController defaultInstance] activateHostsFile:hosts];
     }
 }
@@ -109,7 +109,7 @@
 		}
 		
 		if ([hosts active]) {
-			[item setState:NSOnState];
+			[item setState:hosts.systemApplyPending ? NSMixedState : NSOnState];
 		}
 		
 		[self addItem:item];

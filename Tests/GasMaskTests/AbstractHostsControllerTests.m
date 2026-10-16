@@ -1,6 +1,7 @@
 #import <XCTest/XCTest.h>
 #import "AbstractHostsController.h"
 #import "Hosts.h"
+#import "CombinedHosts.h"
 #import "HostsGroup.h"
 #import <objc/runtime.h>
 
@@ -167,18 +168,34 @@ static void recordTaskLaunch(NSTask *task, SEL selector) {
         [hosts setContents:@"unsaved buffer"];
         XCTAssertTrue([self.controller restoreHostsToOriginalLocation:hosts]);
         XCTAssertEqualObjects([NSString stringWithContentsOfFile:self.controller.fixtureSystemPath encoding:NSUTF8StringEncoding error:NULL], [onDisk stringByAppendingString:@"\n\n"]);
-        XCTAssertEqual(launchedCommands.count, 4u);
+        XCTAssertEqual(launchedCommands.count, 0u);
         for (NSArray *command in launchedCommands) {
             XCTAssertEqualObjects(command, (@[@"/usr/bin/dscacheutil", @"-flushcache"]));
         }
         [hosts setActive:NO];
         [hosts setContents:@"local save"];
         [self.controller saveHosts:hosts];
-        XCTAssertEqual(launchedCommands.count, 4u, @"Saving an inactive profile must not touch the system cache");
+        XCTAssertEqual(launchedCommands.count, 0u, @"Saving an inactive profile must not touch the system cache");
     } @finally {
         method_setImplementation(launch, original);
         launchedCommands = nil;
     }
+}
+
+- (void)testCombinedRestoreUsesSavedSourceTextAndOrder
+{
+    Hosts *source = [self addHostsWithName:@"source"];
+    [source setContents:@"127.0.0.1 saved.test"];
+    [source save];
+    CombinedHosts *combined = [[CombinedHosts alloc] initWithPath:[self.tempDir stringByAppendingPathComponent:@"Combined.hst"] allHostsFiles:@[source]];
+    [combined setHostsFiles:@[source]];
+    [combined save];
+    [source setContents:@"127.0.0.1 unsaved.test"];
+    XCTAssertTrue([self.controller restoreHostsToOriginalLocation:combined]);
+    NSString *actual = [NSString stringWithContentsOfFile:self.controller.fixtureSystemPath encoding:NSUTF8StringEncoding error:nil];
+    XCTAssertTrue([actual containsString:@"saved.test"]);
+    XCTAssertFalse([actual containsString:@"unsaved.test"]);
+    XCTAssertFalse([actual containsString:@"Local/source"]);
 }
 
 @end

@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "palettes": [
+    {
+      "id": "heritage",
+      "name": "Yellow / blue",
+      "nameUk": "Жовто-синя",
+      "background": "#0057B7",
+      "symbol": "#FFD700",
+      "review": "approved"
+    },
+    {
+      "id": "cobalt",
+      "name": "Muted yellow / blue",
+      "nameUk": "М’яка жовто-синя",
+      "background": "#234E70",
+      "symbol": "#F3D46A",
+      "review": "approved"
+    },
+    {
+      "id": "slate",
+      "name": "Slate",
+      "nameUk": "Сланцева",
+      "background": "#34495E",
+      "symbol": "#E7E0CC",
+      "review": "approved"
+    },
+    {
+      "id": "pine",
+      "name": "Pine",
+      "nameUk": "Хвойна",
+      "background": "#2D514B",
+      "symbol": "#D9E5CE",
+      "review": "approved"
+    },
+    {
+      "id": "sunset-sky",
+      "name": "Sunset sky",
+      "nameUk": "Захід · синьо-рожевий",
+      "background": "#123D96",
+      "backgroundGradient": [
+        {
+          "offset": 0,
+          "color": "#123D96"
+        },
+        {
+          "offset": 0.55,
+          "color": "#3B59BD"
+        },
+        {
+          "offset": 1,
+          "color": "#E653B6"
+        }
+      ],
+      "symbol": "#FFE24A",
+      "review": "approved"
+    },
+    {
+      "id": "fire-sky",
+      "name": "Fire below",
+      "nameUk": "Вогонь знизу",
+      "background": "#101B32",
+      "backgroundGradient": [
+        {
+          "offset": 0,
+          "color": "#101B32"
+        },
+        {
+          "offset": 0.5,
+          "color": "#172844"
+        },
+        {
+          "offset": 0.7,
+          "color": "#8D1233"
+        },
+        {
+          "offset": 0.86,
+          "color": "#F12B16"
+        },
+        {
+          "offset": 1,
+          "color": "#FF9A1F"
+        }
+      ],
+      "symbol": "#FFDF35",
+      "review": "approved"
+    },
+    {
+      "id": "bandera",
+      "name": "Bandera",
+      "nameUk": "Бандера",
+      "background": "#000000",
+      "symbol": "#CC0000",
+      "review": "approved",
+      "colorReference": {
+        "source": "owner-supplied exact color sample",
+        "date": "2026-10-16",
+        "colorSpace": "sRGB",
+        "red": "#CC0000",
+        "black": "#000000"
+      }
+    }
+  ],
+  "approval": {
+    "status": "approved",
+    "date": "2026-10-16",
+    "setIds": [
+      "mask",
+      "balloon"
+    ],
+    "paletteIds": [
+      "heritage",
+      "cobalt",
+      "slate",
+      "pine",
+      "sunset-sky",
+      "fire-sky",
+      "bandera"
+    ],
+    "rejectedPaletteIds": [
+      "sunset",
+      "fantasy-sunset",
+      "sunrise",
+      "sunrise-sky"
+    ],
+    "geometryAndColorsFrozen": true,
+    "defaultSelection": null
+  }
+}

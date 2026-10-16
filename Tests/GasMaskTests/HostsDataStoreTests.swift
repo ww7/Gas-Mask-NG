@@ -21,6 +21,7 @@ final class HostsDataStoreTests: XCTestCase {
         let previousContent = main.content
         let previousProperties = Preferences.remoteHostsFilesProperties()
         let controller = RemoteHostsController()
+        controller.setValue(RefreshFixtureManager(hostsController: controller), forKey: "manager")
         controller.hostsFiles.addObjects(from: files)
         let group = try XCTUnwrap(controller.hostsGroup())
         group.children = files
@@ -445,12 +446,20 @@ private final class RefreshFixtureProtocol: URLProtocol {
                 self.client?.urlProtocol(self, didFailWithError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCannotConnectToHost))
             } else {
                 let response = HTTPURLResponse(url: self.request.url!, statusCode: Self.statusCode, httpVersion: nil,
-                    headerFields: ["Content-Type": "text/plain"])!
+                    headerFields: ["Content-Type": "text/plain", "Last-Modified": "Thu, 15 Oct 2026 12:00:00 GMT"])!
                 self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-                self.client?.urlProtocol(self, didLoad: Self.statusCode == 304 ? Data() : Self.invalidUTF8 ? Data([0xff]) : Data(Self.body.utf8))
+                if Self.statusCode != 304 { self.client?.urlProtocol(self, didLoad: Self.invalidUTF8 ? Data([0xff]) : Data(Self.body.utf8)) }
                 self.client?.urlProtocolDidFinishLoading(self)
             }
         }
     }
     override func stopLoading() {}
+}
+
+private final class RefreshFixtureManager: RemoteHostsManager {
+    override func makeDownloader(for hosts: Hosts!, url: URL!) -> HostsDownloader! {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [RefreshFixtureProtocol.self]
+        return HostsDownloader(hosts: hosts, url: url, sessionConfiguration: config)
+    }
 }

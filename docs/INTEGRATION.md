@@ -21,8 +21,9 @@ Immutable upstream PR heads are recorded in [upstream-open-prs.json](upstream-op
 All seven PR heads are ancestors of `main`. This records inclusion and resolution;
 it does **not** mean that obsolete or mutually exclusive patches were replayed verbatim.
 In #220, mechanical numeric/deprecation refactors and changes to deleted UI are
-not replayed. In particular, its removal of RegexKitLite/VDKQueue is not appropriate
-while current parser/file-watcher code still uses them. The unconditional privileged DNS restart is intentionally not retained: system-file
+not replayed. The ww7.21 security pass subsequently replaced the remaining
+RegexKitLite logger expression with Foundation and VDKQueue with native
+DispatchSource watching, so neither legacy library remains linked. The unconditional privileged DNS restart is intentionally not retained: system-file
 writes use upstream's noninteractive `dscacheutil -flushcache` behavior.
 UserNotifications uses a retained delegate instance with the correct protocol.
 
@@ -76,3 +77,51 @@ update links point at the new repository. There is no public binary release yet;
 see [public release gates](PUBLIC-RELEASE.md). Profiles and preferences retain
 the original application identifier and storage paths. Future stable donation
 routing and an umbrella brand for additional revived apps are not configured yet.
+
+## Prepared icon sets (16 October 2026)
+
+The [approved icon gallery](../Artwork/IconSets/gallery.html) is the repository's
+visual reference for both sets, all seven palettes, fourteen Dock variants and
+both menu-bar templates. The package JSON and SVG masters remain canonical.
+
+The owner approved exactly two sets, `mask` and `balloon`, and seven palettes:
+`heritage`, `cobalt`, `slate`, `pine`, `sunset-sky`, `fire-sky`, `bandera`. The canonical
+[Artwork/IconSets](../Artwork/IconSets/README.md) manifest, palette JSON and
+packaged masters define fourteen Dock variants and two menu-bar templates.
+`bandera` adds a black `#000000` background and red `#CC0000` symbol to both sets,
+retaining the previous six palettes exactly.
+Preserve their exact shapes, colors and gradients; do not flatten gradient exports
+to a fallback color. Rejected IDs `sunset`, `fantasy-sunset`, `sunrise` and
+`sunrise-sky` remain excluded, as do earlier globe/panel/geometry studies. Do not
+restore choices from Studies, build artifacts or conversation previews, or replace
+the approved sets with the production trace. No default set/palette is selected.
+Application icon-selection settings are not implemented and remain
+reserved for a later session; see [the implementation handoff](ICON-SETS-HANDOFF.md).
+The artwork preparation does not change production assets or runtime preferences.
+
+## ww7.21 security and icon integration
+
+- Privileged writes use a temporary authenticated session writer, a compiled
+  helper hash pin, fixed operations/path, bounded UTF-8 payloads and atomic
+  replacement with conflict detection and rollback. No persistent user ACL or
+  launchd service is installed. Approval is explicit; background work can leave
+  a clearly marked pending system apply. See SECURITY-BOUNDARIES.md.
+- Remote downloads use HTTPS-only same-origin redirects, serial streaming with
+  a 32 MiB cap and validated hosts text. Last-good caches survive failures.
+- Icon settings independently persist menu symbol, Dock symbol and Dock palette.
+  Defaults are mask/mask/heritage. All fourteen exact approved Dock PNGs and four
+  menu-bar 1x/2x assets are copied byte-for-byte from Artwork/IconSets. Rejected
+  studies are not runtime options. Dock activation-policy behavior is unchanged.
+- The donation policy dedicates associated donations to Ukraine reconstruction,
+  defense and support for people affected by the war; GPL rights are unchanged.
+- The owner deferred Developer ID/notarization. Ad-hoc runtime integrity signatures
+  remain technical requirements, not a publisher-identity claim. Publication still
+  needs separate approval; installations retain the standing backup policy.
+
+The unused Sparkle framework and legacy upstream feed/keys were removed from
+ww7.21. Ad-hoc third-party dynamic libraries are incompatible with strict
+hardened-runtime library validation without a shared Developer ID Team ID.
+The app retains manual GitHub release links instead of disabling library
+validation. Remote-list updates use the separate first-party downloader. The
+writer rejects callers with entitlements that allow library/DYLD/page-protection
+bypasses as well as get-task-allow.

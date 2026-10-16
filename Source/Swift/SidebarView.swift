@@ -178,7 +178,7 @@ struct SidebarView: View {
             }
         }
 
-        if !hosts.active() {
+        if !hosts.active() || hosts.systemApplyPending {
             Button("Activate") {
                 HostsMainController.defaultInstance()?.activateHostsFile(hosts)
             }

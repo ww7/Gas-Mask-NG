@@ -57,6 +57,8 @@
 	return contents;
 }
 
+- (NSString*)systemContentsOnDisk { return [self contentsOnDisk]; }
+
 - (NSString*)contentsOnDisk
 {
     return [self readContentsFromDisk];
@@ -103,8 +105,8 @@
 
 - (void) save
 {
-	[contents writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:NULL];
-	[self setSaved:YES];
+	BOOL success = [contents writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:NULL];
+	[self setSaved:success];
 }
 
 - (void) setActive:(BOOL) _active
@@ -116,6 +118,13 @@
 	
 	NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 	[nc postNotificationName:HostsNodeNeedsUpdateNotification object:self];
+}
+
+- (void)setSystemApplyPending:(BOOL)value
+{
+    if (_systemApplyPending == value) return;
+    _systemApplyPending = value;
+    [[NSNotificationCenter defaultCenter] postNotificationName:HostsNodeNeedsUpdateNotification object:self];
 }
 
 - (BOOL) active

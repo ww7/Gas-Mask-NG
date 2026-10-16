@@ -70,10 +70,10 @@ final class URLSheetViewTests: XCTestCase {
         XCTAssertTrue(view.isAddButtonEnabled)
     }
 
-    func testAddButton_isEnabled_forHTTPURL() {
+    func testAddButton_isDisabled_forHTTPURL() {
         let view = URLSheetView(urlText: "http://example.com/hosts",
                                 onAdd: { _ in }, onCancel: {})
-        XCTAssertTrue(view.isAddButtonEnabled)
+        XCTAssertFalse(view.isAddButtonEnabled)
     }
 
     func testAddButton_isDisabled_forEmptyURL() {
@@ -122,7 +122,7 @@ final class URLSheetViewTests: XCTestCase {
         XCTAssertEqual(receivedURL?.absoluteString, "https://example.com/hosts")
     }
 
-    func testReturnKey_callsOnAdd_withHTTPURL() {
+    func testReturnKey_doesNotCallOnAdd_withHTTPURL() {
         var receivedURL: URL?
         _ = makeHostingController(
             urlText: "http://example.com/hosts",
@@ -132,7 +132,7 @@ final class URLSheetViewTests: XCTestCase {
         sendReturn(to: panel!)
         RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.15))
 
-        XCTAssertEqual(receivedURL?.absoluteString, "http://example.com/hosts")
+        XCTAssertNil(receivedURL)
     }
 
     // MARK: - Add button / text-field Return (invalid URL — must not fire)

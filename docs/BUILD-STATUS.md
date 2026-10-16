@@ -1,5 +1,40 @@
 # Build status
 
+## ww7.21 local security candidate
+
+16 October 2026. Source prepared for `0.8.7-ww7.21` / `20261016.21`; archive and
+installation evidence will be appended after packaging.
+
+- Full `scripts/test.sh`: **162 passed, 0 failed, 0 skipped, no runtime warnings**,
+  including the performance suite. Result: `build/TestResults-20261016T031511Z.xcresult`.
+- Storage: **28** assertions. Native security: **74** assertions in each of three
+  signature configurations (**222** total), with AddressSanitizer/UBSan. Matching
+  peers with get-task-allow or disabled library validation are refused.
+- Remote fixtures cover HTTPS, same-origin/five-hop redirects, oversized header/
+  streaming responses, bad UTF-8/hosts/NUL/HTML/empty content, TLS failure,
+  conditional 304, last-good caches/timestamps and retry/rearm scheduling.
+- All **28** independent icon combinations, relaunch persistence, fallback,
+  menu actions/names and unchanged Dock policy passed. Native status-button
+  renderings cover light/dark, 1x/2x, with/without names (`build/icon-qa/`).
+  All **18** shipped renditions exactly match the approved source bytes.
+- Rename tests require the actual native field editor. The desktop declined
+  programmatic activation in this run (printed in diagnostics); actual rename,
+  blur/submit/cancel and editor-focus assertions passed.
+- Xcode analyze completed (`build/security-analyze-candidate.log`); legacy non-ARC
+  test-fixture retention diagnostics remain. Release scheme analysis requires
+  ENABLE_TESTABILITY=YES for its XCTest targets. This is not a zero-warning claim.
+- Current-source Gitleaks: no findings. OSV: no advisories for pinned MASShortcut.
+  Sparkle/feed/keys, RegexKitLite and VDKQueue are no longer linked. Hardened
+  runtime library validation remains enabled.
+
+This is a local **candidate**, without Developer ID/notarization. Disposable-Mac
+admin approval/cancellation, crash teardown, old root ACL conversion, physical
+Intel and sleep/wake/login-item acceptance remain before a stable public release.
+No owner profile or live hosts file was used by fixtures. See
+[SECURITY-BOUNDARIES.md](SECURITY-BOUNDARIES.md). Publication needs separate approval.
+
+## Previous ww7.20 baseline
+
 16 October 2026. Installed local build `0.8.7-ww7.20`, internal build `20261016.20`.
 
 The editor default/reset size is 11 pt; explicit user font preferences are retained.

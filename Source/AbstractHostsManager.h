@@ -34,6 +34,7 @@
 
 - (id)initWithHostsController:(NSObject<HostsControllerProtocol>*)hostsControllerValue;
 
+- (HostsDownloader*)makeDownloaderForHosts:(Hosts*)hosts url:(NSURL*)url;
 - (void)initializeHosts:(Hosts*)hosts url:(NSURL*)url;
 
 // Protected

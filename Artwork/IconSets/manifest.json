@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "approvedGeometryDate": "2026-10-16",
+  "approval": {
+    "status": "approved",
+    "date": "2026-10-16",
+    "setIds": [
+      "mask",
+      "balloon"
+    ],
+    "paletteIds": [
+      "heritage",
+      "cobalt",
+      "slate",
+      "pine",
+      "sunset-sky",
+      "fire-sky",
+      "bandera"
+    ],
+    "rejectedPaletteIds": [
+      "sunset",
+      "fantasy-sunset",
+      "sunrise",
+      "sunrise-sky"
+    ],
+    "geometryAndColorsFrozen": true,
+    "defaultSelection": null
+  },
+  "scope": "Prepared assets only; menu bar and Dock selection are not implemented.",
+  "renderer": {
+    "sharp": "0.35.5",
+    "librsvg": "2.63.2"
+  },
+  "palettes": "palettes.json",
+  "sets": [
+    {
+      "id": "mask",
+      "name": "Mask",
+      "nameUk": "Маска",
+      "source": "Artwork/Studies/menu-mask-geometric.svg",
+      "sourceSHA256": "71c479059ec18a72a08d0dd997a1001c59ee99841f9b1a96c0ebc8e2dfc47b84",
+      "symbol": "mask/symbol.svg",
+      "menuBar": {
+        "assetName": "MenuMask",
+        "logicalSize": 16,
+        "viewBox": [
+          -1,
+          -2,
+          34,
+          34
+        ],
+        "isTemplate": true,
+        "imageset": "mask/menubar/MenuMask.imageset",
+        "svg": "mask/menubar/template.svg"
+      },
+      "dock": [
+        {
+          "palette": "heritage",
+          "svg": "mask/dock/heritage/icon.svg",
+          "png": "mask/dock/heritage/icon.png",
+          "icns": "mask/dock/heritage/icon.icns",
+          "assetCatalog": "mask/dock/heritage/AppIcon.appiconset"
+        },
+        {
+          "palette": "cobalt",
+          "svg": "mask/dock/cobalt/icon.svg",
+          "png": "mask/dock/cobalt/icon.png",
+          "icns": "mask/dock/cobalt/icon.icns",
+          "assetCatalog": "mask/dock/cobalt/AppIcon.appiconset"
+        },
+        {
+          "palette": "slate",
+          "svg": "mask/dock/slate/icon.svg",
+          "png": "mask/dock/slate/icon.png",
+          "icns": "mask/dock/slate/icon.icns",
+          "assetCatalog": "mask/dock/slate/AppIcon.appiconset"
+        },
+        {
+          "palette": "pine",
+          "svg": "mask/dock/pine/icon.svg",
+          "png": "mask/dock/pine/icon.png",
+          "icns": "mask/dock/pine/icon.icns",
+          "assetCatalog": "mask/dock/pine/AppIcon.appiconset"
+        },
+        {
+          "palette": "sunset-sky",
+          "svg": "mask/dock/sunset-sky/icon.svg",
+          "png": "mask/dock/sunset-sky/icon.png",
+          "icns": "mask/dock/sunset-sky/icon.icns",
+          "assetCatalog": "mask/dock/sunset-sky/AppIcon.appiconset"
+        },
+        {
+          "palette": "fire-sky",
+          "svg": "mask/dock/fire-sky/icon.svg",
+          "png": "mask/dock/fire-sky/icon.png",
+          "icns": "mask/dock/fire-sky/icon.icns",
+          "assetCatalog": "mask/dock/fire-sky/AppIcon.appiconset"
+        },
+        {
+          "palette": "bandera",
+          "svg": "mask/dock/bandera/icon.svg",
+          "png": "mask/dock/bandera/icon.png",
+          "icns": "mask/dock/bandera/icon.icns",
+          "assetCatalog": "mask/dock/bandera/AppIcon.appiconset"
+        }
+      ]
+    },
+    {
+      "id": "balloon",
+      "name": "Balloon",
+      "nameUk": "Куля",
+      "source": "Artwork/Studies/Balloon/balloon-compact.svg",
+      "sourceSHA256": "07925c67ae4c2d4b4f30677b217088f12541b84e7c88d74f8a004c95d2be7d75",
+      "symbol": "balloon/symbol.svg",
+      "menuBar": {
+        "assetName": "MenuBalloon",
+        "logicalSize": 16,
+        "viewBox": [
+          -1,
+          -2,
+          34,
+          34
+        ],
+        "isTemplate": true,
+        "imageset": "balloon/menubar/MenuBalloon.imageset",
+        "svg": "balloon/menubar/template.svg"
+      },
+      "dock": [
+        {
+          "palette": "heritage",
+          "svg": "balloon/dock/heritage/icon.svg",
+          "png": "balloon/dock/heritage/icon.png",
+          "icns": "balloon/dock/heritage/icon.icns",
+          "assetCatalog": "balloon/dock/heritage/AppIcon.appiconset"
+        },
+        {
+          "palette": "cobalt",
+          "svg": "balloon/dock/cobalt/icon.svg",
+          "png": "balloon/dock/cobalt/icon.png",
+          "icns": "balloon/dock/cobalt/icon.icns",
+          "assetCatalog": "balloon/dock/cobalt/AppIcon.appiconset"
+        },
+        {
+          "palette": "slate",
+          "svg": "balloon/dock/slate/icon.svg",
+          "png": "balloon/dock/slate/icon.png",
+          "icns": "balloon/dock/slate/icon.icns",
+          "assetCatalog": "balloon/dock/slate/AppIcon.appiconset"
+        },
+        {
+          "palette": "pine",
+          "svg": "balloon/dock/pine/icon.svg",
+          "png": "balloon/dock/pine/icon.png",
+          "icns": "balloon/dock/pine/icon.icns",
+          "assetCatalog": "balloon/dock/pine/AppIcon.appiconset"
+        },
+        {
+          "palette": "sunset-sky",
+          "svg": "balloon/dock/sunset-sky/icon.svg",
+          "png": "balloon/dock/sunset-sky/icon.png",
+          "icns": "balloon/dock/sunset-sky/icon.icns",
+          "assetCatalog": "balloon/dock/sunset-sky/AppIcon.appiconset"
+        },
+        {
+          "palette": "fire-sky",
+          "svg": "balloon/dock/fire-sky/icon.svg",
+          "png": "balloon/dock/fire-sky/icon.png",
+          "icns": "balloon/dock/fire-sky/icon.icns",
+          "assetCatalog": "balloon/dock/fire-sky/AppIcon.appiconset"
+        },
+        {
+          "palette": "bandera",
+          "svg": "balloon/dock/bandera/icon.svg",
+          "png": "balloon/dock/bandera/icon.png",
+          "icns": "balloon/dock/bandera/icon.icns",
+          "assetCatalog": "balloon/dock/bandera/AppIcon.appiconset"
+        }
+      ]
+    }
+  ]
+}

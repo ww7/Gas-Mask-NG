@@ -76,7 +76,8 @@
 	for (RemoteHosts *hosts in hostsFiles) {
 		
 		NSDictionary *dict = [properties objectForKey:[hosts name]];
-		[hosts setUrl:[NSURL URLWithString:[dict valueForKey:URLKey]]];
+		NSString *source = [dict valueForKey:URLKey];
+        [hosts setUrl:[source isKindOfClass:NSString.class] ? [NSURL URLWithString:source] : nil];
 		[hosts setUpdated:(NSDate*)[dict valueForKey:UpdatedKey]];
 		
 		NSString *lastModified = [dict valueForKey:LastModifiedKey];
@@ -132,39 +133,29 @@
 
 - (void)hostsDownloaded:(HostsDownloader*)downloader
 {
-	logDebug(@"Remote hosts downloaded");
-	[self decreaseActiveDownloadsCount];
-
-	RemoteHosts *hosts = (RemoteHosts*)[downloader hosts];
-	[hosts setEnabled:YES];
-	[hosts setContents:[downloader response]];
-
-	if ([downloader lastModified]) {
-	 [hosts setLastModified:[downloader lastModified]];
-	 }
-
-	if ([downloader error]) {
-		if ([[downloader error] type] == FileNotFound && (![hosts error] || [[hosts error] type] != FileNotFound)) {
-            [NotificationHelper notify:@"Failed to Download"
-                               message:[NSString stringWithFormat:@"Remote hosts file \"%@\" not found on the remote server.", [hosts name]]];
-		}
-
-		[hosts setError:[downloader error]];
-	}
-	else {
-		[hosts setError:nil];
-        [hosts setUpdated:[NSDate date]];
-	}
-
-	[hostsController saveHosts:hosts];
-
-	if (![downloader initialLoad] && ![downloader error]) {
-        [NotificationHelper notify:@"Hosts File Updated"  message:[hosts name]];
-	}
-
-	[self removeDownloader:downloader];
-
-	[self saveRemoteHostsProperties];
+    [self decreaseActiveDownloadsCount];
+    RemoteHosts *hosts = (RemoteHosts*)downloader.hosts;
+    NSString *previous = [hosts contents];
+    NSString *previousModified = hosts.lastModified;
+    BOOL existed = hosts.exists;
+    [hosts setEnabled:YES];
+    [hosts setContents:downloader.response];
+    hosts.lastModified = downloader.lastModified;
+    [hostsController saveHosts:hosts];
+    if ([hosts saved]) {
+        [hosts setError:nil];
+        hosts.updated = NSDate.date;
+        if (!downloader.initialLoad) [NotificationHelper notify:@"Hosts File Updated" message:hosts.name];
+    } else {
+        [hosts setContents:previous];
+        [hosts setSaved:existed];
+        hosts.lastModified = previousModified;
+        Error *failure = [[Error alloc] initWithType:FailedToDownload];
+        failure.description = @"The validated download could not be saved. The previous cache and successful-update time were retained.";
+        [hosts setError:failure];
+    }
+    [self removeDownloader:downloader];
+    [self saveRemoteHostsProperties];
 }
 
 - (void)hostsUpToDate:(HostsDownloader*)downloader
@@ -258,7 +249,7 @@
 
 - (void)downloadHosts:(RemoteHosts*)hosts
 {
-    HostsDownloader *downloader = [[HostsDownloader alloc] initWithHosts:hosts url:[hosts url]];
+    HostsDownloader *downloader = [self makeDownloaderForHosts:hosts url:[hosts url]];
     [self addDownloader:downloader];
     [downloader setDelegate:self];
     [downloader download];

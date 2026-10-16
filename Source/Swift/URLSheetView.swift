@@ -36,6 +36,9 @@ struct URLSheetView: View {
                     }
             }
 
+            Text("Use an HTTPS URL to a plain-text hosts file. Redirects must stay on the same host and port.")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             if !networkStatus.isOnline {
                 HStack {
                     Image(systemName: "wifi.slash")

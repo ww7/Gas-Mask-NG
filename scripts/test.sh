@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/xcode-env.sh
 scripts/test-storage.sh
+scripts/test-security.sh
 gasmask_test_derived="$PWD/build/tests"
 gasmask_results="$PWD/build/TestResults-$(date -u +%Y%m%dT%H%M%SZ).xcresult"
 xcodebuild build-for-testing -project 'Gas Mask.xcodeproj' -scheme 'Gas Mask' \

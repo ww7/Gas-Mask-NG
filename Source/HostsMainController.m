@@ -23,6 +23,8 @@
 #import "RemoteHostsController.h"
 #import "CombinedHostsController.h"
 #import "Pair.h"
+#import "Gas_Mask-Swift.h"
+#import "PrivilegedActions.h"
 
 #import "Hosts.h"
 #import "HostsGroup.h"
@@ -31,6 +33,7 @@
 @interface HostsMainController (Private)
 
 - (void)addGroups;
+- (void)systemHostsFileChanged;
 - (void)updateFilesCount;
 - (NSObject<HostsControllerProtocol>*) hostsControllerForFile:(Hosts*)hosts;
 - (NSIndexPath*)hostsIndexPath:(Hosts*)hosts;
@@ -59,7 +62,7 @@
 
 @implementation HostsMainController
 
-static VDKQueue* queue = nil;
+static SystemHostsWatcher *systemWatcher = nil;
 static HostsMainController *sharedInstance = nil;
 
 + (HostsMainController*)defaultInstance
@@ -83,8 +86,6 @@ static HostsMainController *sharedInstance = nil;
         [[controllers objectAtIndex:i] setDelegate:self];
     }
 
-    queue = [[VDKQueue alloc] init];
-    [queue setDelegate:self];
     [self startTrackingFileChanges];
 
     filesCount = 0;
@@ -120,6 +121,12 @@ static HostsMainController *sharedInstance = nil;
 	[self updateFilesCount];
 	logInfo(@"All hosts files are loaded");
     [[NSNotificationCenter defaultCenter] postNotificationName:ActivateFileNotification object:NULL];
+    if (!NSClassFromString(@"XCTestCase")) {
+        Hosts *active = [self activeHostsFile];
+        NSString *desired = [[active systemContentsOnDisk] stringByAppendingString:@"\n\n"];
+        NSString *actual = [PrivilegedActions currentSystemContents];
+        [active setSystemApplyPending:![actual isEqualToString:desired]];
+    }
     [[NSNotificationCenter defaultCenter] postNotificationName:AllHostsFilesLoadedFromDiskNotification object:nil];
 }
 
@@ -255,11 +262,14 @@ static HostsMainController *sharedInstance = nil;
 
 - (void)saveHosts:(Hosts*)hosts
 {
+    [self saveHosts:hosts allowAuthorization:YES];
+}
+
+- (void)saveHosts:(Hosts*)hosts allowAuthorization:(BOOL)interactive
+{
     [self stopTrackingFileChanges];
 	NSObject<HostsControllerProtocol> *controller = [self hostsControllerForFile:hosts];
-	[controller saveHosts:hosts];
-    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-    [nc postNotificationName:HostsFileSavedNotification object:hosts];
+	[controller saveHosts:hosts allowAuthorization:interactive];
     [self startTrackingFileChanges];
 }
 
@@ -297,8 +307,9 @@ static HostsMainController *sharedInstance = nil;
 	Hosts *nextHosts = [self neighbourHostsFile:hosts];
 	
 	if ([hosts active]) {
-		[self activateHostsFile:nextHosts];
-	}
+        [self activateHostsFile:nextHosts];
+        if (![nextHosts active]) return; // cancellation must not delete the active profile
+    }
 	
 	NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 	[nc postNotificationName:HostsFileWillBeRemovedNotification object:hosts];
@@ -375,7 +386,7 @@ static HostsMainController *sharedInstance = nil;
 	BOOL newActivated = [controller activateHostsFile:hosts];
 	
 	if (newActivated) {
-		[activeHostsFile setActive:NO];
+		if (activeHostsFile != hosts) [activeHostsFile setActive:NO];
         [[NSNotificationCenter defaultCenter] postNotificationName:ActivateFileNotification object:NULL];
 	}
     [self startTrackingFileChanges];
@@ -394,8 +405,9 @@ static HostsMainController *sharedInstance = nil;
 	[self addHostsFile:newHosts forController:newController];
 	
 	if ([hosts active]) {
-		[self activateHostsFile:newHosts];
-	}
+        [self activateHostsFile:newHosts];
+        if (![newHosts active]) return; // retain both copies if authorization was cancelled
+    }
 	
 	
 	NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -417,17 +429,18 @@ static HostsMainController *sharedInstance = nil;
 
 - (void)startTrackingFileChanges
 {
-    // Listening for writes only doesn't cover when the file
-    // gets moved and relinked, so we need to listen for
-    // VDKQueueNotifyDefault.  It also doesn't cover when the
-    // file gets replaced by tools like Junos PulseVPN which restores
-    // the file upon VPN connection close.
-    [queue addPath:HostsFileLocation notifyingAbout:(VDKQueueNotifyAboutWrite | VDKQueueNotifyAboutDelete)];
+    if (NSClassFromString(@"XCTestCase")) return;
+    if (systemWatcher) return;
+    __weak HostsMainController *weakSelf = self;
+    systemWatcher = [[SystemHostsWatcher alloc] initWithPath:HostsFileLocation changed:^{
+        [weakSelf systemHostsFileChanged];
+    }];
 }
 
 - (void)stopTrackingFileChanges
 {
-    [queue removePath:HostsFileLocation];
+    [systemWatcher stop];
+    systemWatcher = nil;
 }
 
 #pragma mark -
@@ -548,25 +561,19 @@ static HostsMainController *sharedInstance = nil;
 	return nil;
 }
 
--(void) VDKQueue:(VDKQueue *)queue receivedNotification:(NSString*)noteName forPath:(NSString*)fpath
+- (void)systemHostsFileChanged
 {
-    // VDKQueue is notifying me too often, so filter out what we really want
-    if (!([noteName isEqualToString:VDKQueueDeleteNotification] || ( [noteName isEqualTo:VDKQueueWriteNotification]) )) {
-        return;
-    }
-    logDebug(@"External application has changed the hosts file, restoring file");
-    
-    if (![Preferences overrideExternalModifications]) {
-        logDebug(@"Restoring not enabled, aborting");
-        return;
-    }
-    
+    if (NSClassFromString(@"XCTestCase")) return;
     Hosts *activeHosts = [self activeHostsFile];
-    if (activeHosts == nil) {
-        logDebug(@"No active hosts file, can't restore");
+    if (!activeHosts) return;
+    NSString *desired = [[activeHosts systemContentsOnDisk] stringByAppendingString:@"\n\n"];
+    NSString *actual = [PrivilegedActions currentSystemContents];
+    if ([actual isEqualToString:desired]) {
+        [activeHosts setSystemApplyPending:NO];
         return;
     }
-
+    [activeHosts setSystemApplyPending:YES];
+    if (![Preferences overrideExternalModifications]) return;
     [self stopTrackingFileChanges];
     NSObject<HostsControllerProtocol> *controller = [self hostsControllerForFile:activeHosts];
 	BOOL success = [controller restoreHostsToOriginalLocation:activeHosts];

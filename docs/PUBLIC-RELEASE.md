@@ -35,30 +35,39 @@ editing; its earlier inactive-window failure is retained in CI history. Local
 one-test rechecking emitted a test-activation QoS diagnostic; evidence records it.
 The runner's Node-runtime metadata warning is also recorded, not hidden.
 
-## Stable-release gates
+## ww7.21 security candidate
 
-1. **Privileged writes:** replace deprecated `AuthorizationExecuteWithPrivileges`
-   and persistent per-user `/etc/hosts` write ACL with a narrowly scoped signed
-   helper. Verify caller identity, fixed operation/path boundaries, atomic writes,
-   symlink handling, failure rollback and one-time authorization behavior. The
-   current legacy design is retained in the development build, not declared safe.
-2. **Migration:** exercise the very old `/etc/gasmask` conversion separately. It
-   still contains privileged remove/copy operations with weak exit-status handling.
-   The modern home-directory migration has fixture coverage; that is not evidence
-   for every historical privileged path.
-3. **Remote input:** finish HTTPS/redirect policy and bounded-download review.
-   HTTP is currently allowed and downloads use a completion-handler data task,
-   without a streaming size cap. A selected remote source can supply arbitrary
-   hosts mappings; users must trust sources before activation. No silent change
-   to existing source URLs is made by this review.
-4. **Legacy/vendor review:** inspect RegexKitLite/VDKQueue and verify their notices;
-   a clean OSV result for two Swift packages is not a full supply-chain audit.
-5. **Distribution:** enroll the owner's Apple Developer account, create Developer
-   ID credentials, use hardened runtime and minimal entitlements, notarize/staple
-   an exact universal artifact, and verify on a clean Mac. Do not commit credentials.
-6. **Acceptance:** run a complete lifecycle on disposable macOS fixtures: first
-   launch, authorization/cancellation, save/activate/restore, migration, login item,
-   reconnect/sleep/wake, settings persistence and uninstall. Test arm64 and Intel.
+The inherited privileged-write and unbounded/HTTP download paths have been
+replaced. See [SECURITY-BOUNDARIES.md](SECURITY-BOUNDARIES.md) for operations,
+caller authentication, atomic rollback, cache behavior, and trust limits.
+RegexKitLite and VDKQueue are no longer linked: Foundation handles the remaining
+logger pattern, and a native DispatchSource watches replacement/recreation.
+Their historical sources and original notices remain in Git ancestry.
+
+This candidate deliberately uses no Developer ID or notarization, per the owner's
+current distribution policy. Local ad-hoc hardened-runtime signatures are needed
+for Apple Silicon integrity and helper identity; they do not authenticate a
+publisher. Apple Developer Program enrollment is deferred, not a prerequisite we
+will silently reintroduce. No self-update appcast is enabled.
+
+Remaining public-stability acceptance gates:
+
+1. Complete the administrator-approval/cancellation and helper teardown lifecycle
+   on a disposable macOS installation; verify the original root ownership, old
+   ACL conversion, crash/restart and a second app session. Local native tests
+   use temporary ordinary files, not a real root hosts target.
+2. Exercise reconnect/sleep/wake, login item and uninstall on disposable profiles.
+   Universal architecture inspection does not replace execution on physical Intel.
+3. Review exact archive/source checksums and the clean data boundary before
+   publication. Only bundled defaults may be included, never the owner's lists,
+   preferences, backups or local verification receipts.
+4. Obtain the owner's separate publication authorization. Preparing and installing
+   a local candidate does not authorize pushing changes or uploading releases.
+
+The absence of Developer ID means this is an explicitly unsigned-distribution
+candidate, not a notarized download. Do not label it stable until the outstanding
+lifecycle checks have evidence. Fresh local verification is in BUILD-STATUS.md;
+older observations above remain the previous public baseline, not current totals.
 
 ## Distribution and naming
 
@@ -73,6 +82,10 @@ Initially installation will use a qualified tap token (for example
 `brew install --cask ww7/tap/gas-mask-ng`), not a promise that a bare token already
 exists in Homebrew's official repository. No tap or cask has been published yet.
 
+The project donation policy in [SUPPORT.md](../SUPPORT.md) designates all
+associated donations for Ukraine reconstruction, defense and support for people
+affected by the war, while preserving GPL rights.
+
 Use one owner-controlled Support landing URL for future donation routing. The
 page can list personal support and independently labelled funds; destination
 changes should not require rebuilding the app. Until the owner supplies that URL,
@@ -82,3 +95,11 @@ personal donation destination has been invented or published.
 A future umbrella organization/website can group revived applications while each
 app keeps its own repository, issue tracker, changelog, security policy and release
 artifacts. AI assistance is a development method, not a substitute for those gates.
+
+The unused Sparkle framework and legacy upstream feed/keys were removed from
+ww7.21. Ad-hoc third-party dynamic libraries are incompatible with strict
+hardened-runtime library validation without a shared Developer ID Team ID.
+The app retains manual GitHub release links instead of disabling library
+validation. Remote-list updates use the separate first-party downloader. The
+writer rejects callers with entitlements that allow library/DYLD/page-protection
+bypasses as well as get-task-allow.

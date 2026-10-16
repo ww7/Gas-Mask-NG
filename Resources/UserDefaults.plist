@@ -2,10 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>menuBarIcon</key><string>mask</string>
+    <key>dockIcon</key><string>mask</string>
+    <key>dockPalette</key><string>heritage</string>
 	<key>editorFontSize</key>
 	<integer>11</integer>
-	<key>SUEnableAutomaticChecks</key>
-	<true/>
 	<key>Use Growl</key>
 	<true/>
 	<key>activateNextHotkey</key>

@@ -51,6 +51,10 @@ struct StatusBarView: View {
                 if let active = store.activeHosts {
                     Text("Active: \(active.name() ?? "")")
                         .lineLimit(1).truncationMode(.middle)
+                    if active.systemApplyPending {
+                        Text("Pending · Activate to apply").foregroundStyle(.orange)
+                            .help("The cached list has changed. Activate it to authorize system changes for this app session.")
+                    }
                     if let count {
                         Text("· \(count) \(count == 1 ? "host" : "hosts")")
                             .fixedSize()
@@ -110,6 +114,7 @@ struct EditorHelpView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("The checkmark marks the active profile. Selecting another profile only opens it for viewing; Activate applies it to the system hosts file.")
                     Text("Remote files and Combined previews are read-only. Move a Remote file to Local to edit it; it will stop updating from its URL. Edit the source files or drag the Included Files rows to change a Combined profile.")
+                    Text("System changes require administrator approval once per app session. Background updates never prompt; Pending means the cached list needs Activate before it affects the system. No permanent system-file write permission is granted.")
                     Text("Update in the toolbar refreshes all Remote files. Update Remote File in a profile’s context menu refreshes only that file.")
                     Text("The bottom counter shows unique hostnames in the active profile, including aliases, excluding comments and duplicate names. It uses the current profile contents; save changes to an active profile to apply edits.")
                 }

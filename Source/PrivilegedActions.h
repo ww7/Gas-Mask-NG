@@ -18,13 +18,18 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#import <Foundation/Foundation.h>
+
+/// No generic root command/path API. A user-authorized session can write only
+/// the fixed system hosts file through a PID/audit-token/CDHash-bound stream.
 @interface PrivilegedActions : NSObject
-
-+ (BOOL)authorized;
-+ (BOOL)authorize;
-+ (BOOL)authorizeWithPrompt:(NSString*)prompt;
-+ (BOOL)removeFile:(NSString*)path;
-+ (BOOL)copyFile:(NSString*)source to:(NSString*)destination;
-+ (BOOL)makeWritableForCurrentUser:(NSString*)path prompt:(NSString*)prompt;
-
++ (BOOL)hasAuthorizedSession;
++ (NSString*)currentSystemContents;
++ (NSString*)authorizationScriptSource;
++ (void)endSession;
++ (BOOL)writeHostsContents:(NSString*)contents allowAuthorization:(BOOL)interactive error:(NSError**)error;
+// Pure construction/validation helpers are exposed for fixture-based tests.
++ (NSString*)quotedShellArgument:(NSString*)argument;
++ (NSString*)bootstrapCommandForHelper:(NSString*)path digest:(NSString*)digest
+                                  pid:(pid_t)pid uid:(uid_t)uid codeHash:(NSString*)hash;
 @end

@@ -41,6 +41,12 @@ struct AboutBoxView: View {
                 }
             }
 
+            Text("All project donations support Ukraine’s reconstruction, defense, and people affected by the war.")
+                .font(.system(size: 11))
+                .multilineTextAlignment(.center)
+                .frame(width: 370)
+                .fixedSize(horizontal: false, vertical: true)
+
             Text("Copyright © 2009–2026 Clockwise.\nGPL-2.0-or-later.")
                 .font(.system(size: 10))
                 .multilineTextAlignment(.center)

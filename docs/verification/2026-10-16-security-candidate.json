@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-16",
+  "version": "0.8.7-ww7.21",
+  "result_bundle": "build/TestResults-20261016T031511Z.xcresult",
+  "full_test_suite": true,
+  "passed_tests": 162,
+  "failed_tests": 0,
+  "skipped_tests": 0,
+  "runtime_warnings": [],
+  "storage_assertions": 28,
+  "native_security_assertions": {
+    "per_configuration": 74,
+    "configurations": 3,
+    "total": 222,
+    "sanitizers": [
+      "AddressSanitizer",
+      "UndefinedBehaviorSanitizer"
+    ]
+  },
+  "icon_combinations": 28,
+  "exact_icon_renditions": 18,
+  "secrets_current_snapshot_findings": 0,
+  "mas_shortcut_osv_advisories": 0,
+  "developer_id": false,
+  "notarized": false,
+  "stable_acceptance_complete": false,
+  "pending": [
+    "disposable macOS administrator authorization/cancellation and helper teardown",
+    "root legacy ACL conversion",
+    "physical Intel, sleep/wake and login-item lifecycle"
+  ],
+  "owner_profiles_used_for_tests": false,
+  "system_hosts_used_for_tests": false
+}

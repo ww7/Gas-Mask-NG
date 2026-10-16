@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><title>Gas Mask NG — Mask, Sunset sky</title><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#123D96"/><stop offset="0.55" stop-color="#3B59BD"/><stop offset="1" stop-color="#E653B6"/></linearGradient></defs><rect x="82" y="82" width="860" height="860" rx="190" fill="url(#sky)"/><g transform="translate(205 205) scale(19.1875)" color="#FFE24A" fill="currentColor">
+  
+  
+  <defs>
+    <mask id="lenses" maskUnits="userSpaceOnUse" x="0" y="-2" width="32" height="34" style="mask-type:luminance">
+      <rect y="-2" width="32" height="34" fill="white"/>
+      <ellipse cx="11.0526" cy="13.6663" rx="4.86734" ry="4.36183" transform="rotate(31.023 11.0526 13.6663)" fill="black"/>
+      <ellipse cx="20.7872" cy="9.78601" rx="4.32149" ry="3.18159" transform="rotate(81.761 20.7872 9.78601)" fill="black"/>
+    </mask>
+  </defs>
+  <g fill="currentColor">
+    <path mask="url(#lenses)" d="M 13.75 -1.15 C 20.45 -1.15 25.45 5.4 25.45 11.7 C 25.45 15.4 27.146180 21.012525 26.207778 21.056137 C 22.454170 21.230584 19.448313 22.819552 17.190205 25.823042 C 10.5 23.5 2.65 18.2 2.65 11.3 C 2.65 4.9 7.05 -1.15 13.75 -1.15 Z"/>
+    <path transform="translate(23.6151 27.0643) rotate(-27.862)" d="M -5.1 -2.5 C -1.7 -4.1 1.7 -4.1 5.1 -2.5 L 5.1 2 Q 5.1 3.1 4 3.1 L -4 3.1 Q -5.1 3.1 -5.1 2 Z"/>
+  </g>
+</g></svg>

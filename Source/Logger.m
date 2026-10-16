@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #import "ExtendedNSThread.h"
-#import "RegexKitLite.h"
 #import "Logger.h"
 
 void privateLogDebug(NSString *format, const char *method, ...)
@@ -121,7 +120,7 @@ void privateLogError(NSString *format, const char *method, ...)
 	
 	NSArray *parts = [[NSString stringWithCString:method encoding:NSUTF8StringEncoding] componentsSeparatedByString:@" "];
 	NSString *className = [[[parts objectAtIndex:0] componentsSeparatedByString:@"("] objectAtIndex:0];
-	NSRange range = [className rangeOfRegex:@"(\\-|\\+)\\["];
+	NSRange range = [className rangeOfString:@"[-+]\\[" options:NSRegularExpressionSearch];
 	
 	if (range.location != NSNotFound) {
 		className = [className substringFromIndex:NSMaxRange(range)];

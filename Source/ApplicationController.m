@@ -24,10 +24,10 @@
 #import "HostsMenu.h"
 #import "HostsTextView.h"
 #import "Gas_Mask-Swift.h"
+#import "PrivilegedActions.h"
 #import "LocalHostsController.h"
 #import "RemoteHostsController.h"
 #import "NotificationHelper.h"
-#import <Sparkle/Sparkle.h>
 #import <math.h>
 
 @interface ApplicationController ()
@@ -67,14 +67,6 @@ static ApplicationController *sharedInstance = nil;
 	if (self = [super init]) {
 		shouldQuit = YES;
 
-		BOOL isTesting = NSClassFromString(@"XCTestCase") != nil;
-		BOOL forkBuild = [[NSBundle.mainBundle objectForInfoDictionaryKey:@"WW7ForkBuild"] boolValue];
-		if (!isTesting && !forkBuild) {
-			_updaterController = [[SPUStandardUpdaterController alloc]
-								  initWithStartingUpdater:YES
-								  updaterDelegate:nil
-								  userDriverDelegate:nil];
-		}
 
 		NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 		[nc addObserver:self selector:@selector(activatePreviousFile:) name:ActivatePreviousFileNotification object:nil];
@@ -85,11 +77,6 @@ static ApplicationController *sharedInstance = nil;
 		return self;
 	}
     return sharedInstance;
-}
-
-- (SPUUpdater *)updater
-{
-	return _updaterController.updater;
 }
 
 -(IBAction)openPreferencesWindow:(id)sender
@@ -106,6 +93,11 @@ static ApplicationController *sharedInstance = nil;
 - (IBAction)reportBugs:(id)sender
 {
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:IssueTrackerURL]];
+}
+
+- (IBAction)openReleases:(id)sender
+{
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/ww7/gas-mask-ng/releases"]];
 }
 
 - (IBAction)donate:(id)sender
@@ -284,11 +276,13 @@ static ApplicationController *sharedInstance = nil;
 		return;
 	}
     [AppAppearance applyPreference];
+    [[IconPreferences shared] apply];
 	[NotificationHelper initNotificationCenter];
 	(void)[GlobalShortcuts shared]; // Register global hotkeys
 
-	checkForUpdatesMenuItem.target = _updaterController;
-	checkForUpdatesMenuItem.action = @selector(checkForUpdates:);
+	checkForUpdatesMenuItem.target = self;
+	checkForUpdatesMenuItem.action = @selector(openReleases:);
+    checkForUpdatesMenuItem.title = @"Open Releases…";
 
 	[NSApp setServicesProvider:self];
 
@@ -329,6 +323,7 @@ static ApplicationController *sharedInstance = nil;
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
+    [PrivilegedActions endSession];
 	if (!shouldQuit) {
 		[self hideApplicationFromDock];
 	}
@@ -416,6 +411,7 @@ static ApplicationController *sharedInstance = nil;
 - (void)showApplicationInDock
 {
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+    [[IconPreferences shared] applyDockIcon];
 	if (@available(macOS 14.0, *)) {
 		[NSApp activate];
 	} else {
@@ -426,6 +422,7 @@ static ApplicationController *sharedInstance = nil;
 - (void)hideApplicationFromDock
 {
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    [[IconPreferences shared] applyDockIcon];
 	[Preferences setShowEditorWindow:NO];
 	[[NSNotificationCenter defaultCenter] removeObserver:self
 													name:NSWindowWillCloseNotification

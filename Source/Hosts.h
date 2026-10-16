@@ -37,6 +37,7 @@
 @property (retain) NSString *path;
 @property BOOL editable;
 @property BOOL exists;
+@property (nonatomic) BOOL systemApplyPending;
 
 - (id)initWithPath:(NSString*)pathValue;
 - (NSString*)contents;
@@ -44,6 +45,7 @@
 - (NSString*)cachedContents;
 /* Returns hosts file from the disk */
 - (NSString*)contentsOnDisk;
+- (NSString*)systemContentsOnDisk;
 - (void) setContents:(NSString*)newContentsValue;
 - (NSString*) name;
 - (void)setName:(NSString*)name;

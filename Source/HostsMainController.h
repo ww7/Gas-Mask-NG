@@ -20,7 +20,6 @@
 
 #import "Hosts.h"
 #import "HostsGroup.h"
-#import "VDKQueue.h"
 
 #define HostsFileShouldBeRenamedNotification @"HostsFileShouldBeRenamedNotification"
 #define HostsFileWillBeRemovedNotification @"HostsFileWillBeRemovedNotification"
@@ -55,6 +54,7 @@
 - (Hosts*)createHostsFromLocalURL:(NSURL*)url;
 
 - (void)saveHosts:(Hosts*)hosts;
+- (void)saveHosts:(Hosts*)hosts allowAuthorization:(BOOL)interactive;
 - (BOOL)rename:(Hosts*)hosts to:(NSString*)name;
 - (void)removeHostsFile:(Hosts*)hosts moveToTrash:(BOOL)moveToTrash;
 - (BOOL)activateHostsFile:(Hosts*)hosts;
@@ -72,7 +72,7 @@
 
 @end
 
-@interface HostsMainController : NSTreeController<HostsControllerDelegateProtocol, VDKQueueDelegate> {
+@interface HostsMainController : NSTreeController<HostsControllerDelegateProtocol> {
 	@private
 	NSArray *controllers;
 	int filesCount;
@@ -101,6 +101,7 @@
 - (IBAction)saveSelected:(id)sender;
 - (void)save:(id)sender;
 - (void)saveHosts:(Hosts*)hosts;
+- (void)saveHosts:(Hosts*)hosts allowAuthorization:(BOOL)interactive;
 
 - (BOOL)canRemoveFiles;
 - (BOOL)updateRemoteHosts:(RemoteHosts*)hosts;

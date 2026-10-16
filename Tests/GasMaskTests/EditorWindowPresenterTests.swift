@@ -99,6 +99,13 @@ final class EditorWindowPresenterTests: XCTestCase {
     }
 
     func testRename_endsOnBlurAndSubmitFocusesDocument() throws {
+        // This fixture constructs the presenter directly; mirror the controller
+        // state of a normally opened editor so delayed old-window teardown does
+        // not switch the test application back to accessory policy mid-rename.
+        let appController = try XCTUnwrap(ApplicationController.defaultInstance())
+        let previousOpened = appController.editorWindowOpened()
+        appController.setValue(true, forKey: "editorWindowOpened")
+        defer { appController.setValue(previousOpened, forKey: "editorWindowOpened") }
         let previousPolicy = NSApp.activationPolicy()
         NSApp.setActivationPolicy(.regular)
         defer { NSApp.setActivationPolicy(previousPolicy) }
@@ -148,6 +155,15 @@ final class EditorWindowPresenterTests: XCTestCase {
             // Cooperative NSApp.activate() may be declined on a CI desktop.
             NSApp.activate(ignoringOtherApps: true)
             preview.makeKeyAndOrderFront(nil)
+            let activationDeadline = Date(timeIntervalSinceNow: 3)
+            while (!NSApp.isActive || !preview.isKeyWindow), Date() < activationDeadline {
+                NSApp.activate(ignoringOtherApps: true)
+                preview.makeKeyAndOrderFront(nil)
+                RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+            }
+            if !NSApp.isActive || !preview.isKeyWindow {
+                print("Rename fixture: desktop declined activation; the actual native field editor is still required below.")
+            }
             NotificationCenter.default.post(name: .hostsFileShouldBeRenamed, object: hosts)
             settle()
             // SwiftUI installs its native field editor asynchronously. Wait for

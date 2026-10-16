@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -2 32 34" width="320" height="340">
+  <title>Gas Mask NG — clear silhouette study</title>
+  <desc>A gas-mask silhouette first, with a secondary balloon reading. Smooth crown, matching curved cut edges, and an untapered square-bottom filter at the original center and angle.</desc>
+  <defs>
+    <mask id="lenses" maskUnits="userSpaceOnUse" x="0" y="-2" width="32" height="34" style="mask-type:luminance">
+      <rect y="-2" width="32" height="34" fill="white"/>
+      <ellipse cx="11.0526" cy="13.6663" rx="4.86734" ry="4.36183" transform="rotate(31.023 11.0526 13.6663)" fill="black"/>
+      <ellipse cx="20.7872" cy="9.78601" rx="4.32149" ry="3.18159" transform="rotate(81.761 20.7872 9.78601)" fill="black"/>
+    </mask>
+  </defs>
+  <g fill="currentColor">
+    <path mask="url(#lenses)" d="M 13.75 -1.15 C 20.45 -1.15 25.45 5.4 25.45 11.7 C 25.45 15.4 27.146180 21.012525 26.207778 21.056137 C 22.454170 21.230584 19.448313 22.819552 17.190205 25.823042 C 10.5 23.5 2.65 18.2 2.65 11.3 C 2.65 4.9 7.05 -1.15 13.75 -1.15 Z"/>
+    <path transform="translate(23.6151 27.0643) rotate(-27.862)" d="M -5.1 -2.5 C -1.7 -4.1 1.7 -4.1 5.1 -2.5 L 5.1 2 Q 5.1 3.1 4 3.1 L -4 3.1 Q -5.1 3.1 -5.1 2 Z"/>
+  </g>
+</svg>

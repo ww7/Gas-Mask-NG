@@ -15,3 +15,12 @@
 #import "Preferences+Remote.h"
 #import "LoginItem.h"
 #import "ApplicationController.h"
+
+#import "HostsDownloader.h"
+#import "AbstractHostsManager.h"
+#import "RemoteHostsManager.h"
+
+#import "PrivilegedActions.h"
+
+#import "Menulet.h"
+#import "HostsMenu.h"

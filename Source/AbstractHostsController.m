@@ -86,19 +86,29 @@
 
 - (void)saveHosts:(Hosts*)hosts
 {
-	if ([hosts active]) {
-		BOOL saved = [self saveHostsFileToOriginalLocation:hosts];
-		if (!saved) {
-			return;
-		}
-	}
-	
-	[hosts save];
-	[hosts setExists:YES];
+    [self saveHosts:hosts allowAuthorization:NO];
+}
+
+- (void)saveHosts:(Hosts*)hosts allowAuthorization:(BOOL)interactive
+{
+    [hosts save];
+    if (![hosts saved]) return;
+    [hosts setExists:YES];
+    if ([hosts active]) {
+        BOOL applied = [self saveHostsFileToOriginalLocation:hosts allowAuthorization:interactive];
+        [hosts setSystemApplyPending:!applied];
+        // Background downloads must keep their validated cache even without an
+        // authorized system-write session. A user save remains unsaved on failure.
+        if (!applied && interactive) [hosts setSaved:NO];
+    }
+    if ([hosts saved]) [[NSNotificationCenter defaultCenter] postNotificationName:HostsFileSavedNotification object:hosts];
 }
 
 - (BOOL)rename:(Hosts*)hosts to:(NSString*)name
 {
+    if (!name.length || [name isEqual:@"."] || [name isEqual:@".."] ||
+        [name rangeOfString:@"/"].location != NSNotFound ||
+        [name rangeOfCharacterFromSet:NSCharacterSet.controlCharacterSet].location != NSNotFound) return NO;
 	NSMutableString *newPath = [NSMutableString new];
 	[newPath appendString:[[hosts path] stringByDeletingLastPathComponent]];
 	[newPath appendString:@"/"];
@@ -121,25 +131,9 @@
 
 - (BOOL)restoreHostsToOriginalLocation:(Hosts*)hosts
 {
-    logDebug(@"Restoring hosts file \"%@\" to \"%@\"", [hosts name], [self systemHostsFilePath]);
-	
-    NSFileManager *manager = [NSFileManager defaultManager];
-    NSString *reason = @"Gas Mask needs to restore your selected host file.\n";
-    if (![self ensureHostsFileIsWritable: manager withReason:reason]) {
-        logDebug(@"System hosts file is not writeable, aborting [file=\"%@\"]", [self systemHostsFilePath]);
-        return NO;
-    }
-
-	NSError *error = NULL;
-    NSString * result = [[hosts contentsOnDisk] stringByAppendingString:@"\n\n"];
-	[result writeToFile:[self systemHostsFilePath] atomically:NO encoding:NSUTF8StringEncoding error:&error];
-	if (error) {
-		logError(@"Failed to save hosts file: \"%@\" [error: %@]", [hosts name], error);
-		return NO;
-	}
-	
-	[Util flushDirectoryServiceCache];
-	return YES;
+    BOOL result = [self writeSystemContents:[hosts systemContentsOnDisk] allowAuthorization:NO];
+    [hosts setSystemApplyPending:!result];
+    return result;
 }
 
 - (Hosts*)activeHostsFile
@@ -171,12 +165,13 @@
 
 - (BOOL)activateHostsFile:(Hosts*)hosts
 {
-	BOOL saved = [self saveHostsFileToOriginalLocation:hosts];
+	BOOL saved = [self saveHostsFileToOriginalLocation:hosts allowAuthorization:YES];
 	 if (!saved) {
 		 logError(@"Failed to save hosts file: \"%@\"", [hosts name]);
 		 return NO;
 	 }
 	 
+	[hosts setSystemApplyPending:NO];
 	[hosts setActive:YES];
 	[Preferences setActiveHostsFile:[hosts path]];
 
@@ -292,43 +287,39 @@
     return HostsFileLocation;
 }
 
-- (BOOL) ensureHostsFileIsWritable:(NSFileManager*) manager withReason: (NSString*) reason
+- (BOOL)writeSystemContents:(NSString*)text allowAuthorization:(BOOL)interactive
 {
-    BOOL writable = NO;
-    if ([manager isWritableFileAtPath:[self systemHostsFilePath]]) {
-        return YES;
+    if (!text) return NO;
+    NSString *result = [text stringByAppendingString:@"\n\n"];
+    NSError *error = nil;
+    BOOL success;
+    NSString *target = [self systemHostsFilePath];
+    if (![target isEqualToString:HostsFileLocation] && ![target isEqualToString:@"/private/etc/hosts"]) {
+        // Subclasses used by tests write only their temporary fixture target.
+        success = [result writeToFile:target atomically:YES encoding:NSUTF8StringEncoding error:&error];
+    } else {
+        success = [PrivilegedActions writeHostsContents:result allowAuthorization:interactive error:&error];
     }
-
-    logDebug(@"System hosts file is not writeable: \"%@\"", [self systemHostsFilePath]);
-    writable = [PrivilegedActions
-                makeWritableForCurrentUser:[self systemHostsFilePath]
-                prompt:reason];
-    if (!writable) {
-        logError(@"Failed to make \"%@\" writable", [self systemHostsFilePath]);
+    if (!success && interactive && error.code != NSUserCancelledError) {
+        NSAlert *alert = [NSAlert new];
+        alert.messageText = @"System Hosts Were Not Changed";
+        alert.informativeText = error.localizedDescription ?: @"Activate again to approve this change.";
+        [alert runModal];
     }
-    return writable;
+    if (success && [target isEqualToString:HostsFileLocation]) [Util flushDirectoryServiceCache];
+    return success;
 }
 
 - (BOOL)saveHostsFileToOriginalLocation:(Hosts*)hosts
 {
-	logDebug(@"Saving hosts file \"%@\" to \"%@\"", [hosts name], [self systemHostsFilePath]);
-    
-	NSFileManager *manager = [NSFileManager defaultManager];
-    NSString *reason = @"Gas Mask needs to modify system hosts file.\n";
-    if (![self ensureHostsFileIsWritable: manager withReason:reason]) {
-        return NO;
-    }
+    return [self saveHostsFileToOriginalLocation:hosts allowAuthorization:NO];
+}
 
-	NSError *error = NULL;
-    NSString * result = [[hosts contents] stringByAppendingString:@"\n\n"];
-	[result writeToFile:[self systemHostsFilePath] atomically:NO encoding:NSUTF8StringEncoding error:&error];
-	if (error) {
-		logError(@"Failed to save hosts file: \"%@\" [error: %@]", [hosts name], error);
-		return NO;
-	}
-	
-	[Util flushDirectoryServiceCache];
-	return YES;
+- (BOOL)saveHostsFileToOriginalLocation:(Hosts*)hosts allowAuthorization:(BOOL)interactive
+{
+    BOOL result = [self writeSystemContents:[hosts contents] allowAuthorization:interactive];
+    if ([hosts active]) [hosts setSystemApplyPending:!result];
+    return result;
 }
 
 - (NSString*)groupName
